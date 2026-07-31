@@ -8,6 +8,7 @@ const sequelize = new Sequelize(
   config.password,
   config,
 );
+
 const User = require("./user")(sequelize);
 const Project = require("./project")(sequelize);
 User.hasMany(Project, { foreignKey: "userId", as: "projects" });
