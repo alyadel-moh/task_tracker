@@ -1,0 +1,669 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+* {
+  box-sizing: border-box;
+  font-family:
+    "Inter",
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: #141412;
+  color: #f2f1ed;
+}
+
+/* ---------- Sidebar (desktop/tablet only) ---------- */
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  padding: 1.5rem 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(242, 241, 237, 0.45);
+  margin: 0 0 12px 8px;
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.project-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f2f1ed;
+}
+
+.project-item-active {
+  background: rgba(75, 74, 224, 0.16);
+  color: #9fa3f5;
+}
+
+.project-item-active:hover {
+  background: rgba(75, 74, 224, 0.22);
+  color: #9fa3f5;
+}
+
+.project-item-new {
+  margin-top: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  color: rgba(242, 241, 237, 0.45);
+}
+
+.project-item-new:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  color: rgba(242, 241, 237, 0.7);
+  background: transparent;
+}
+
+/* ---------- Board panel ---------- */
+
+.board-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.board-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.board-subtitle {
+  font-size: 13px;
+  color: rgba(242, 241, 237, 0.45);
+  margin: 2px 0 0;
+}
+
+.new-task-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #4b4ae0;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.new-task-button:hover {
+  background: #3b3ac2;
+}
+
+/* Mobile-only header: project switcher + search bar. Hidden on desktop. */
+.board-header-mobile {
+  display: none;
+}
+
+.mobile-project-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #f2f1ed;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Mobile-only tab switcher for choosing which single column shows */
+.column-tabs {
+  display: none;
+}
+
+.column-tab {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.55);
+  cursor: pointer;
+}
+
+.column-tab-active {
+  background: rgba(75, 74, 224, 0.2);
+  color: #9fa3f5;
+  font-weight: 600;
+}
+
+/* ---------- Board grid ---------- */
+
+.board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 1.25rem 1.5rem;
+  align-content: start;
+  overflow-y: auto;
+}
+
+.column {
+  min-width: 0;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+  padding: 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(242, 241, 237, 0.75);
+}
+
+.column-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(242, 241, 237, 0.4);
+  margin-left: 2px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-todo {
+  background: rgba(242, 241, 237, 0.4);
+}
+
+.status-dot-in_progress {
+  background: #4b4ae0;
+}
+
+.status-dot-in_review {
+  background: #d9a441;
+}
+
+.status-dot-done {
+  background: #4caf6f;
+}
+
+/* ---------- Task cards ---------- */
+
+.task-card {
+  background: #1e1e1b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
+  cursor: grab;
+  touch-action: none;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.task-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.task-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drag-handle {
+  color: rgba(242, 241, 237, 0.25);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.task-card-dragging {
+  opacity: 0.35;
+}
+
+.task-card-overlay {
+  cursor: grabbing;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border-color: rgba(75, 74, 224, 0.5);
+  width: 260px;
+}
+
+.column-drop-zone {
+  min-height: 60px;
+  border-radius: 14px;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.column-drop-zone-over {
+  background: rgba(75, 74, 224, 0.08);
+  box-shadow: inset 0 0 0 2px rgba(75, 74, 224, 0.4);
+}
+
+.column-empty {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.3);
+  text-align: center;
+  padding: 14px 0;
+  margin: 0;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.column-tab-over {
+  background: rgba(75, 74, 224, 0.35) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(75, 74, 224, 0.6);
+}
+
+.task-card-done {
+  opacity: 0.6;
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 10px;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.task-card-done .task-title {
+  text-decoration: line-through;
+  color: rgba(242, 241, 237, 0.55);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-high {
+  background: rgba(224, 90, 90, 0.16);
+  color: #ff9b9b;
+}
+
+.badge-medium {
+  background: rgba(224, 160, 74, 0.16);
+  color: #ffbf72;
+}
+
+.badge-low {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(242, 241, 237, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.badge-done {
+  background: rgba(76, 175, 111, 0.16);
+  color: #7fd99a;
+}
+
+.task-due {
+  font-size: 11px;
+  color: rgba(242, 241, 237, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+
+/* ---------- Floating action button (mobile only) ---------- */
+
+.fab {
+  display: none;
+}
+
+/* =========================================================
+   MOBILE (<768px): sidebar disappears, header becomes a
+   project switcher + search, tabs pick which single column
+   renders, board switches from a 3-col grid to a single block.
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .board-header-desktop {
+    display: none;
+  }
+
+  .board-header-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mobile-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: rgba(242, 241, 237, 0.45);
+    font-size: 13px;
+  }
+
+  .mobile-project-select {
+    position: relative;
+    z-index: 20;
+  }
+
+  .chevron-open {
+    transform: rotate(180deg);
+  }
+
+  .mobile-project-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 15;
+  }
+
+  .mobile-project-menu {
+    position: absolute;
+    top: 64px;
+    left: 1.5rem;
+    right: 1.5rem;
+    z-index: 20;
+    background: #1e1e1b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .mobile-project-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: rgba(242, 241, 237, 0.75);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobile-project-menu-item-active {
+    background: rgba(75, 74, 224, 0.18);
+    color: #9fa3f5;
+  }
+
+  .mobile-project-menu-item-new {
+    color: rgba(242, 241, 237, 0.45);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0 0 9px 9px;
+    margin-top: 4px;
+    padding-top: 13px;
+  }
+
+  .column-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 10px 1.5rem 0;
+  }
+
+  .board {
+    display: block;
+    padding: 10px 1.5rem 5rem;
+  }
+
+  .column {
+    display: none;
+  }
+
+  .column-active {
+    display: block;
+  }
+
+  .column-header-desktop {
+    display: none;
+  }
+
+  .fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 20px;
+    bottom: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #4b4ae0;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 6px 20px rgba(75, 74, 224, 0.4);
+    cursor: pointer;
+  }
+}
+
+/* Tablet: sidebar stays, but a bit narrower; grid keeps 3 columns but tighter gap */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .board {
+    gap: 10px;
+  }
+}
+
+/* ---------- User account section (desktop sidebar) ---------- */
+
+.sidebar-user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(75, 74, 224, 0.25);
+  color: #9fa3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-info {
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: #f2f1ed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.45);
+  margin: 1px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 4px;
+}
+
+.sidebar-action-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.65);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebar-action-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f2f1ed;
+}
+
+.sidebar-action-button-danger:hover {
+  background: rgba(224, 90, 90, 0.12);
+  color: #ff9b9b;
+}
+
+/* ---------- User account section (mobile header + dropdown) ---------- */
+
+.mobile-user-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(75, 74, 224, 0.25);
+  color: #9fa3f5;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-project-menu-item-danger {
+  color: #ff9b9b;
+}
+
+.mobile-user-menu-header {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+}
+
+.mobile-user-menu-header .user-name {
+  font-size: 14px;
+}
+
+.mobile-user-menu-header .user-email {
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .mobile-header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .mobile-user-menu {
+    position: absolute;
+    top: 64px;
+    right: 1.5rem;
+    left: auto;
+    width: 220px;
+    z-index: 20;
+    background: #1e1e1b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
