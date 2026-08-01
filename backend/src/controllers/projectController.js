@@ -13,7 +13,7 @@ async function create(req, res, next) {
       name: name.trim(),
       description: description || null,
     });
-    return res.status(201).json(project);
+    return res.status(201).json({ message: "Project created successfully" });
   } catch (err) {
     next(err);
   }
@@ -66,7 +66,9 @@ async function update(req, res, next) {
     project.description =
       description !== undefined ? description : project.description;
     await project.save();
-    return res.status(200).json(project);
+    return res.status(200).json({
+      message: `${name ? "name" : "description"} updated successfully`,
+    });
   } catch (err) {
     next(err);
   }
