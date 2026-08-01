@@ -11,7 +11,7 @@ interface Project {
   updatedAt: string;
 }
 
-const getProjects = () => {
+const useGetProjects = () => {
   return useQuery<Project[], AxiosError>({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -22,4 +22,4 @@ const getProjects = () => {
     retry: false,
   });
 };
-export default getProjects;
+export default useGetProjects;

@@ -1,0 +1,52 @@
+/* Extends CreateProjectModal.css - import both, this file only adds what's
+   different: the split delete/save action row and danger-state styling. */
+
+.modal-actions-split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.modal-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-button-danger-ghost {
+  background: transparent;
+  color: rgba(255, 155, 155, 0.75);
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.modal-button-danger-ghost:hover {
+  color: #ff9b9b;
+  background: transparent;
+}
+
+.modal-button-danger {
+  background: #c94444;
+  color: #ffffff;
+}
+
+.modal-button-danger:hover {
+  background: #b53a3a;
+}
+
+.modal-header-icon-danger {
+  background: rgba(224, 90, 90, 0.16);
+  color: #ff9b9b;
+}
+
+@media (max-width: 380px) {
+  .modal-actions-split {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .modal-actions-right {
+    justify-content: flex-end;
+  }
+}

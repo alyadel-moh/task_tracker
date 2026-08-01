@@ -8,15 +8,15 @@ interface User {
   email: string;
 }
 
-const getUser = () => {
+const useGetUser = () => {
   return useQuery<User, AxiosError>({
     queryKey: ["user"],
     queryFn: async () => {
-      const response = await axiosInstance.get<User>("users/me");
+      const response = await axiosInstance.get<User>("auth/me");
       return response.data;
     },
     enabled: !!localStorage.getItem("token"),
     retry: false,
   });
 };
-export default getUser;
+export default useGetUser;

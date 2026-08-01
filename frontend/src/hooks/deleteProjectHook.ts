@@ -6,11 +6,11 @@ interface DeleteProjectResponse {
   status: string;
   message: string;
 }
-const DeleteProject = () => {
+const useDeleteProject = () => {
   return useMutation<DeleteProjectResponse, AxiosError, string>({
     mutationFn: (id: string) => {
       return axiosInstance
-        .delete<DeleteProjectResponse>(`projects/${id}`)
+        .delete<DeleteProjectResponse>(`projects/delete/${id}`)
         .then((response) => response.data);
     },
     onSuccess: (data: DeleteProjectResponse) => {
@@ -21,4 +21,4 @@ const DeleteProject = () => {
     },
   });
 };
-export default DeleteProject;
+export default useDeleteProject;

@@ -9,11 +9,11 @@ interface UpdateProjectResponse {
   status: string;
   message: string;
 }
-const updateProject = () => {
+const useUpdateProject = (id: string) => {
   return useMutation<UpdateProjectResponse, AxiosError, UpdateProjectData>({
     mutationFn: (projectData: UpdateProjectData) => {
       return axiosInstance
-        .put<UpdateProjectResponse>(`projects/update`, projectData)
+        .put<UpdateProjectResponse>(`projects/update/${id}`, projectData)
         .then((response) => response.data);
     },
     onMutate: async (newProjectData: UpdateProjectData) => {
@@ -27,4 +27,4 @@ const updateProject = () => {
     },
   });
 };
-export default updateProject;
+export default useUpdateProject;
