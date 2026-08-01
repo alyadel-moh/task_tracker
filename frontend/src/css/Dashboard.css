@@ -42,7 +42,15 @@
   gap: 2px;
 }
 
+.project-item-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .project-item {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -73,6 +81,53 @@
 .project-item-active:hover {
   background: rgba(75, 74, 224, 0.22);
   color: #9fa3f5;
+}
+
+.project-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-item-edit {
+  position: absolute;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+/* Reveals on row hover, and stays visible on keyboard focus so it's not
+   mouse-only - a person tabbing through the sidebar needs to be able to
+   reach it too. */
+.project-item-row:hover .project-item-edit,
+.project-item-edit:focus-visible {
+  opacity: 1;
+}
+
+.project-item-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2f1ed;
+}
+
+/* Touch devices have no hover state, so the icon needs to just be there -
+   otherwise there's no way to discover or reach it on mobile/tablet. */
+@media (hover: none) {
+  .project-item-edit {
+    opacity: 0.55;
+  }
 }
 
 .project-item-new {

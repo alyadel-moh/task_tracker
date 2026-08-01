@@ -9,7 +9,7 @@ interface CreateProjectResponse {
   status: string;
   message: string;
 }
-const createProject = () => {
+const useCreateProject = () => {
   return useMutation<CreateProjectResponse, AxiosError, CreateProjectData>({
     mutationFn: (newProjectData: CreateProjectData) => {
       return axiosInstance
@@ -27,4 +27,4 @@ const createProject = () => {
     },
   });
 };
-export default createProject;
+export default useCreateProject;
