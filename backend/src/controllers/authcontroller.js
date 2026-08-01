@@ -20,7 +20,6 @@ async function register(req, res, next) {
     }
     const user = await User.create({ name, email, password });
     res.status(201).json({
-      user: { id: user.id, name: user.name, email: user.email },
       message: "User registered successfully",
     });
   } catch (error) {
@@ -55,7 +54,6 @@ async function login(req, res, next) {
     }
     const token = generateToken({ id: user.id, email: user.email });
     res.status(200).json({
-      user: { id: user.id, name: user.name, email: user.email },
       message: "Login successful",
       token,
     });
