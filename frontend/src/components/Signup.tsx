@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CheckSquare,
   User,
@@ -7,12 +11,9 @@ import {
   EyeOff,
   Loader2,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 import "../css/Signup.css";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
 import useRegister from "../hooks/registerHook";
 
 const schema = z.object({
@@ -28,6 +29,8 @@ type FormData = z.infer<typeof schema>;
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const signupMutation = useRegister();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -38,14 +41,21 @@ const Signup = () => {
   const onSubmit = (data: FormData) => {
     signupMutation.mutate(data, {
       onSuccess: () => {
-        reset({ name: data.name, email: data.email, password: "" });
+        toast.success("Account created successfully!");
+        reset();
+        navigate("/login");
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ?? "Error occurred during signup.";
+        toast.error(message);
       },
     });
   };
 
-  const errorMessage =
-    (signupMutation.error as any)?.response?.data?.message ??
-    "Error occurred during signup.";
+  const onInvalid = () => {
+    toast.error("Please fill in all required fields correctly.");
+  };
 
   return (
     <div className="signup-page">
@@ -59,18 +69,9 @@ const Signup = () => {
           Start tracking your projects in seconds.
         </p>
 
-        {signupMutation.isError && (
-          <div className="form-banner form-banner-error">{errorMessage}</div>
-        )}
-        {signupMutation.isSuccess && (
-          <div className="form-banner form-banner-success">
-            Account created successfully!
-          </div>
-        )}
-
         <form
           className="signup-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
           <label className="field">

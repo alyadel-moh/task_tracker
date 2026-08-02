@@ -3,6 +3,7 @@ import { X, FolderPlus, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 import useCreateProject from "../hooks/createProjectHook";
 import "../css/createProjectmodal.css";
 
@@ -39,16 +40,25 @@ const CreateProjectModal = ({
       },
       {
         onSuccess: () => {
+          toast.success("Project created successfully!");
+          reset();
           refetchprojects();
           onClose();
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to create project. Please try again.";
+          toast.error(apiError);
         },
       },
     );
   };
 
-  const errorMessage =
-    (createProject.error as any)?.response?.data?.message ??
-    "Error occurred during project creation.";
+  // Trigger toast when form validation fails (e.g., clicking Submit with empty name)
+  const onInvalid = () => {
+    toast.error("Please fill in all required fields.");
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -88,13 +98,9 @@ const CreateProjectModal = ({
           Give your project a name to start adding tasks.
         </p>
 
-        {createProject.isError && (
-          <div className="modal-banner modal-banner-error">{errorMessage}</div>
-        )}
-
         <form
           className="modal-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
           <label className="field">

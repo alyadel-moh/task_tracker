@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
 interface updateTaskData {
+  id: string;
   name: string;
   description: string;
   status: string;
@@ -13,9 +14,9 @@ interface UpdateTaskResponse {
   status: string;
   message: string;
 }
-const useUpdateTask = (projectId: string, id: string) => {
+const useUpdateTask = (projectId: string) => {
   return useMutation<UpdateTaskResponse, AxiosError, updateTaskData>({
-    mutationFn: (taskData: updateTaskData) => {
+    mutationFn: ({ id, ...taskData }: updateTaskData) => {
       return axiosInstance
         .put<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, taskData)
         .then((response) => response.data);

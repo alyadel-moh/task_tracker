@@ -3,19 +3,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckSquare, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import useLogin from "../hooks/loginHook";
 import "../css/Login.css";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
+
 type FormData = z.infer<typeof schema>;
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const loginMutation = useLogin();
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -25,14 +29,20 @@ const Login = () => {
   const onSubmit = (data: FormData) => {
     loginMutation.mutate(data, {
       onSuccess: () => {
+        toast.success("Welcome back!");
         navigate("/dashboard");
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ?? "Invalid email or password.";
+        toast.error(message);
       },
     });
   };
 
-  const errorMessage =
-    loginMutation.error?.response?.data?.message ??
-    "Invalid email or password.";
+  const onInvalid = () => {
+    toast.error("Please fix the errors in the form.");
+  };
 
   return (
     <div className="login-page">
@@ -44,18 +54,9 @@ const Login = () => {
         <h1 className="login-title">Welcome back</h1>
         <p className="login-subtitle">Log in to your tasktrack account.</p>
 
-        {loginMutation.isError && (
-          <div className="form-banner form-banner-error">{errorMessage}</div>
-        )}
-        {loginMutation.isSuccess && loginMutation.data?.message && (
-          <div className="form-banner form-banner-success">
-            {loginMutation.data.message}
-          </div>
-        )}
-
         <form
           className="login-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
           <label className="field">
