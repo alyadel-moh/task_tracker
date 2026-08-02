@@ -12,17 +12,21 @@ import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
 import { type Project, type Status, type Task } from "./types";
 import CreateProjectModal from "./createprojectmodal";
-import useCreateTask from "../hooks/createtaskHook";
 import useGetProjects from "../hooks/getProjectsHook";
 import useGetTasks from "../hooks/getalltasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
 import ProjectDetailsModal from "./Projectdetailsmodal";
+import CreateTaskModal from "./createtaskmodal";
+import TaskDetailsModal from "./Taskdetailsmodal";
+import useUpdateTask from "../hooks/updateTaskHook";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Status>("todo");
   const [editProject, setEditProject] = useState<Project | null>(null);
+  const [editTask, setEditTask] = useState<Task | null>(null);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
@@ -32,12 +36,15 @@ const Dashboard = () => {
   const { data: projectsData, refetch } = projectsQuery;
   const projects = projectsData ?? [];
   const tasksQuery = useGetTasks(activeProjectId);
-  const tasksData = tasksQuery.data;
+  const { data: tasksData, refetch: refetchTasks } = tasksQuery;
   const userQuery = useGetUser();
   const user = userQuery.data ?? null;
   const logoutMutation = useLogout();
-  const createTaskMutation = useCreateTask();
   const navigate = useNavigate();
+  const updateTaskMutation = useUpdateTask(
+    activeProjectId ?? "",
+    draggingTask?.id ?? "",
+  );
 
   useEffect(() => {
     if (tasksData) {
@@ -85,9 +92,11 @@ const Dashboard = () => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setDraggingTask(null);
     const { active, over } = event;
-    if (!over) return;
+    const task = draggingTask;
+    setDraggingTask(null);
+
+    if (!over || !task) return;
 
     const overId = String(over.id);
     const newStatus = (
@@ -96,13 +105,30 @@ const Dashboard = () => {
         : overId.replace("column-", "")
     ) as Status;
 
+    if (newStatus === task.status) return;
+
     setTasks((current) =>
-      current.map((task) =>
-        task.id === active.id ? { ...task, status: newStatus } : task,
+      current.map((t) =>
+        t.id === active.id ? { ...t, status: newStatus } : t,
       ),
     );
-
     setActiveTab(newStatus);
+
+    updateTaskMutation.mutate(
+      {
+        status: newStatus,
+        name: task.name,
+        description: task.description,
+        priority: task.priority,
+        estimatedTime: task.estimatedTime ?? null,
+        dueDate: task.dueDate ?? null,
+      },
+      {
+        onSuccess: () => {
+          refetchTasks();
+        },
+      },
+    );
   };
 
   const handleLogout = () => {
@@ -122,6 +148,12 @@ const Dashboard = () => {
     setIsProjectMenuOpen(false);
     setIsUserMenuOpen(false);
     setIsCreateProjectOpen(true);
+  };
+
+  const handleOpenCreateTask = () => {
+    setIsProjectMenuOpen(false);
+    setIsUserMenuOpen(false);
+    setIsCreateTaskOpen(true);
   };
 
   return (
@@ -152,7 +184,13 @@ const Dashboard = () => {
           refetchProjects={refetch}
         />
       )}
-
+      {editTask && (
+        <TaskDetailsModal
+          task={editTask}
+          onClose={() => setEditTask(null)}
+          refetchTasks={refetchTasks}
+        />
+      )}
       <DashboardBoard
         activeProject={activeProject}
         tasks={visibleTasks}
@@ -162,15 +200,11 @@ const Dashboard = () => {
         draggingTask={draggingTask}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onNewTask={() => {
-          createTaskMutation.mutate({
-            name: "",
-            description: "",
-            status: "todo",
-            priority: "medium",
-            estimatedTime: null,
-            dueDate: null,
-          });
+        onEditProject={(projectId: string) => {
+          const project = projects.find((p) => p.id === projectId);
+          if (project) {
+            setEditProject(project);
+          }
         }}
         isProjectMenuOpen={isProjectMenuOpen}
         onToggleProjectMenu={() => setIsProjectMenuOpen((open) => !open)}
@@ -179,11 +213,26 @@ const Dashboard = () => {
         projects={projects}
         activeProjectId={activeProjectId}
         onSelectProject={handleSelectProject}
+        onCreateTask={handleOpenCreateTask}
         onCreateProject={handleOpenCreateProject}
         userName={user?.name ?? "Guest"}
         userEmail={user?.email ?? "No email available"}
         onLogout={handleLogout}
+        onEditTask={(taskId: string) => {
+          const task = visibleTasks.find((t) => t.id === taskId);
+          if (task) {
+            setEditTask(task);
+          }
+        }}
       />
+
+      {isCreateTaskOpen && (
+        <CreateTaskModal
+          onClose={() => setIsCreateTaskOpen(false)}
+          projectId={activeProjectId ?? ""}
+          refetchTasks={refetchTasks}
+        />
+      )}
 
       {isCreateProjectOpen && (
         <CreateProjectModal

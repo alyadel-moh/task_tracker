@@ -321,9 +321,21 @@
 }
 
 .drag-handle {
+  appearance: none;
+  border: none;
+  background: transparent;
   color: rgba(242, 241, 237, 0.25);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .task-card-dragging {

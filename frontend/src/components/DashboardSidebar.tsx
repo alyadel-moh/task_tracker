@@ -41,9 +41,6 @@ const DashboardSidebar = ({
               className="project-item-edit"
               aria-label={`Edit ${project.name}`}
               onClick={(event) => {
-                // Stop the click from also bubbling up and selecting the
-                // project - editing and selecting are separate actions that
-                // happen to sit in the same row.
                 event.stopPropagation();
                 onEditProject(project.id);
               }}
@@ -62,6 +59,12 @@ const DashboardSidebar = ({
       </nav>
 
       <div className="sidebar-user">
+        <div className="user-avatar">
+          {userName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")}
+        </div>
         <div className="user-info">
           <p className="user-name">{userName}</p>
           <p className="user-email">{userEmail}</p>

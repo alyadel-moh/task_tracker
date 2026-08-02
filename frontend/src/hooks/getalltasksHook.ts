@@ -2,16 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
 import { type Priority, type Status } from "../components/types";
-
-interface Task {
-  id: string;
-  projectId: string;
-  name: string;
-  priority: Priority;
-  dueDate?: string;
-  estimate?: string;
-  status: Status;
-}
+import { type Task } from "../components/types";
 
 const useGetTasks = (projectId?: string | null) => {
   return useQuery<Task[], AxiosError>({

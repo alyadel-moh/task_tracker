@@ -1,37 +1,50 @@
 import { useState } from "react";
-import { X, Folder, Trash2, AlertTriangle } from "lucide-react";
-import "../css/ProjectDetailsModal.css";
+import { X, CheckSquare, Trash2, AlertTriangle } from "lucide-react";
+import "../css/TaskDetailsModal.css";
+import { Task } from "./types";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import useDeleteProject from "../hooks/deleteProjectHook";
-import useUpdateProject from "../hooks/updateProjectHook";
+import useUpdateTask from "../hooks/updateTaskHook";
+import useDeleteTask from "../hooks/deletetaskHook";
 
 const schema = z.object({
-  name: z.string().min(1, { message: "Project name is required" }),
+  name: z.string().min(1, { message: "Task name is required" }),
   description: z.string().optional(),
+  status: z.string().min(1, { message: "Status is required" }),
+  priority: z.string().min(1, { message: "Priority is required" }),
+  estimatedTime: z
+    .number()
+    .min(0, { message: "Estimated time must be non-negative" })
+    .optional(),
+  dueDate: z.string().nullable().optional(),
 });
+
 type FormData = z.infer<typeof schema>;
-interface ProjectDetailsModalProps {
-  project: {
-    id: string;
-    name: string;
-    description: string | null;
-    createdAt: string;
-    updatedAt: string;
-  };
+
+interface TaskDetailsModalProps {
+  task: Task;
   onClose: () => void;
-  taskCount: number;
-  refetchProjects?: () => void;
+  refetchTasks: () => void;
 }
 
+const STATUS_OPTIONS = [
+  { value: "todo", label: "To do" },
+  { value: "in_progress", label: "In progress" },
+  { value: "in_review", label: "In review" },
+  { value: "done", label: "Done" },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+
 // Formats an ISO timestamp like "2026-08-02T12:29:11.574Z" into something
-// short and readable, e.g. "8/2/26, 12:29 PM" - compact so both the created
-// and updated timestamps have a real chance of fitting on one line. Falls
-// back to the raw string if it can't be parsed. Internal spaces are
-// non-breaking so the date/time can never split across lines no matter what
-// layout CSS is in play.
+// short and readable, e.g. "8/2/26, 12:29 PM". Falls back to the raw string
+// if it can't be parsed. Internal spaces are non-breaking so the date/time
+// can never split across lines no matter what layout CSS is in play.
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -45,53 +58,54 @@ const formatTimestamp = (value: string): string => {
   return formatted.replace(/ /g, "\u00A0");
 };
 
-const ProjectDetailsModal = ({
-  project,
+const TaskDetailsModal = ({
+  task,
   onClose,
-  taskCount,
-  refetchProjects,
-}: ProjectDetailsModalProps) => {
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const updateProjectMutation = useUpdateProject(project.id);
-  const deleteProjectmutation = useDeleteProject();
+  refetchTasks,
+}: TaskDetailsModalProps) => {
+  const updateTaskMutation = useUpdateTask(task.projectId, task.id);
+  const deleteTaskMutation = useDeleteTask(task.projectId, task.id);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
   const onSubmit = (data: FormData) => {
-    updateProjectMutation.mutate(
+    updateTaskMutation.mutate(
       {
         name: data.name,
         description: data.description ?? "",
+        status: data.status,
+        priority: data.priority,
+        estimatedTime: data.estimatedTime ?? null,
+        dueDate: data.dueDate ?? null,
       },
       {
         onSuccess: () => {
           onClose();
-          refetchProjects?.();
+          refetchTasks();
         },
       },
     );
   };
-
   const errorMessage =
-    (updateProjectMutation.error as any)?.response?.data?.message ??
-    "Error occurred during project update.";
-
+    (updateTaskMutation.error as any)?.response?.data?.message ??
+    "Error occurred during task update.";
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-card"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="project-details-title"
+        aria-labelledby="task-details-title"
         onClick={(event) => event.stopPropagation()}
       >
         {!isConfirmingDelete ? (
           <>
             <div className="modal-header">
               <div className="modal-header-icon">
-                <Folder size={18} aria-hidden="true" />
+                <CheckSquare size={18} aria-hidden="true" />
               </div>
               <button
                 type="button"
@@ -103,35 +117,9 @@ const ProjectDetailsModal = ({
               </button>
             </div>
 
-            <div
-              className="modal-title-row"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <h2
-                id="project-details-title"
-                className="modal-title"
-                style={{ margin: 0 }}
-              >
-                Project details
-              </h2>
-              <span
-                className="modal-badge"
-                style={{
-                  flexShrink: 0,
-                  color: "rgba(255, 255, 255, 0.5)",
-                  fontSize: 13,
-                  fontWeight: 400,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {taskCount} {taskCount === 1 ? "task" : "tasks"}
-              </span>
-            </div>
+            <h2 id="task-details-title" className="modal-title">
+              Task details
+            </h2>
             <div
               className="modal-subtitle"
               style={{
@@ -145,21 +133,25 @@ const ProjectDetailsModal = ({
               }}
             >
               <span style={{ whiteSpace: "nowrap" }}>
-                Created {formatTimestamp(project.createdAt)}
+                Created {formatTimestamp(task.createdAt)}
               </span>
-              {project.updatedAt !== project.createdAt && (
+              {task.updatedAt !== task.createdAt && (
                 <span style={{ whiteSpace: "nowrap" }}>
-                  Updated {formatTimestamp(project.updatedAt)}
+                  Updated {formatTimestamp(task.updatedAt)}
                 </span>
               )}
             </div>
 
-            <form className="modal-form" noValidate>
+            <form
+              className="modal-form"
+              noValidate
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <label className="field">
                 <span className="field-label">Name</span>
                 <input
                   type="text"
-                  defaultValue={project.name}
+                  defaultValue={task.name}
                   {...register("name")}
                 />
                 {errors.name && (
@@ -173,12 +165,69 @@ const ProjectDetailsModal = ({
                   <span className="field-label-optional">(optional)</span>
                 </span>
                 <textarea
-                  defaultValue={project.description ?? ""}
-                  placeholder="What is this project about?"
+                  defaultValue={task.description ?? ""}
+                  placeholder="What does this task involve?"
                   rows={3}
                   {...register("description")}
                 />
               </label>
+
+              <div className="field-row">
+                <label className="field">
+                  <span className="field-label">Status</span>
+                  <select
+                    defaultValue={task.status}
+                    className="field-select"
+                    {...register("status")}
+                  >
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span className="field-label">Priority</span>
+                  <select
+                    defaultValue={task.priority}
+                    className="field-select"
+                    {...register("priority")}
+                  >
+                    {PRIORITY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="field-row">
+                <label className="field">
+                  <span className="field-label">
+                    Estimated time{" "}
+                    <span className="field-label-optional">(hours)</span>
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    defaultValue={task.estimatedTime ?? ""}
+                    placeholder="e.g. 2"
+                    {...register("estimatedTime", { valueAsNumber: true })}
+                  />
+                </label>
+
+                <label className="field">
+                  <span className="field-label">
+                    Due date{" "}
+                    <span className="field-label-optional">(optional)</span>
+                  </span>
+                  <input type="date" defaultValue={task.dueDate ?? ""} />
+                </label>
+              </div>
 
               <div className="modal-actions modal-actions-split">
                 <button
@@ -187,7 +236,7 @@ const ProjectDetailsModal = ({
                   onClick={() => setIsConfirmingDelete(true)}
                 >
                   <Trash2 size={14} aria-hidden="true" />
-                  Delete project
+                  Delete task
                 </button>
 
                 <div className="modal-actions-right">
@@ -201,7 +250,6 @@ const ProjectDetailsModal = ({
                   <button
                     type="submit"
                     className="modal-button modal-button-primary"
-                    onClick={handleSubmit(onSubmit)}
                   >
                     Save changes
                   </button>
@@ -225,11 +273,10 @@ const ProjectDetailsModal = ({
               </button>
             </div>
 
-            <h2 className="modal-title">Delete "{project.name}"?</h2>
+            <h2 className="modal-title">Delete "{task.name}"?</h2>
             <p className="modal-subtitle">
-              This permanently deletes the project and all {taskCount} of its
-              tasks, including their time entries and history. This can't be
-              undone.
+              This permanently deletes the task, including its time entries and
+              history. This can't be undone.
             </p>
 
             <div className="modal-actions">
@@ -243,14 +290,14 @@ const ProjectDetailsModal = ({
               <button
                 type="button"
                 className="modal-button modal-button-danger"
-                onClick={() => {
-                  deleteProjectmutation.mutate(project.id, {
+                onClick={() =>
+                  deleteTaskMutation.mutate(undefined, {
                     onSuccess: () => {
                       onClose();
-                      refetchProjects?.();
+                      refetchTasks();
                     },
-                  });
-                }}
+                  })
+                }
               >
                 <Trash2 size={14} aria-hidden="true" />
                 Delete permanently
@@ -263,4 +310,4 @@ const ProjectDetailsModal = ({
   );
 };
 
-export default ProjectDetailsModal;
+export default TaskDetailsModal;

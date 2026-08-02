@@ -39,7 +39,6 @@ const CreateProjectModal = ({
       },
       {
         onSuccess: () => {
-          reset({ name: "", description: "" });
           refetchprojects();
           onClose();
         },
