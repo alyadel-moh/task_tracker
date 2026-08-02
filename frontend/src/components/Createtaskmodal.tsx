@@ -1,7 +1,9 @@
-import { X, ListPlus } from "lucide-react";
+import { useEffect } from "react";
+import { X, ListPlus, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 import "../css/CreateProjectModal.css";
 import "../css/TaskModal.css";
 import useCreateTask from "../hooks/createtaskHook";
@@ -11,26 +13,32 @@ interface CreateTaskModalProps {
   onClose: () => void;
   refetchTasks: () => void;
 }
+
 const schema = z.object({
-  name: z.string().min(1, { message: "Project name is required" }),
+  name: z.string().min(1, { message: "Task title is required" }),
   description: z.string().optional(),
   status: z.enum(["todo", "in_progress", "in_review", "done"]).default("todo"),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
   estimatedTime: z.number().min(0).optional(),
   dueDate: z.string().nullable().optional(),
 });
+
 type FormData = z.infer<typeof schema>;
+
 const CreateTaskModal = ({
   onClose,
   projectId,
   refetchTasks,
 }: CreateTaskModalProps) => {
   const createtaskmutation = useCreateTask(projectId);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
+    reset,
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
+
   const onSubmit = (data: FormData) => {
     createtaskmutation.mutate(
       {
@@ -43,15 +51,33 @@ const CreateTaskModal = ({
       },
       {
         onSuccess: () => {
+          toast.success("Task created successfully!");
+          reset();
           refetchTasks();
           onClose();
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to create task. Please try again.";
+          toast.error(apiError);
         },
       },
     );
   };
-  const errorMessage =
-    (createtaskmutation.error as any)?.response?.data?.message ??
-    "Error occurred during task creation.";
+
+  const onInvalid = () => {
+    toast.error("Please fill in all required fields.");
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -79,13 +105,10 @@ const CreateTaskModal = ({
           New task
         </h2>
         <p className="modal-subtitle">Add a task to this project's board.</p>
-        {createtaskmutation.isError && (
-          <div className="form-banner form-banner-error">{errorMessage}</div>
-        )}
 
         <form
           className="modal-form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
           <label className="field">
@@ -150,11 +173,23 @@ const CreateTaskModal = ({
               type="button"
               className="modal-button modal-button-secondary"
               onClick={onClose}
+              disabled={createtaskmutation.isPending}
             >
               Cancel
             </button>
-            <button type="submit" className="modal-button modal-button-primary">
-              Create task
+            <button
+              type="submit"
+              className="modal-button modal-button-primary"
+              disabled={createtaskmutation.isPending}
+            >
+              {createtaskmutation.isPending ? (
+                <>
+                  <Loader2 size={14} className="spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create task"
+              )}
             </button>
           </div>
         </form>

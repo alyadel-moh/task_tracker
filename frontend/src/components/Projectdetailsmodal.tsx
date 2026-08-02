@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { X, Folder, Trash2, AlertTriangle } from "lucide-react";
+import { X, Folder, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import "../css/ProjectDetailsModal.css";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 
 import useDeleteProject from "../hooks/deleteProjectHook";
 import useUpdateProject from "../hooks/updateProjectHook";
@@ -13,6 +14,7 @@ const schema = z.object({
   description: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
+
 interface ProjectDetailsModalProps {
   project: {
     id: string;
@@ -26,12 +28,6 @@ interface ProjectDetailsModalProps {
   refetchProjects?: () => void;
 }
 
-// Formats an ISO timestamp like "2026-08-02T12:29:11.574Z" into something
-// short and readable, e.g. "8/2/26, 12:29 PM" - compact so both the created
-// and updated timestamps have a real chance of fitting on one line. Falls
-// back to the raw string if it can't be parsed. Internal spaces are
-// non-breaking so the date/time can never split across lines no matter what
-// layout CSS is in play.
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -54,11 +50,13 @@ const ProjectDetailsModal = ({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const updateProjectMutation = useUpdateProject(project.id);
   const deleteProjectmutation = useDeleteProject();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
   const onSubmit = (data: FormData) => {
     updateProjectMutation.mutate(
       {
@@ -67,16 +65,39 @@ const ProjectDetailsModal = ({
       },
       {
         onSuccess: () => {
+          toast.success("Project updated successfully!");
           onClose();
           refetchProjects?.();
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to update project. Please try again.";
+          toast.error(apiError);
         },
       },
     );
   };
 
-  const errorMessage =
-    (updateProjectMutation.error as any)?.response?.data?.message ??
-    "Error occurred during project update.";
+  const onInvalid = () => {
+    toast.error("Please enter a valid project name.");
+  };
+
+  const handleDelete = () => {
+    deleteProjectmutation.mutate(project.id, {
+      onSuccess: () => {
+        toast.success("Project deleted successfully!");
+        onClose();
+        refetchProjects?.();
+      },
+      onError: (error: any) => {
+        const apiError =
+          error?.response?.data?.message ??
+          "Failed to delete project. Please try again.";
+        toast.error(apiError);
+      },
+    });
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -154,7 +175,11 @@ const ProjectDetailsModal = ({
               )}
             </div>
 
-            <form className="modal-form" noValidate>
+            <form
+              className="modal-form"
+              noValidate
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
+            >
               <label className="field">
                 <span className="field-label">Name</span>
                 <input
@@ -185,6 +210,7 @@ const ProjectDetailsModal = ({
                   type="button"
                   className="modal-button modal-button-danger-ghost"
                   onClick={() => setIsConfirmingDelete(true)}
+                  disabled={updateProjectMutation.isPending}
                 >
                   <Trash2 size={14} aria-hidden="true" />
                   Delete project
@@ -195,15 +221,23 @@ const ProjectDetailsModal = ({
                     type="button"
                     className="modal-button modal-button-secondary"
                     onClick={onClose}
+                    disabled={updateProjectMutation.isPending}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     className="modal-button modal-button-primary"
-                    onClick={handleSubmit(onSubmit)}
+                    disabled={updateProjectMutation.isPending}
                   >
-                    Save changes
+                    {updateProjectMutation.isPending ? (
+                      <>
+                        <Loader2 size={14} className="spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
                   </button>
                 </div>
               </div>
@@ -237,23 +271,27 @@ const ProjectDetailsModal = ({
                 type="button"
                 className="modal-button modal-button-secondary"
                 onClick={() => setIsConfirmingDelete(false)}
+                disabled={deleteProjectmutation.isPending}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 className="modal-button modal-button-danger"
-                onClick={() => {
-                  deleteProjectmutation.mutate(project.id, {
-                    onSuccess: () => {
-                      onClose();
-                      refetchProjects?.();
-                    },
-                  });
-                }}
+                onClick={handleDelete}
+                disabled={deleteProjectmutation.isPending}
               >
-                <Trash2 size={14} aria-hidden="true" />
-                Delete permanently
+                {deleteProjectmutation.isPending ? (
+                  <>
+                    <Loader2 size={14} className="spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} aria-hidden="true" />
+                    Delete permanently
+                  </>
+                )}
               </button>
             </div>
           </>

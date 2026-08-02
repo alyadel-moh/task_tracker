@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X, CheckSquare, Trash2, AlertTriangle } from "lucide-react";
+import { X, CheckSquare, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import "../css/TaskDetailsModal.css";
 import { Task } from "./types";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteTask from "../hooks/deletetaskHook";
 
@@ -41,10 +42,6 @@ const PRIORITY_OPTIONS = [
   { value: "high", label: "High" },
 ];
 
-// Formats an ISO timestamp like "2026-08-02T12:29:11.574Z" into something
-// short and readable, e.g. "8/2/26, 12:29 PM". Falls back to the raw string
-// if it can't be parsed. Internal spaces are non-breaking so the date/time
-// can never split across lines no matter what layout CSS is in play.
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -63,16 +60,20 @@ const TaskDetailsModal = ({
   onClose,
   refetchTasks,
 }: TaskDetailsModalProps) => {
-  const updateTaskMutation = useUpdateTask(task.projectId, task.id);
+  const updateTaskMutation = useUpdateTask(task.projectId);
   const deleteTaskMutation = useDeleteTask(task.projectId, task.id);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
   const onSubmit = (data: FormData) => {
     updateTaskMutation.mutate(
       {
+        id: task.id,
         name: data.name,
         description: data.description ?? "",
         status: data.status,
@@ -82,16 +83,40 @@ const TaskDetailsModal = ({
       },
       {
         onSuccess: () => {
+          toast.success("Task updated successfully!");
           onClose();
           refetchTasks();
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to update task. Please try again.";
+          toast.error(apiError);
         },
       },
     );
   };
-  const errorMessage =
-    (updateTaskMutation.error as any)?.response?.data?.message ??
-    "Error occurred during task update.";
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  const onInvalid = () => {
+    toast.error("Please fill in all required fields correctly.");
+  };
+
+  const handleDelete = () => {
+    deleteTaskMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success("Task deleted successfully!");
+        onClose();
+        refetchTasks();
+      },
+      onError: (error: any) => {
+        const apiError =
+          error?.response?.data?.message ??
+          "Failed to delete task. Please try again.";
+        toast.error(apiError);
+      },
+    });
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -145,7 +170,7 @@ const TaskDetailsModal = ({
             <form
               className="modal-form"
               noValidate
-              onSubmit={handleSubmit(onSubmit)}
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
             >
               <label className="field">
                 <span className="field-label">Name</span>
@@ -225,7 +250,11 @@ const TaskDetailsModal = ({
                     Due date{" "}
                     <span className="field-label-optional">(optional)</span>
                   </span>
-                  <input type="date" defaultValue={task.dueDate ?? ""} />
+                  <input
+                    type="date"
+                    defaultValue={task.dueDate ?? ""}
+                    {...register("dueDate")}
+                  />
                 </label>
               </div>
 
@@ -234,6 +263,7 @@ const TaskDetailsModal = ({
                   type="button"
                   className="modal-button modal-button-danger-ghost"
                   onClick={() => setIsConfirmingDelete(true)}
+                  disabled={updateTaskMutation.isPending}
                 >
                   <Trash2 size={14} aria-hidden="true" />
                   Delete task
@@ -244,14 +274,23 @@ const TaskDetailsModal = ({
                     type="button"
                     className="modal-button modal-button-secondary"
                     onClick={onClose}
+                    disabled={updateTaskMutation.isPending}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     className="modal-button modal-button-primary"
+                    disabled={updateTaskMutation.isPending}
                   >
-                    Save changes
+                    {updateTaskMutation.isPending ? (
+                      <>
+                        <Loader2 size={14} className="spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
                   </button>
                 </div>
               </div>
@@ -284,23 +323,27 @@ const TaskDetailsModal = ({
                 type="button"
                 className="modal-button modal-button-secondary"
                 onClick={() => setIsConfirmingDelete(false)}
+                disabled={deleteTaskMutation.isPending}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 className="modal-button modal-button-danger"
-                onClick={() =>
-                  deleteTaskMutation.mutate(undefined, {
-                    onSuccess: () => {
-                      onClose();
-                      refetchTasks();
-                    },
-                  })
-                }
+                onClick={handleDelete}
+                disabled={deleteTaskMutation.isPending}
               >
-                <Trash2 size={14} aria-hidden="true" />
-                Delete permanently
+                {deleteTaskMutation.isPending ? (
+                  <>
+                    <Loader2 size={14} className="spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} aria-hidden="true" />
+                    Delete permanently
+                  </>
+                )}
               </button>
             </div>
           </>

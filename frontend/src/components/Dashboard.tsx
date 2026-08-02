@@ -7,6 +7,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
@@ -32,19 +33,21 @@ const Dashboard = () => {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+
   const projectsQuery = useGetProjects();
   const { data: projectsData, refetch } = projectsQuery;
   const projects = projectsData ?? [];
+
   const tasksQuery = useGetTasks(activeProjectId);
   const { data: tasksData, refetch: refetchTasks } = tasksQuery;
+
   const userQuery = useGetUser();
   const user = userQuery.data ?? null;
+
   const logoutMutation = useLogout();
   const navigate = useNavigate();
-  const updateTaskMutation = useUpdateTask(
-    activeProjectId ?? "",
-    draggingTask?.id ?? "",
-  );
+
+  const updateTaskMutation = useUpdateTask(activeProjectId ?? "");
 
   useEffect(() => {
     if (tasksData) {
@@ -107,6 +110,9 @@ const Dashboard = () => {
 
     if (newStatus === task.status) return;
 
+    const previousStatus = task.status;
+
+    // Optimistic UI update
     setTasks((current) =>
       current.map((t) =>
         t.id === active.id ? { ...t, status: newStatus } : t,
@@ -116,6 +122,7 @@ const Dashboard = () => {
 
     updateTaskMutation.mutate(
       {
+        id: task.id,
         status: newStatus,
         name: task.name,
         description: task.description,
@@ -125,7 +132,18 @@ const Dashboard = () => {
       },
       {
         onSuccess: () => {
+          toast.success(`Task moved to ${newStatus.replace("_", " ")}`);
           refetchTasks();
+        },
+        onError: (error: any) => {
+          setTasks((current) =>
+            current.map((t) =>
+              t.id === active.id ? { ...t, status: previousStatus } : t,
+            ),
+          );
+          const apiError =
+            error?.response?.data?.message ?? "Failed to update task status.";
+          toast.error(apiError);
         },
       },
     );
@@ -134,7 +152,14 @@ const Dashboard = () => {
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
+        toast.success("Logged out successfully");
         navigate("/login");
+      },
+      onError: (error: any) => {
+        const apiError =
+          error?.response?.data?.message ??
+          "Failed to log out. Please try again.";
+        toast.error(apiError);
       },
     });
   };
@@ -151,6 +176,10 @@ const Dashboard = () => {
   };
 
   const handleOpenCreateTask = () => {
+    if (!activeProjectId) {
+      toast.error("Please select or create a project first.");
+      return;
+    }
     setIsProjectMenuOpen(false);
     setIsUserMenuOpen(false);
     setIsCreateTaskOpen(true);

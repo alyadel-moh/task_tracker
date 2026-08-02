@@ -109,9 +109,6 @@
     color 0.15s ease;
 }
 
-/* Reveals on row hover, and stays visible on keyboard focus so it's not
-   mouse-only - a person tabbing through the sidebar needs to be able to
-   reach it too. */
 .project-item-row:hover .project-item-edit,
 .project-item-edit:focus-visible {
   opacity: 1;
@@ -122,8 +119,6 @@
   color: #f2f1ed;
 }
 
-/* Touch devices have no hover state, so the icon needs to just be there -
-   otherwise there's no way to discover or reach it on mobile/tablet. */
 @media (hover: none) {
   .project-item-edit {
     opacity: 0.55;
@@ -192,7 +187,6 @@
   background: #3b3ac2;
 }
 
-/* Mobile-only header: project switcher + search bar. Hidden on desktop. */
 .board-header-mobile {
   display: none;
 }
@@ -210,7 +204,6 @@
   cursor: pointer;
 }
 
-/* Mobile-only tab switcher for choosing which single column shows */
 .column-tabs {
   display: none;
 }
@@ -295,7 +288,7 @@
   background: #1e1e1b;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 18px 18px 16px;
   margin-bottom: 10px;
   transition:
     border-color 0.15s ease,
@@ -320,22 +313,74 @@
   gap: 8px;
 }
 
-.drag-handle {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: rgba(242, 241, 237, 0.25);
-  padding: 0;
-  display: inline-flex;
+.task-status-icon {
+  display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
-  cursor: grab;
+  color: rgba(242, 241, 237, 0.3);
 }
 
-.drag-handle:active {
-  cursor: grabbing;
+.task-status-icon-overdue {
+  color: #ff9b9b;
+}
+
+.task-card-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.task-edit-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.task-card:hover .task-edit-button,
+.task-edit-button:focus-visible {
+  opacity: 1;
+}
+
+.task-edit-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2f1ed;
+}
+
+/* Touch devices have no hover - keep it visible so it's actually reachable */
+@media (hover: none) {
+  .task-edit-button {
+    opacity: 0.55;
+  }
+}
+
+.task-due-overdue {
+  color: #ff9b9b;
+  font-weight: 600;
+}
+
+.task-description {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(242, 241, 237, 0.55);
+  margin: 6px 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .task-card-dragging {
@@ -385,7 +430,7 @@
 .task-title {
   font-size: 14px;
   font-weight: 500;
-  margin: 0 0 10px;
+  margin: 0;
   line-height: 1.4;
   flex: 1;
 }
@@ -447,12 +492,6 @@
 .fab {
   display: none;
 }
-
-/* =========================================================
-   MOBILE (<768px): sidebar disappears, header becomes a
-   project switcher + search, tabs pick which single column
-   renders, board switches from a 3-col grid to a single block.
-   ========================================================= */
 
 @media (max-width: 768px) {
   .sidebar {
@@ -581,7 +620,6 @@
   }
 }
 
-/* Tablet: sidebar stays, but a bit narrower; grid keeps 3 columns but tighter gap */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 210px;

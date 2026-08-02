@@ -1,5 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
-import { Calendar, Check, Clock, GripVertical } from "lucide-react";
+import { Calendar, Check, Clock, AlertTriangle, Pencil } from "lucide-react";
 import { type Priority, type Task } from "./types";
 
 const priorityLabel: Record<Priority, string> = {
@@ -24,6 +24,11 @@ const TaskCard = ({ task, onEdit }: TaskCardProps) => {
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
 
+  const isOverdue =
+    task.dueDate &&
+    task.status !== "done" &&
+    new Date(task.dueDate) < new Date(new Date().toDateString());
+
   return (
     <div
       ref={setNodeRef}
@@ -32,22 +37,42 @@ const TaskCard = ({ task, onEdit }: TaskCardProps) => {
         isDragging ? "task-card-dragging" : ""
       }`}
       {...attributes}
-      onClick={(e) => {
-        e.stopPropagation();
-        onEdit();
-      }}
+      {...listeners}
     >
       <div className="task-card-top">
         <p className="task-title">{task.name}</p>
-        <button
-          type="button"
-          className="drag-handle"
-          aria-label="Drag task"
-          {...listeners}
-        >
-          <GripVertical size={14} aria-hidden="true" />
-        </button>
+
+        <div className="task-card-icons">
+          <button
+            type="button"
+            className="task-edit-button"
+            aria-label={`Edit ${task.name}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+          >
+            <Pencil size={13} aria-hidden="true" />
+          </button>
+          {task.dueDate && (
+            <span
+              className={`task-status-icon ${isOverdue ? "task-status-icon-overdue" : ""}`}
+              title={isOverdue ? "Overdue" : "Due date set"}
+            >
+              {isOverdue ? (
+                <AlertTriangle size={14} aria-hidden="true" />
+              ) : (
+                <Clock size={14} aria-hidden="true" />
+              )}
+            </span>
+          )}
+        </div>
       </div>
+
+      {task.description && (
+        <p className="task-description">{task.description}</p>
+      )}
 
       <div className="task-meta">
         {task.status === "done" ? (
@@ -62,7 +87,7 @@ const TaskCard = ({ task, onEdit }: TaskCardProps) => {
         )}
 
         {task.dueDate && (
-          <span className="task-due">
+          <span className={`task-due ${isOverdue ? "task-due-overdue" : ""}`}>
             <Calendar size={12} aria-hidden="true" />
             {task.dueDate}
           </span>
