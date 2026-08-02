@@ -10,9 +10,10 @@ const priorityLabel: Record<Priority, string> = {
 
 interface TaskCardProps {
   task: Task;
+  onEdit: () => void;
 }
 
-const TaskCard = ({ task }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit }: TaskCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: task.id,
@@ -31,11 +32,21 @@ const TaskCard = ({ task }: TaskCardProps) => {
         isDragging ? "task-card-dragging" : ""
       }`}
       {...attributes}
-      {...listeners}
+      onClick={(e) => {
+        e.stopPropagation();
+        onEdit();
+      }}
     >
       <div className="task-card-top">
         <p className="task-title">{task.name}</p>
-        <GripVertical size={14} className="drag-handle" aria-hidden="true" />
+        <button
+          type="button"
+          className="drag-handle"
+          aria-label="Drag task"
+          {...listeners}
+        >
+          <GripVertical size={14} aria-hidden="true" />
+        </button>
       </div>
 
       <div className="task-meta">
@@ -57,10 +68,10 @@ const TaskCard = ({ task }: TaskCardProps) => {
           </span>
         )}
 
-        {task.estimate && (
+        {task.estimatedTime && (
           <span className="task-due">
             <Clock size={12} aria-hidden="true" />
-            {task.estimate}
+            {task.estimatedTime}
           </span>
         )}
       </div>

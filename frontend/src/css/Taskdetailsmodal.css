@@ -1,7 +1,7 @@
-/* ProjectDetailsModal.css
-   Fully standalone - does not extend or depend on CreateProjectModal.css.
-   Tokens match TaskDetailsModal.css so both modals look identical. Adjust
-   values below if your real design tokens differ. */
+/* TaskDetailsModal.css
+   Fully standalone - does not extend or depend on CreateProjectModal.css or
+   ProjectDetailsModal.css. Colors/spacing mirror the project modal's look by
+   eye; adjust values below if your real design tokens differ. */
 
 .modal-overlay {
   position: fixed;
@@ -68,14 +68,7 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Title row: title + task-count badge */
-
-.modal-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
+/* Title / subtitle */
 
 .modal-title {
   margin: 0 0 4px;
@@ -84,28 +77,10 @@
   color: #f5f5f5;
 }
 
-.modal-title-row .modal-title {
-  margin: 0;
-}
-
-.modal-badge {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-/* Subtitle: created / updated, kept to one line where it fits */
-
 .modal-subtitle {
-  margin: 4px 0 20px;
+  margin: 0 0 20px;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
-}
-
-.modal-meta-item {
-  white-space: nowrap;
 }
 
 /* Form / fields */
@@ -139,7 +114,10 @@
 }
 
 .field input[type="text"],
-.field textarea {
+.field input[type="number"],
+.field input[type="date"],
+.field textarea,
+.field select {
   width: 100%;
   box-sizing: border-box;
   padding: 9px 12px;
@@ -157,7 +135,8 @@
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.06);
@@ -166,6 +145,28 @@
 .field textarea {
   resize: vertical;
   min-height: 64px;
+}
+
+/* Side-by-side field pairs: status/priority, estimate/due date */
+
+.field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.field-row .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1L5 5L9 1' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
 }
 
 /* Actions */
@@ -240,8 +241,9 @@
 /* Responsive */
 
 @media (max-width: 380px) {
-  .modal-title-row {
-    align-items: flex-start;
+  .field-row {
+    flex-direction: column;
+    gap: 0;
   }
 
   .modal-actions-split {

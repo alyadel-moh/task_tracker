@@ -4,7 +4,14 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { ChevronDown, Folder, LogOut, Plus, Search } from "lucide-react";
+import {
+  ChevronDown,
+  Folder,
+  LogOut,
+  Pencil,
+  Plus,
+  Search,
+} from "lucide-react";
 import ColumnDropZone from "./ColumnDropZone";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
@@ -20,18 +27,20 @@ interface DashboardBoardProps {
   draggingTask: Task | null;
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  onNewTask: () => void;
   isProjectMenuOpen: boolean;
   onToggleProjectMenu: () => void;
   isUserMenuOpen: boolean;
   onToggleUserMenu: () => void;
   projects: Project[];
+  onEditProject: (projectId: string) => void;
   activeProjectId: string | null;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
   userName: string;
   userEmail: string;
+  onCreateTask: () => void;
   onLogout: () => void;
+  onEditTask: (taskId: string) => void;
 }
 
 const DashboardBoard = ({
@@ -43,11 +52,12 @@ const DashboardBoard = ({
   draggingTask,
   onDragStart,
   onDragEnd,
-  onNewTask,
   isProjectMenuOpen,
+  onEditProject,
   onToggleProjectMenu,
   isUserMenuOpen,
   onToggleUserMenu,
+  onCreateTask,
   projects,
   activeProjectId,
   onSelectProject,
@@ -55,6 +65,7 @@ const DashboardBoard = ({
   userName,
   userEmail,
   onLogout,
+  onEditTask,
 }: DashboardBoardProps) => {
   return (
     <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
@@ -66,7 +77,7 @@ const DashboardBoard = ({
             </h1>
             <p className="board-subtitle">{tasks.length} tasks</p>
           </div>
-          <button className="new-task-button" onClick={onNewTask}>
+          <button className="new-task-button" onClick={onCreateTask}>
             <Plus size={16} aria-hidden="true" />
             New task
           </button>
@@ -131,19 +142,32 @@ const DashboardBoard = ({
             />
             <div className="mobile-project-menu">
               {projects.map((project) => (
-                <button
-                  key={project.id}
-                  className={`mobile-project-menu-item ${
-                    project.id === activeProjectId
-                      ? "mobile-project-menu-item-active"
-                      : ""
-                  }`}
-                  onClick={() => onSelectProject(project.id)}
-                >
-                  <Folder size={16} aria-hidden="true" />
-                  <span>{project.name}</span>
-                </button>
+                <div key={project.id} className="project-item-row">
+                  <button
+                    key={project.id}
+                    className={`mobile-project-menu-item ${
+                      project.id === activeProjectId
+                        ? "mobile-project-menu-item-active"
+                        : ""
+                    }`}
+                    onClick={() => onSelectProject(project.id)}
+                  >
+                    <Folder size={16} aria-hidden="true" />
+                    <span>{project.name}</span>
+                  </button>
+                  <button
+                    className="project-item-edit"
+                    aria-label={`Edit ${project.name}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEditProject(project.id);
+                    }}
+                  >
+                    <Pencil size={13} aria-hidden="true" />
+                  </button>
+                </div>
               ))}
+
               <button
                 className="mobile-project-menu-item mobile-project-menu-item-new"
                 onClick={() => {
@@ -187,7 +211,11 @@ const DashboardBoard = ({
                 {tasks
                   .filter((task) => task.status === col.key)
                   .map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onEdit={() => onEditTask(task.id)}
+                    />
                   ))}
                 {taskCount(col.key) === 0 && (
                   <p className="column-empty">Drop a task here</p>
@@ -197,7 +225,7 @@ const DashboardBoard = ({
           ))}
         </div>
 
-        <button className="fab" aria-label="New task" onClick={onNewTask}>
+        <button className="fab" aria-label="New task" onClick={onCreateTask}>
           <Plus size={20} />
         </button>
       </main>

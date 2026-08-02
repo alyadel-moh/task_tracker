@@ -13,11 +13,11 @@ interface CreateTaskResponse {
   status: string;
   message: string;
 }
-const createTask = () => {
+const useCreateTask = (projectId: string) => {
   return useMutation<CreateTaskResponse, AxiosError, createTaskData>({
     mutationFn: (newTaskData: createTaskData) => {
       return axiosInstance
-        .post<CreateTaskResponse>("tasks/create", newTaskData)
+        .post<CreateTaskResponse>(`tasks/create/${projectId}`, newTaskData)
         .then((response) => response.data);
     },
     onMutate: async (newTaskData: createTaskData) => {
@@ -31,4 +31,4 @@ const createTask = () => {
     },
   });
 };
-export default createTask;
+export default useCreateTask;

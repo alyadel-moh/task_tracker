@@ -3,12 +3,15 @@ export type Status = "todo" | "in_progress" | "in_review" | "done";
 
 export interface Task {
   id: string;
-  projectId: string;
   name: string;
+  description: string;
+  projectId: string;
   priority: Priority;
   dueDate?: string;
-  estimate?: string;
+  estimatedTime?: number | null;
   status: Status;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Project {
