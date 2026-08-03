@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -12,11 +13,14 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
 import { columns, type Project, type Status, type Task } from "./types";
 import TaskCard from "./TaskCard";
+import InlineEditField from "./InlineEditField";
+import useUpdateProject from "../hooks/updateProjectHook";
 
 interface DashboardBoardProps {
   activeProject: Project | null;
@@ -40,8 +44,23 @@ interface DashboardBoardProps {
   userEmail: string;
   onCreateTask: () => void;
   onLogout: () => void;
-  onEditTask: (taskId: string) => void;
+  sensors: any;
+  refetchProjects?: () => void;
+  refetchTasks?: () => void;
 }
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return null;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
 
 const DashboardBoard = ({
   activeProject,
@@ -50,7 +69,9 @@ const DashboardBoard = ({
   onSelectTab,
   taskCount,
   draggingTask,
+  refetchTasks,
   onDragStart,
+  sensors,
   onDragEnd,
   isProjectMenuOpen,
   onEditProject,
@@ -65,24 +86,119 @@ const DashboardBoard = ({
   userName,
   userEmail,
   onLogout,
-  onEditTask,
+  refetchProjects,
 }: DashboardBoardProps) => {
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
+
+  const createdDateFormatted = formatDate(activeProject?.createdAt);
+  const updatedDateFormatted = formatDate(activeProject?.updatedAt);
+
+  const handleSaveProjectField = (
+    field: "name" | "description",
+    value: string,
+  ) => {
+    if (!activeProject) return;
+    setSavingField(field);
+
+    updateProjectMutation.mutate(
+      {
+        name: field === "name" ? value : activeProject.name,
+        description:
+          field === "description" ? value : (activeProject.description ?? ""),
+      },
+      {
+        onSuccess: () => {
+          toast.success("Project updated successfully!");
+          refetchProjects?.();
+          setSavingField(null);
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to update project. Please try again.";
+          toast.error(apiError);
+          setSavingField(null);
+        },
+      },
+    );
+  };
+
   return (
-    <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       <main className="board-panel">
+        {/* Desktop Board Header */}
         <div className="board-header board-header-desktop">
-          <div>
-            <h1 className="board-title">
-              {activeProject?.name ?? "No project selected"}
-            </h1>
-            <p className="board-subtitle">{tasks.length} tasks</p>
+          <div className="board-header-left">
+            {activeProject ? (
+              <>
+                <div className="board-title-row">
+                  <InlineEditField
+                    label=""
+                    value={activeProject.name}
+                    isSaving={savingField === "name"}
+                    onSave={(val) => handleSaveProjectField("name", val)}
+                  />
+                  <span className="task-count-badge">
+                    {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+                  </span>
+                </div>
+
+                <div className="board-description-row">
+                  <InlineEditField
+                    label=""
+                    type="textarea"
+                    optional
+                    value={activeProject.description ?? ""}
+                    placeholder="Add a project description..."
+                    isSaving={savingField === "description"}
+                    onSave={(val) => handleSaveProjectField("description", val)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <h1 className="board-title">No project selected</h1>
+                <p className="board-subtitle">
+                  Select or create a project to get started
+                </p>
+              </div>
+            )}
           </div>
-          <button className="new-task-button" onClick={onCreateTask}>
-            <Plus size={16} aria-hidden="true" />
-            New task
-          </button>
+
+          <div className="board-header-right">
+            {activeProject &&
+              (createdDateFormatted || updatedDateFormatted) && (
+                <div className="board-meta-pill">
+                  {createdDateFormatted && (
+                    <span>Created {createdDateFormatted}</span>
+                  )}
+                  {createdDateFormatted && updatedDateFormatted && (
+                    <span className="pill-dot">•</span>
+                  )}
+                  {updatedDateFormatted && (
+                    <span>Updated {updatedDateFormatted}</span>
+                  )}
+                </div>
+              )}
+
+            <button
+              type="button"
+              className="new-task-button"
+              onClick={onCreateTask}
+              disabled={!activeProject}
+            >
+              <Plus size={16} aria-hidden="true" />
+              New task
+            </button>
+          </div>
         </div>
 
+        {/* Mobile Header */}
         <div className="board-header board-header-mobile">
           <div className="mobile-header-top-row">
             <button
@@ -112,6 +228,7 @@ const DashboardBoard = ({
           </div>
         </div>
 
+        {/* User Menu Popup */}
         {isUserMenuOpen && (
           <>
             <div
@@ -134,6 +251,7 @@ const DashboardBoard = ({
           </>
         )}
 
+        {/* Mobile Project Switcher Menu */}
         {isProjectMenuOpen && (
           <>
             <div
@@ -144,7 +262,6 @@ const DashboardBoard = ({
               {projects.map((project) => (
                 <div key={project.id} className="project-item-row">
                   <button
-                    key={project.id}
                     className={`mobile-project-menu-item ${
                       project.id === activeProjectId
                         ? "mobile-project-menu-item-active"
@@ -182,6 +299,7 @@ const DashboardBoard = ({
           </>
         )}
 
+        {/* Column Tabs (Mobile Navigation) */}
         <div className="column-tabs">
           {columns.map((col) => (
             <DroppableTab
@@ -195,11 +313,14 @@ const DashboardBoard = ({
           ))}
         </div>
 
+        {/* Kanban Board Area */}
         <div className="board">
           {columns.map((col) => (
             <div
               key={col.key}
-              className={`column column-${col.key} ${activeTab === col.key ? "column-active" : ""}`}
+              className={`column column-${col.key} ${
+                activeTab === col.key ? "column-active" : ""
+              }`}
             >
               <div className="column-header column-header-desktop">
                 <span className={`status-dot status-dot-${col.key}`} />
@@ -214,7 +335,7 @@ const DashboardBoard = ({
                     <TaskCard
                       key={task.id}
                       task={task}
-                      onEdit={() => onEditTask(task.id)}
+                      refetchTasks={refetchTasks}
                     />
                   ))}
                 {taskCount(col.key) === 0 && (

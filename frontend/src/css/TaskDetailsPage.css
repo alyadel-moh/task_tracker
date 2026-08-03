@@ -1,0 +1,440 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #121210;
+  color: #f2f1ed;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  min-height: 100vh;
+}
+
+.task-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #121210;
+  padding: 3.5rem 1.5rem 5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.task-page-container {
+  width: 100%;
+  max-width: 760px;
+}
+
+.task-page-loading {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #121210;
+  color: rgba(242, 241, 237, 0.4);
+}
+
+/* Navigation Back Button */
+.task-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.task-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(242, 241, 237, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.task-page-back:hover {
+  color: #f2f1ed;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Main Card Container */
+.task-page-card {
+  background: #1c1c1f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 40px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
+
+/* Card Header */
+.task-page-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.task-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.task-page-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+  flex-shrink: 0;
+}
+
+.task-page-main-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f2f1ed;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.task-page-meta-badge {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.4);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 6px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Card Body Layout */
+.task-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 38px;
+}
+
+/* Task Name Field Spacing */
+.task-page-title-field {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.task-page-title-field .inline-field-header {
+  margin-bottom: 12px;
+}
+
+.task-page-title-field .inline-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(242, 241, 237, 0.45);
+  margin-bottom: 12px;
+}
+
+.task-page-title-field .inline-field-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #f2f1ed;
+  line-height: 1.4;
+}
+
+.task-page-title-field .inline-field-editor {
+  margin-top: 6px;
+}
+
+/* Labels & Icons */
+.task-field-label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(242, 241, 237, 0.45);
+  margin-bottom: 12px;
+}
+
+.field-label-optional {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: lowercase;
+  color: rgba(242, 241, 237, 0.35);
+  margin-left: 2px;
+}
+
+.field-icon {
+  color: rgba(242, 241, 237, 0.35);
+}
+
+.task-page-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 12px 0;
+}
+
+/* Attribute Grid Layout */
+.task-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 36px;
+  row-gap: 36px;
+}
+
+/* Attribute Badges */
+.task-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Unified Default Colors for "To Do" and "Low" */
+.badge-status-todo,
+.badge-priority-low {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Support for both hyphenated and underscore naming */
+.badge-status-in-progress,
+.badge-status-in_progress {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.badge-status-in-review,
+.badge-status-in_review {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-status-done {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.badge-priority-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.badge-priority-high {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Inline Edit Controls */
+.inline-field-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-left: -12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.inline-field-display:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.inline-field-value {
+  font-size: 14px;
+  color: #f2f1ed;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.inline-field-edit-button {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.inline-field-display:hover .inline-field-edit-button {
+  opacity: 1;
+}
+
+.inline-field-edit-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2f1ed;
+}
+
+.inline-field-editor {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-left: -12px;
+}
+
+.inline-field-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  border-radius: 8px;
+  background: #121210;
+  color: #f2f1ed;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.inline-field-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+textarea.inline-field-input {
+  resize: vertical;
+  min-height: 95px;
+}
+
+select.inline-field-input {
+  cursor: pointer;
+  appearance: none;
+  background-color: #1a1a18;
+  color: #f2f1ed;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a3a196' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+select.inline-field-input option {
+  background-color: #1e1e1c;
+  color: #f2f1ed;
+}
+
+input[type="date"].inline-field-input {
+  color-scheme: dark;
+}
+
+.inline-field-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.inline-field-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.inline-field-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(242, 241, 237, 0.6);
+}
+
+.inline-field-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f2f1ed;
+}
+
+.inline-field-save {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+}
+
+.inline-field-save:hover {
+  background: rgba(34, 197, 94, 0.28);
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .task-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .task-page-card {
+    padding: 24px;
+  }
+
+  .task-page-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .task-page-body {
+    gap: 28px;
+  }
+
+  .task-page-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

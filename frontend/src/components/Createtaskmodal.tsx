@@ -17,7 +17,7 @@ interface CreateTaskModalProps {
 const schema = z.object({
   name: z.string().min(1, { message: "Task title is required" }),
   description: z.string().optional(),
-  status: z.enum(["todo", "in_progress", "in_review", "done"]).default("todo"),
+  status: z.enum(["todo", "in-progress", "in-review", "done"]).default("todo"),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
   estimatedTime: z.number().min(0).optional(),
   dueDate: z.string().nullable().optional(),

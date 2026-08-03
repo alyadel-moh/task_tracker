@@ -1,7 +1,3 @@
-/* Extends CreateProjectModal.css (modal-overlay, modal-card, field basics,
-   modal-actions, modal-button) - this file adds only what task forms need
-   on top: selects, side-by-side field rows, date input, overdue banner. */
-
 .field-row {
   display: flex;
   gap: 12px;
@@ -51,14 +47,44 @@
   opacity: 0.5;
 }
 
-/* Shown in the edit modal when a task is overdue - due date passed and
-   status isn't done. Matches the "identify overdue tasks" scope item. */
-.modal-banner-warning {
-  background: rgba(224, 160, 74, 0.14);
-  color: #ffbf72;
-  border: 1px solid rgba(224, 160, 74, 0.3);
+/* Due-date urgency pill — add to your existing task card CSS file */
+
+.task-due-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1;
 }
 
+.task-due-label svg {
+  flex-shrink: 0;
+}
+
+/* Overdue: red */
+.task-due-label-overdue {
+  color: #ff8e8e;
+  background: rgba(224, 90, 90, 0.16);
+  border: 1px solid rgba(224, 90, 90, 0.35);
+}
+
+/* Due today: amber/orange */
+.task-due-label-today {
+  color: #ffcf8e;
+  background: rgba(224, 160, 80, 0.16);
+  border: 1px solid rgba(224, 160, 80, 0.35);
+}
+
+/* Upcoming (tomorrow / in Xd): neutral gray */
+.task-due-label-upcoming {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
 @media (max-width: 380px) {
   .field-row {
     flex-direction: column;
