@@ -22,7 +22,7 @@ async function getAll(req, res, next) {
   try {
     const projects = await Project.findAll({
       where: { userId: req.user.id },
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt", "ASC"]],
     });
     return res.status(200).json(projects);
   } catch (err) {
@@ -30,21 +30,21 @@ async function getAll(req, res, next) {
   }
 }
 
-// async function getById(req, res, next) {
-//   try {
-//     const project = await Project.findOne({
-//       where: { id: req.params.id, userId: req.user.id },
-//     });
-//     if (!project) {
-//       return res
-//         .status(404)
-//         .json({ error: "Not Found", message: "Project not found" });
-//     }
-//     return res.status(200).json(project);
-//   } catch (err) {
-//     next(err);
-//   }
-// }
+async function getById(req, res, next) {
+  try {
+    const project = await Project.findOne({
+      where: { id: req.params.id, userId: req.user.id },
+    });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ error: "Not Found", message: "Project not found" });
+    }
+    return res.status(200).json(project);
+  } catch (err) {
+    next(err);
+  }
+}
 
 async function update(req, res, next) {
   try {
@@ -96,4 +96,5 @@ module.exports = {
   getAll,
   update,
   remove,
+  getById,
 };

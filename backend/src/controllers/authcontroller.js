@@ -63,10 +63,9 @@ async function login(req, res, next) {
 }
 async function me(req, res) {
   const { id, name, email } = req.user;
-  res.status(200).json({ user: { id, name, email } });
+  res.status(200).json({ id, name, email });
 }
 async function logout(req, res) {
-  // Invalidate the token on the client side by removing it from local storage or cookies
   res.status(200).json({ message: "Logout successful" });
 }
 module.exports = {
