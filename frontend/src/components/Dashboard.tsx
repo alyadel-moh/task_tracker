@@ -18,14 +18,14 @@ import useGetTasks from "../hooks/getalltasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
 import ProjectDetailsModal from "./Projectdetailsmodal";
-import CreateTaskModal from "./createtaskmodal";
-import TaskDetailsModal from "./Taskdetailsmodal";
+import CreateTaskModal from "./Createtaskmodal";
 import useUpdateTask from "../hooks/updateTaskHook";
+import useDeleteProject from "../hooks/deleteProjectHook";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Status>("todo");
   const [editProject, setEditProject] = useState<Project | null>(null);
-  const [editTask, setEditTask] = useState<Task | null>(null);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   const tasksQuery = useGetTasks(activeProjectId);
   const { data: tasksData, refetch: refetchTasks } = tasksQuery;
-
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const userQuery = useGetUser();
   const user = userQuery.data ?? null;
 
@@ -48,6 +48,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const updateTaskMutation = useUpdateTask(activeProjectId ?? "");
+  const deleteProjectMutation = useDeleteProject();
 
   useEffect(() => {
     if (tasksData) {
@@ -185,6 +186,24 @@ const Dashboard = () => {
     setIsCreateTaskOpen(true);
   };
 
+  const handleDeleteProject = () => {
+    if (!activeProject?.id) return;
+    deleteProjectMutation.mutate(activeProject.id, {
+      onSuccess: () => {
+        toast.success("Project deleted successfully!");
+        setIsConfirmingDelete(false);
+        refetch();
+        setActiveProjectId(null);
+      },
+      onError: (error: any) => {
+        const apiError =
+          error?.response?.data?.message ??
+          "Failed to delete project. Please try again.";
+        toast.error(apiError);
+      },
+    });
+  };
+
   return (
     <div className="dashboard">
       <DashboardSidebar
@@ -195,31 +214,9 @@ const Dashboard = () => {
         onSelectProject={handleSelectProject}
         onCreateProject={handleOpenCreateProject}
         onLogout={handleLogout}
-        onEditProject={(projectId: string) => {
-          const project = projects.find((p) => p.id === projectId);
-          if (project) {
-            setEditProject(project);
-          }
-        }}
+        onDeleteProject={() => setIsConfirmingDelete(true)}
       />
-      {editProject && (
-        <ProjectDetailsModal
-          taskCount={
-            visibleTasks.filter((task) => task.projectId === editProject.id)
-              .length
-          }
-          project={editProject}
-          onClose={() => setEditProject(null)}
-          refetchProjects={refetch}
-        />
-      )}
-      {editTask && (
-        <TaskDetailsModal
-          task={editTask}
-          onClose={() => setEditTask(null)}
-          refetchTasks={refetchTasks}
-        />
-      )}
+
       <DashboardBoard
         activeProject={activeProject}
         tasks={visibleTasks}
@@ -229,6 +226,7 @@ const Dashboard = () => {
         draggingTask={draggingTask}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        sensors={sensors}
         onEditProject={(projectId: string) => {
           const project = projects.find((p) => p.id === projectId);
           if (project) {
@@ -240,6 +238,7 @@ const Dashboard = () => {
         isUserMenuOpen={isUserMenuOpen}
         onToggleUserMenu={() => setIsUserMenuOpen((open) => !open)}
         projects={projects}
+        refetchProjects={refetch}
         activeProjectId={activeProjectId}
         onSelectProject={handleSelectProject}
         onCreateTask={handleOpenCreateTask}
@@ -247,12 +246,7 @@ const Dashboard = () => {
         userName={user?.name ?? "Guest"}
         userEmail={user?.email ?? "No email available"}
         onLogout={handleLogout}
-        onEditTask={(taskId: string) => {
-          const task = visibleTasks.find((t) => t.id === taskId);
-          if (task) {
-            setEditTask(task);
-          }
-        }}
+        refetchTasks={refetchTasks}
       />
 
       {isCreateTaskOpen && (
@@ -270,6 +264,70 @@ const Dashboard = () => {
           }}
           refetchprojects={refetch}
         />
+      )}
+
+      {editProject && (
+        <ProjectDetailsModal
+          taskCount={
+            visibleTasks.filter((task) => task.projectId === editProject.id)
+              .length
+          }
+          project={editProject}
+          onClose={() => setEditProject(null)}
+          refetchProjects={refetch}
+        />
+      )}
+
+      {/* Centered deletion confirmation modal overlay */}
+      {isConfirmingDelete && activeProject?.id && (
+        <div
+          className="modal-overlay"
+          onClick={() => setIsConfirmingDelete(false)}
+        >
+          <div
+            className="modal-card"
+            style={{ maxWidth: 460 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-header-icon modal-header-icon-danger">
+                <AlertTriangle size={18} aria-hidden="true" />
+              </div>
+            </div>
+
+            <h2 className="modal-title">Delete "{activeProject.name}"?</h2>
+            <p className="modal-subtitle">
+              This permanently deletes the project and all {visibleTasks.length}{" "}
+              of its tasks. This cannot be undone.
+            </p>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-button modal-button-secondary"
+                onClick={() => setIsConfirmingDelete(false)}
+                disabled={deleteProjectMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="modal-button modal-button-danger"
+                onClick={handleDeleteProject}
+                disabled={deleteProjectMutation.isPending}
+              >
+                {deleteProjectMutation.isPending ? (
+                  <>
+                    <Loader2 size={14} className="spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete permanently"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

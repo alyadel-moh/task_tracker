@@ -1,25 +1,26 @@
-import { Folder, LogOut, Plus, Pencil } from "lucide-react";
+import { Folder, LogOut, Plus, Trash2 } from "lucide-react";
 import { type Project } from "./types";
 
 interface DashboardSidebarProps {
   projects: Project[];
-  activeProjectId: string | null;
   userName: string;
   userEmail: string;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
-  onEditProject: (projectId: string) => void;
+  activeProjectId: string | null;
+  refetchProjects?: () => void;
   onLogout: () => void;
+  onDeleteProject: (bool: boolean) => void;
 }
 
 const DashboardSidebar = ({
   projects,
-  activeProjectId,
   userName,
   userEmail,
   onSelectProject,
   onCreateProject,
-  onEditProject,
+  activeProjectId,
+  onDeleteProject,
   onLogout,
 }: DashboardSidebarProps) => {
   return (
@@ -38,14 +39,16 @@ const DashboardSidebar = ({
               <span>{project.name}</span>
             </button>
             <button
-              className="project-item-edit"
-              aria-label={`Edit ${project.name}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onEditProject(project.id);
+              type="button"
+              className="project-delete-inline-btn"
+              title="Delete project"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectProject(project.id);
+                onDeleteProject(true);
               }}
             >
-              <Pencil size={13} aria-hidden="true" />
+              <Trash2 size={15} />
             </button>
           </div>
         ))}

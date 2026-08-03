@@ -111,9 +111,16 @@
 }
 
 .modal-banner-error {
-  background: rgba(224, 90, 90, 0.14);
-  color: #ff9b9b;
-  border: 1px solid rgba(224, 90, 90, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
 }
 
 .modal-form {
@@ -148,11 +155,23 @@
   font-size: 14px;
   font-family: inherit;
   box-sizing: border-box;
-  background: #171715;
-  color: #f2f1ed;
+  background-color: #171715 !important;
+  color: #f2f1ed !important;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
+}
+
+/* Fix browser autofill blue/white background overriding dark theme */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus,
+.field textarea:-webkit-autofill,
+.field textarea:-webkit-autofill:hover,
+.field textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f2f1ed !important;
+  -webkit-box-shadow: 0 0 0px 1000px #171715 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .field input {
@@ -170,11 +189,13 @@
   color: rgba(242, 241, 237, 0.32);
 }
 
+/* Subtitle/accent indigo focus outline instead of blue selection fill */
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: rgba(75, 74, 224, 0.6);
-  box-shadow: 0 0 0 3px rgba(75, 74, 224, 0.15);
+  background-color: #171715 !important;
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
 }
 
 .field-error {
@@ -237,28 +258,16 @@
 }
 
 .modal-button-primary {
-  background: #4b4ae0;
+  background: #6366f1;
   color: #ffffff;
 }
 
 .modal-button-primary:hover {
-  background: #3b3ac2;
+  background: #4f46e5;
 }
 
 .modal-button-primary:active {
   transform: scale(0.98);
-}
-.modal-banner-error {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  margin-bottom: 16px;
 }
 
 @media (max-width: 380px) {
