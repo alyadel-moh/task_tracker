@@ -14,6 +14,7 @@ const useLogout = () => {
         .then((response) => response.data);
     },
     onSuccess: (data: LogoutResponse) => {
+      localStorage.removeItem("token");
       console.log("User logged out successfully:", data);
     },
     onError: (error: AxiosError) => {

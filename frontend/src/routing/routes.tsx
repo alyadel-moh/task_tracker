@@ -1,25 +1,43 @@
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Dashboard from "../components/Dashboard";
+import PublicOnlyRoute from "../components/PublicOnlyRoute";
+import ProtectedRoute from "../components/ProtectedRoute";
 const Signup = lazy(() => import("../components/Signup"));
 const Login = lazy(() => import("../components/Login"));
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/login" replace />,
+    element: localStorage.getItem("token") ? (
+      <Navigate to="/dashboard" />
+    ) : (
+      <Navigate to="/login" />
+    ),
   },
   {
     path: "/signup",
-    element: <Signup />,
+    element: (
+      <PublicOnlyRoute>
+        <Signup />
+      </PublicOnlyRoute>
+    ),
   },
   {
     path: "/login",
-    element: <Login />,
+    element: (
+      <PublicOnlyRoute>
+        <Login />
+      </PublicOnlyRoute>
+    ),
   },
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
   },
 ]);
 export default router;

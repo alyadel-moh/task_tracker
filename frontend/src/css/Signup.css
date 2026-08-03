@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
+* {
+  box-sizing: border-box;
+}
+
 .signup-page {
   width: 100%;
   min-height: 100vh;
@@ -12,33 +16,39 @@
   font-family:
     "Inter",
     -apple-system,
+    BlinkMacSystemFont,
     "Segoe UI",
+    Roboto,
     sans-serif;
 }
 
+/* Card Container */
 .signup-card {
   width: 100%;
   max-width: 460px;
-  background: rgba(20, 20, 18, 0.32);
+  background: rgba(20, 20, 18, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 3rem 2.75rem;
-  backdrop-filter: blur(3px) saturate(120%);
-  -webkit-backdrop-filter: blur(3px) saturate(120%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  transition: box-shadow 0.2s ease;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .signup-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
+/* Header Elements */
 .signup-logo {
   width: 44px;
   height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -64,6 +74,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* Form Layout */
 .signup-form {
   display: flex;
   flex-direction: column;
@@ -77,35 +88,41 @@
 .field-label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   display: block;
   margin-bottom: 7px;
 }
 
+/* Input & Icon Alignment Fixes */
 .input-with-icon {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .input-icon {
   position: absolute;
-  left: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.55);
   pointer-events: none;
+  z-index: 3; /* sits above native autofill decorations */
 }
 
 .field input {
   width: 100%;
   height: 46px;
-  padding: 0 14px 0 40px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 42px; /* Fixes icon text collision */
+  padding-right: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   font-family: inherit;
-  box-sizing: border-box;
-  background: rgba(20, 20, 18, 0.35);
+  background-color: rgba(10, 10, 8, 0.4);
+  background-image: none; /* guards against any native icon painted as bg */
   color: #ffffff;
   transition:
     border-color 0.15s ease,
@@ -113,49 +130,73 @@
     box-shadow 0.15s ease;
 }
 
+.field input[type="password"] {
+  padding-right: 42px; /* Extra spacing for eye toggle */
+}
+
 .field input::placeholder {
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 400;
 }
 
 .field input:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-}
-
-.field input:-webkit-autofill,
-.field input:-webkit-autofill:hover,
-.field input:-webkit-autofill:focus,
-.field input:-webkit-autofill:active,
-.field input:autofill {
-  -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.55) inset !important;
-  box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.55) inset !important;
-  background-color: transparent !important;
-  caret-color: #ffffff !important;
-  font-size: 16px !important;
-  transition:
-    background-color 99999s ease-in-out 0s,
-    color 99999s ease-in-out 0s;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .field input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.6);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
-  background: rgba(20, 20, 18, 0.45);
+  background-color: rgba(10, 10, 8, 0.55);
+}
+
+/* Autofill Overrides */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus,
+.field input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(25, 25, 23, 0.85) inset !important;
+  box-shadow: 0 0 0 1000px rgba(25, 25, 23, 0.85) inset !important;
+  caret-color: #ffffff !important;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
+/* Suppress native browser icons that collide with custom icons */
+.field input::-webkit-contacts-auto-fill-button,
+.field input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+.field input::-webkit-caps-lock-indicator {
+  display: none !important;
+}
+
+.field input::-ms-reveal,
+.field input::-ms-clear {
+  display: none !important;
+  width: 0;
+  height: 0;
 }
 
 .field-error {
   display: block;
-  color: #ffb4b4;
+  color: #ff8e8e;
   font-size: 12px;
   font-weight: 500;
-  margin-top: 5px;
+  margin-top: 6px;
 }
 
+/* Password Eye Button */
 .password-toggle {
   position: absolute;
   right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
@@ -163,10 +204,12 @@
   padding: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
   border-radius: 6px;
   transition:
     color 0.15s ease,
     background 0.15s ease;
+  z-index: 3;
 }
 
 .password-toggle:hover {
@@ -174,6 +217,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Banners */
 .form-banner {
   font-size: 14px;
   font-weight: 500;
@@ -194,6 +238,7 @@
   border: 1px solid rgba(120, 200, 120, 0.4);
 }
 
+/* Submit Button */
 .signup-submit {
   width: 100%;
   height: 48px;
@@ -216,18 +261,19 @@
 }
 
 .signup-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
 .signup-submit:not(:disabled):hover {
-  background: #75746e;
+  background: #70706a;
 }
 
 .signup-submit:not(:disabled):active {
   transform: scale(0.98);
 }
 
+/* Loading Spinner */
 .spin {
   animation: spin 0.8s linear infinite;
 }
@@ -241,13 +287,10 @@
   }
 }
 
-.signup-submit:not(:disabled):active {
-  transform: scale(0.98);
-}
-
+/* Footer Link */
 .signup-footer {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.7);
   text-align: center;
   margin: 24px 0 0;
 }
@@ -255,28 +298,21 @@
 .signup-footer a {
   color: #ffffff;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
   font-weight: 600;
+  transition: color 0.15s ease;
 }
 
 .signup-footer a:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
 }
 
-@media (min-width: 600px) and (max-width: 1024px) {
-  .signup-card {
-    max-width: 480px;
-    padding: 3rem 2.5rem;
+/* Responsive Media Queries */
+@media (max-width: 480px) {
+  .signup-page {
+    padding: 1rem;
   }
-}
 
-@media (min-width: 1025px) {
-  .signup-card {
-    max-width: 460px;
-  }
-}
-
-@media (max-width: 380px) {
   .signup-card {
     padding: 2rem 1.5rem;
     border-radius: 18px;
@@ -284,5 +320,9 @@
 
   .signup-title {
     font-size: 22px;
+  }
+
+  .signup-subtitle {
+    font-size: 14px;
   }
 }

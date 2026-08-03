@@ -78,12 +78,7 @@ const Signup = () => {
             <span className="field-label">Name</span>
             <div className="input-with-icon">
               <User size={16} className="input-icon" aria-hidden="true" />
-              <input
-                type="text"
-                placeholder="Aly Adel"
-                autoComplete="name"
-                {...register("name")}
-              />
+              <input type="text" placeholder="Aly Adel" {...register("name")} />
             </div>
             {errors.name && (
               <small className="field-error">{errors.name.message}</small>
@@ -113,7 +108,6 @@ const Signup = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="At least 8 characters"
-                autoComplete="new-password"
                 {...register("password")}
               />
               <button
