@@ -9,7 +9,7 @@ interface Option {
 interface InlineEditFieldProps {
   label: string;
   value: string;
-  type?: "text" | "textarea" | "select" | "number" | "date";
+  type?: "text" | "textarea" | "select" | "number" | "date" | "datetime-local";
   optional?: boolean;
   options?: Option[];
   placeholder?: string;

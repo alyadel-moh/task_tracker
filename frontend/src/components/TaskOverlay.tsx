@@ -2,9 +2,9 @@ import { GripVertical } from "lucide-react";
 import { type Priority, type Task } from "./types";
 
 const priorityLabel: Record<Priority, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
 };
 
 interface TaskOverlayProps {

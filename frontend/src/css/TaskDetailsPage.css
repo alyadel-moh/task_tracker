@@ -220,44 +220,76 @@ body {
 }
 
 /* Unified Default Colors for "To Do" and "Low" */
-.badge-status-todo,
-.badge-priority-low {
+.badge-status-TODO,
+.badge-priority-LOW {
   background: rgba(255, 255, 255, 0.08);
   color: #d1d5db;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Support for both hyphenated and underscore naming */
-.badge-status-in-progress,
-.badge-status-in_progress {
+.badge-status-IN_PROGRESS {
   background: rgba(59, 130, 246, 0.12);
   color: #60a5fa;
   border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-.badge-status-in-review,
-.badge-status-in_review {
+.badge-status-IN_REVIEW {
   background: rgba(245, 158, 11, 0.12);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
-.badge-status-done {
+.badge-status-DONE {
   background: rgba(34, 197, 94, 0.12);
   color: #4ade80;
   border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
-.badge-priority-medium {
+.badge-priority-MEDIUM {
   background: rgba(245, 158, 11, 0.12);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
-.badge-priority-high {
+.badge-priority-HIGH {
   background: rgba(239, 68, 68, 0.12);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Due-date urgency pills */
+.task-due-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.task-due-label svg {
+  flex-shrink: 0;
+}
+
+.task-due-label-overdue {
+  color: #ff8e8e;
+  background: rgba(224, 90, 90, 0.16);
+  border: 1px solid rgba(224, 90, 90, 0.35);
+}
+
+.task-due-label-today {
+  color: #ffcf8e;
+  background: rgba(224, 160, 80, 0.16);
+  border: 1px solid rgba(224, 160, 80, 0.35);
+}
+
+.task-due-label-upcoming {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* Inline Edit Controls */
@@ -358,8 +390,24 @@ select.inline-field-input option {
   color: #f2f1ed;
 }
 
-input[type="date"].inline-field-input {
+/* Fix date / datetime-local layout and text shift */
+input[type="date"].inline-field-input,
+input[type="datetime-local"].inline-field-input {
   color-scheme: dark;
+  text-align: left;
+}
+
+/* Remove up/down arrows from inline number inputs */
+input[type="number"].inline-field-input::-webkit-outer-spin-button,
+input[type="number"].inline-field-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+input[type="number"].inline-field-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .inline-field-actions {

@@ -24,7 +24,7 @@ import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState<Status>("todo");
+  const [activeTab, setActiveTab] = useState<Status>("TODO");
   const [editProject, setEditProject] = useState<Project | null>(null);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
