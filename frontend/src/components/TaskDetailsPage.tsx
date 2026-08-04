@@ -9,6 +9,7 @@ import {
   AlertCircle,
   FileText,
   Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "../components/InlineEditField";
@@ -17,28 +18,41 @@ import useGetTask from "../hooks/getTaskHook";
 import "../css/TaskDetailsPage.css";
 
 const PRIORITY_OPTIONS = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
 ];
 
 const STATUS_OPTIONS = [
-  { value: "todo", label: "To Do" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "in-review", label: "In Review" },
-  { value: "done", label: "Done" },
+  { value: "TODO", label: "To Do" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "IN_REVIEW", label: "In Review" },
+  { value: "DONE", label: "Done" },
 ];
 
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
+};
+
+const formatForDateTimeInput = (value: string | null): string => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 const TaskDetailsPage = () => {
@@ -60,20 +74,49 @@ const TaskDetailsPage = () => {
 
   if (!task) return null;
 
+  const isOverdue =
+    task.dueDate &&
+    task.status !== "DONE" &&
+    new Date(task.dueDate) < new Date();
+
+  const getDueLabel = (): string | null => {
+    if (!task.dueDate || task.status === "DONE") return null;
+
+    const today = new Date(new Date().toDateString());
+    const due = new Date(task.dueDate);
+    const diffDays = Math.round(
+      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (diffDays < 0) return "Overdue";
+    if (diffDays === 0) return "Due today";
+    if (diffDays === 1) return "Due tomorrow";
+    return `Due in ${diffDays}d`;
+  };
+
+  const dueLabel = getDueLabel();
+
+  const getDueUrgency = (): "overdue" | "today" | "upcoming" | null => {
+    if (!dueLabel) return null;
+    if (isOverdue) return "overdue";
+    if (dueLabel === "Due today") return "today";
+    return "upcoming";
+  };
+
+  const dueUrgency = getDueUrgency();
+
   const saveField = (field: string, value: string) => {
     setSavingField(field);
 
-    // Format value according to field requirements
     let formattedValue: any = value;
     if (field === "estimatedTime") {
-      formattedValue = Number(value) || null;
+      formattedValue = value ? Number(value) : null;
     } else if (field === "dueDate") {
-      formattedValue = value || null;
+      formattedValue = value ? new Date(value).toISOString() : null;
     } else if (field === "description") {
       formattedValue = value ?? "";
     }
 
-    // Build fresh payload directly from current task state
     const payload = {
       id: task.id,
       name: task.name,
@@ -234,11 +277,29 @@ const TaskDetailsPage = () => {
                   <Calendar size={14} className="field-icon" />
                   <span>Due Date</span>
                   <span className="field-label-optional">(optional)</span>
+                  {dueLabel && (
+                    <span
+                      className={`task-due-label task-due-label-${dueUrgency}`}
+                      style={{ marginLeft: "4px", textTransform: "none" }}
+                    >
+                      {isOverdue ? (
+                        <AlertTriangle size={12} aria-hidden="true" />
+                      ) : (
+                        <Clock size={12} aria-hidden="true" />
+                      )}
+                      <span>{dueLabel}</span>
+                    </span>
+                  )}
                 </div>
                 <InlineEditField
                   label=""
-                  type="date"
-                  value={task.dueDate ?? ""}
+                  type="datetime-local"
+                  optional
+                  placeholder="No due date set"
+                  value={formatForDateTimeInput(task.dueDate)}
+                  displayValue={
+                    task.dueDate ? formatTimestamp(task.dueDate) : undefined
+                  }
                   isSaving={savingField === "dueDate"}
                   onSave={(v) => saveField("dueDate", v)}
                 />
@@ -254,6 +315,7 @@ const TaskDetailsPage = () => {
                 <InlineEditField
                   label=""
                   type="number"
+                  optional
                   value={
                     task.estimatedTime != null ? String(task.estimatedTime) : ""
                   }

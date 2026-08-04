@@ -1,5 +1,5 @@
-export type Priority = "high" | "medium" | "low";
-export type Status = "todo" | "in-progress" | "in-review" | "done";
+export type Priority = "HIGH" | "MEDIUM" | "LOW";
+export type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 
 export interface Task {
   id: string;
@@ -30,8 +30,8 @@ export interface User {
 }
 
 export const columns: { key: Status; label: string }[] = [
-  { key: "todo", label: "To do" },
-  { key: "in-progress", label: "In progress" },
-  { key: "in-review", label: "In review" },
-  { key: "done", label: "Done" },
+  { key: "TODO", label: "To do" },
+  { key: "IN_PROGRESS", label: "In progress" },
+  { key: "IN_REVIEW", label: "In review" },
+  { key: "DONE", label: "Done" },
 ];

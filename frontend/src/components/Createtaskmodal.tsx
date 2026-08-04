@@ -17,10 +17,16 @@ interface CreateTaskModalProps {
 const schema = z.object({
   name: z.string().min(1, { message: "Task title is required" }),
   description: z.string().optional(),
-  status: z.enum(["todo", "in-progress", "in-review", "done"]).default("todo"),
-  priority: z.enum(["low", "medium", "high"]).default("medium"),
-  estimatedTime: z.number().min(0).optional(),
-  dueDate: z.string().nullable().optional(),
+  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  estimatedTime: z.preprocess(
+    (val) => (val === "" || Number.isNaN(val) ? undefined : Number(val)),
+    z.number().min(0).optional(),
+  ),
+  dueDate: z.preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().nullable().optional(),
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -47,7 +53,7 @@ const CreateTaskModal = ({
         status: data.status,
         priority: data.priority,
         estimatedTime: data.estimatedTime ?? null,
-        dueDate: data.dueDate ?? null,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
       },
       {
         onSuccess: () => {
@@ -138,10 +144,10 @@ const CreateTaskModal = ({
 
           <label className="field">
             <span className="field-label">Priority</span>
-            <select defaultValue="medium" {...register("priority")}>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+            <select defaultValue="MEDIUM" {...register("priority")}>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
             </select>
           </label>
 
@@ -155,7 +161,7 @@ const CreateTaskModal = ({
                 type="number"
                 min="0"
                 placeholder="e.g. 120"
-                {...register("estimatedTime", { valueAsNumber: true })}
+                {...register("estimatedTime")}
               />
             </label>
 
@@ -164,7 +170,7 @@ const CreateTaskModal = ({
                 Due date{" "}
                 <span className="field-label-optional">(optional)</span>
               </span>
-              <input type="date" {...register("dueDate")} />
+              <input type="datetime-local" {...register("dueDate")} />
             </label>
           </div>
 

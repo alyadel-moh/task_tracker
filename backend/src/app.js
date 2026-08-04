@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 const errorHandler = require("./middleware/errorHandler");
 const { sequelize } = require("./models");
 const app = express();
@@ -11,6 +12,7 @@ app.use(cors()); // configure CORS middleware
 
 app.use("/api/auth", authRoutes); // use auth routes
 app.use("/api/projects", projectRoutes); // use project routes
+app.use("/api/tasks", taskRoutes); // use task routes
 
 // Error handling middleware
 app.use(errorHandler);

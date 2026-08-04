@@ -15,9 +15,9 @@ import { type Priority, type Task } from "./types";
 import useDeleteTask from "../hooks/deletetaskHook";
 
 const priorityLabel: Record<Priority, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
 };
 
 interface TaskCardProps {
@@ -42,11 +42,11 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
 
   const isOverdue =
     task.dueDate &&
-    task.status !== "done" &&
+    task.status !== "DONE" &&
     new Date(task.dueDate) < new Date(new Date().toDateString());
 
   const getDueLabel = (): string | null => {
-    if (!task.dueDate || task.status === "done") return null;
+    if (!task.dueDate || task.status === "DONE") return null;
 
     const today = new Date(new Date().toDateString());
     const due = new Date(task.dueDate);
@@ -100,7 +100,7 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
       <div
         ref={setNodeRef}
         style={style}
-        className={`task-card ${task.status === "done" ? "task-card-done" : ""} ${
+        className={`task-card ${task.status === "DONE" ? "task-card-done" : ""} ${
           isDragging ? "task-card-dragging" : ""
         }`}
         {...attributes}
@@ -142,7 +142,7 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
         )}
 
         <div className="task-meta">
-          {task.status === "done" ? (
+          {task.status === "DONE" ? (
             <span className="badge badge-done">
               <Check size={11} aria-hidden="true" />
               Done
@@ -156,7 +156,14 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
           {task.dueDate && (
             <span className={`task-due ${isOverdue ? "task-due-overdue" : ""}`}>
               <Calendar size={12} aria-hidden="true" />
-              {task.dueDate}
+              {new Date(task.dueDate).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
             </span>
           )}
 
