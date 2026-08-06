@@ -30,7 +30,7 @@ const Login = () => {
     loginMutation.mutate(data, {
       onSuccess: () => {
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate("/projects");
       },
       onError: (error: any) => {
         const message =

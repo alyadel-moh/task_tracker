@@ -16,20 +16,15 @@ type FormData = z.infer<typeof schema>;
 
 interface CreateProjectModalProps {
   onClose: () => void;
-  refetchprojects: () => void;
 }
 
-const CreateProjectModal = ({
-  onClose,
-  refetchprojects,
-}: CreateProjectModalProps) => {
+const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
   const createProject = useCreateProject();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormData) => {
@@ -41,8 +36,6 @@ const CreateProjectModal = ({
       {
         onSuccess: () => {
           toast.success("Project created successfully!");
-          reset();
-          refetchprojects();
           onClose();
         },
         onError: (error: any) => {

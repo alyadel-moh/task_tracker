@@ -22,10 +22,9 @@ const priorityLabel: Record<Priority, string> = {
 
 interface TaskCardProps {
   task: Task;
-  refetchTasks?: () => void;
 }
 
-const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
+const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
   const deleteTaskMutation = useDeleteTask(task.projectId, task.id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -78,7 +77,6 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
         toast.success(
           deleteTaskMutation.data?.message ?? "Task deleted successfully!",
         );
-        refetchTasks?.();
         setIsConfirmingDelete(false);
       },
       onError: (error: any) => {
@@ -92,7 +90,7 @@ const TaskCard = ({ task, refetchTasks }: TaskCardProps) => {
   };
 
   const handleCardClick = () => {
-    navigate(`/dashboard/${task.projectId}/task/${task.id}`);
+    navigate(`/projects/${task.projectId}/task/${task.id}`);
   };
 
   return (

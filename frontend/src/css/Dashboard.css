@@ -265,6 +265,20 @@
   gap: 0.75rem;
 }
 
+/* STRICTLY NO GREY BACKGROUND FOR PROJECT TITLE ONLY */
+.board-title-row .inline-field-display {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  box-shadow: none !important;
+}
+
+.board-title-row .inline-field-display:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-radius: 6px !important;
+}
+
 /* Title Sizing */
 .board-title,
 .board-project-name {
@@ -285,8 +299,11 @@
 }
 
 .board-title-row input {
-  font-size: 1.95rem !important;
+  font-size: 1.75rem !important;
   font-weight: 700 !important;
+  background: #1e1e1b;
+  border-radius: 8px;
+  padding: 4px 8px;
 }
 
 .board-subtitle {
@@ -307,6 +324,7 @@
   white-space: nowrap;
 }
 
+/* DESCRIPTION INPUT BOX REMAINS ORIGINAL AS REQUESTED */
 .board-description-row {
   margin-top: 2px;
 }
@@ -367,6 +385,200 @@
   cursor: not-allowed;
 }
 
+/* ---------- TASK FILTER / SEARCH BAR ---------- */
+
+.task-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem 1.5rem;
+}
+
+.filter-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-search-icon {
+  position: absolute;
+  left: 14px;
+  color: rgba(242, 241, 237, 0.4);
+}
+
+.filter-search-input {
+  width: 100%;
+  padding: 10px 38px;
+  background: #1e1e1b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #f2f1ed;
+  font-size: 13.5px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.filter-search-input:focus {
+  border-color: rgba(75, 74, 224, 0.6);
+  box-shadow: 0 0 0 3px rgba(75, 74, 224, 0.18);
+}
+
+.filter-search-input::placeholder {
+  color: rgba(242, 241, 237, 0.4);
+}
+
+.filter-clear-search {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(242, 241, 237, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.filter-clear-search:hover {
+  color: #f2f1ed;
+}
+
+.filter-group-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filter-pills-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: rgba(242, 241, 237, 0.45);
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.filter-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(242, 241, 237, 0.7);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f1ed;
+}
+
+/* Default Active State Fallback */
+.filter-pill.active {
+  background: rgba(75, 74, 224, 0.2) !important;
+  border-color: rgba(75, 74, 224, 0.45) !important;
+  color: #9fa3f5 !important;
+  font-weight: 600 !important;
+}
+
+/* 1. STATUS: To Do */
+.filter-pill.active[data-status="TODO"],
+.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(1) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #f2f1ed !important;
+}
+
+/* 2. STATUS: In Progress */
+.filter-pill.active[data-status="IN_PROGRESS"],
+.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(2) {
+  background: rgba(75, 74, 224, 0.25) !important;
+  border-color: rgba(75, 74, 224, 0.6) !important;
+  color: #9fa3f5 !important;
+}
+
+/* 3. STATUS: In Review */
+.filter-pill.active[data-status="IN_REVIEW"],
+.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(3) {
+  background: rgba(217, 164, 65, 0.22) !important;
+  border-color: rgba(217, 164, 65, 0.55) !important;
+  color: #ffbf72 !important;
+}
+
+/* 4. STATUS: Done */
+.filter-pill.active[data-status="DONE"],
+.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(4) {
+  background: rgba(76, 175, 111, 0.22) !important;
+  border-color: rgba(76, 175, 111, 0.55) !important;
+  color: #7fd99a !important;
+}
+
+/* 5. PRIORITY: Low */
+.filter-pill.active[data-priority="LOW"],
+.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(1) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(242, 241, 237, 0.9) !important;
+}
+
+/* 6. PRIORITY: Medium */
+.filter-pill.active[data-priority="MEDIUM"],
+.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(2) {
+  background: rgba(224, 160, 74, 0.22) !important;
+  border-color: rgba(224, 160, 74, 0.5) !important;
+  color: #ffbf72 !important;
+}
+
+/* 7. PRIORITY: High */
+.filter-pill.active[data-priority="HIGH"],
+.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(3) {
+  background: rgba(224, 90, 90, 0.22) !important;
+  border-color: rgba(224, 90, 90, 0.5) !important;
+  color: #ff9b9b !important;
+}
+
+/* 8. OVERDUE BADGE */
+.filter-pill-overdue.active,
+.filter-pill.active.filter-pill-overdue {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #f87171 !important;
+  font-weight: 600 !important;
+}
+
+.filter-reset-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #f87171;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-reset-btn:hover {
+  text-decoration: underline;
+}
+
 /* ---------- Board Grid & Columns ---------- */
 
 .board {
@@ -413,12 +625,10 @@
   background: rgba(242, 241, 237, 0.4);
 }
 
-.status-dot-IN_PROGRESS,
 .status-dot-IN_PROGRESS {
   background: #4b4ae0;
 }
 
-.status-dot-IN_REVIEW,
 .status-dot-IN_REVIEW {
   background: #d9a441;
 }
@@ -449,6 +659,7 @@
   border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: 10px;
 }
+
 /* ---------- Task Cards ---------- */
 
 .task-card {
@@ -493,7 +704,6 @@
   flex: 1;
 }
 
-/* Horizontal alignment for action icon & badge */
 .task-card-icons {
   display: flex;
   align-items: center;
@@ -601,7 +811,6 @@
   color: #7fd99a;
 }
 
-/* Top Right Due Badge Styling */
 .task-due-label {
   display: inline-flex;
   align-items: center;
@@ -643,6 +852,86 @@
   color: #ff9b9b;
   font-weight: 600;
 }
+
+/* ---------- MODAL & BUTTON STYLES (GLOBAL) ---------- */
+
+.modal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.modal-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-button-danger {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.modal-button-danger:hover:not(:disabled) {
+  background: #b91c1c !important;
+  border-color: #dc2626 !important;
+}
+
+.modal-button-danger-ghost {
+  background: transparent !important;
+  color: #f87171 !important;
+  border: none !important;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.modal-button-danger-ghost:hover:not(:disabled) {
+  color: #ff9b9b !important;
+  background: rgba(224, 90, 90, 0.12) !important;
+}
+
+.modal-button-secondary {
+  background: transparent !important;
+  color: rgba(242, 241, 237, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-button-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #f2f1ed !important;
+}
+
+.modal-button-primary {
+  background: #4b4ae0 !important;
+  color: #ffffff !important;
+  border: 1px solid #5b5af0 !important;
+}
+
+.modal-button-primary:hover:not(:disabled) {
+  background: #3b3ac2 !important;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ---------- Mobile View ---------- */
 
 .board-header-mobile,
@@ -767,7 +1056,7 @@
     gap: 10px;
     width: 100%;
     padding: 11px 12px;
-    border-radius: 9px;
+    border-radius: 999px;
     border: none;
     background: transparent;
     color: rgba(242, 241, 237, 0.75);
