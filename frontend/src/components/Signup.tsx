@@ -78,7 +78,11 @@ const Signup = () => {
             <span className="field-label">Name</span>
             <div className="input-with-icon">
               <User size={16} className="input-icon" aria-hidden="true" />
-              <input type="text" placeholder="Aly Adel" {...register("name")} />
+              <input
+                type="text"
+                placeholder="Enter your username"
+                {...register("name")}
+              />
             </div>
             {errors.name && (
               <small className="field-error">{errors.name.message}</small>

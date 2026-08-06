@@ -1,42 +1,44 @@
-"use strict";
-module.exports = {
-  async up(queryInterface, Sequelize) {
+import { QueryInterface, DataTypes } from "sequelize";
+
+export default {
+  async up(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.sequelize.query(
       "CREATE EXTENSION IF NOT EXISTS citext;",
     );
     await queryInterface.createTable("users", {
       id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
       },
       name: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       email: {
-        type: Sequelize.CITEXT,
+        type: DataTypes.CITEXT,
         allowNull: false,
         unique: true,
       },
       password: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       created_at: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: DataTypes.NOW,
       },
       updated_at: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: DataTypes.NOW,
       },
     });
   },
-  async down(queryInterface, Sequelize) {
+
+  async down(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.dropTable("users");
   },
 };

@@ -11,7 +11,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: localStorage.getItem("token") ? (
-      <Navigate to="/dashboard" />
+      <Navigate to="/projects" />
     ) : (
       <Navigate to="/login" />
     ),
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/dashboard",
+    path: "/projects",
     element: (
       <ProtectedRoute>
         <Dashboard />
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "dashboard/:projectId/task/:taskId",
+    path: "/projects/:projectId/task/:taskId",
     element: (
       <ProtectedRoute>
         <TaskDetailsPage />

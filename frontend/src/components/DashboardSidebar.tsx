@@ -1,6 +1,5 @@
 import { Folder, LogOut, Plus, Trash2 } from "lucide-react";
 import { type Project } from "./types";
-
 interface DashboardSidebarProps {
   projects: Project[];
   userName: string;
@@ -8,7 +7,6 @@ interface DashboardSidebarProps {
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
   activeProjectId: string | null;
-  refetchProjects?: () => void;
   onLogout: () => void;
   onDeleteProject: (bool: boolean) => void;
 }

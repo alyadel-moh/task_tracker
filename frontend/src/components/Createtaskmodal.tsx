@@ -11,7 +11,6 @@ import useCreateTask from "../hooks/createtaskHook";
 interface CreateTaskModalProps {
   projectId: string;
   onClose: () => void;
-  refetchTasks: () => void;
 }
 
 const schema = z.object({
@@ -31,11 +30,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const CreateTaskModal = ({
-  onClose,
-  projectId,
-  refetchTasks,
-}: CreateTaskModalProps) => {
+const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
   const createtaskmutation = useCreateTask(projectId);
 
   const {
@@ -59,7 +54,6 @@ const CreateTaskModal = ({
         onSuccess: () => {
           toast.success("Task created successfully!");
           reset();
-          refetchTasks();
           onClose();
         },
         onError: (error: any) => {
@@ -142,14 +136,26 @@ const CreateTaskModal = ({
             />
           </label>
 
-          <label className="field">
-            <span className="field-label">Priority</span>
-            <select defaultValue="MEDIUM" {...register("priority")}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-            </select>
-          </label>
+          <div className="field-row">
+            <label className="field">
+              <span className="field-label">Status</span>
+              <select defaultValue="TODO" {...register("status")}>
+                <option value="TODO">To Do</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="IN_REVIEW">In Review</option>
+                <option value="DONE">Done</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span className="field-label">Priority</span>
+              <select defaultValue="MEDIUM" {...register("priority")}>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+              </select>
+            </label>
+          </div>
 
           <div className="field-row">
             <label className="field">

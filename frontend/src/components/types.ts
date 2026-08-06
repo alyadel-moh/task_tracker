@@ -29,6 +29,14 @@ export interface User {
   email: string;
 }
 
+export interface TimeEntry {
+  id: string;
+  taskId: string;
+  note?: string;
+  durationMinutes?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
 export const columns: { key: Status; label: string }[] = [
   { key: "TODO", label: "To do" },
   { key: "IN_PROGRESS", label: "In progress" },
