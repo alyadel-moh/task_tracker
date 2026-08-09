@@ -4,7 +4,7 @@ export default {
     await queryInterface.sequelize.query(
       "CREATE EXTENSION IF NOT EXISTS citext;",
     );
-    await queryInterface.createTable("time_entries", {
+    await queryInterface.createTable("history_records", {
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -21,32 +21,41 @@ export default {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
-      duration_minutes: {
-        type: DataTypes.INTEGER,
+      actor_id: {
+        type: DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
       },
-      note: {
+
+      event_type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      field_changed: {
+        type: DataTypes.STRING,
+        allowNull: true, // created events
+      },
+      old_value: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      entry_date: {
-        type: DataTypes.DATE,
-        allowNull: false,
+      new_value: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
       },
-      updated_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     });
-    await queryInterface.addIndex("time_entries", ["task_id"]);
+    await queryInterface.addIndex("history_records", ["task_id"]);
   },
   async down(queryInterface: QueryInterface): Promise<void> {
-    await queryInterface.dropTable("time_entries");
+    await queryInterface.dropTable("history_records");
   },
 };

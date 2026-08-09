@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes";
 import projectRoutes from "./routes/projectRoutes";
 import taskRoutes from "./routes/taskRoutes";
 import timeEntryRoutes from "./routes/timeEntryRoutes";
+import historyRoutes from "./routes/historyRoutes";
 import errorHandler from "./middleware/errorHandler";
 import { sequelize } from "./models";
 
@@ -19,6 +20,7 @@ app.use("/api/auth", authRoutes); // use auth routes
 app.use("/api/projects", projectRoutes); // use project routes
 app.use("/api/tasks", taskRoutes); // use task routes
 app.use("/api/time-entries", timeEntryRoutes); // use time entry routes
+app.use("/api/task_history", historyRoutes); // use history routes
 
 // Error handling middleware
 app.use(errorHandler);

@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../api-client";
-import { Task } from "../components/types";
+import { HistoryEntry, Task } from "../components/types";
 
 interface UpdateTaskPayload {
-  id: string;
-  [key: string]: any;
+  task: Partial<Task>;
 }
 
 interface UpdateTaskResponse {
   task: Partial<Task>;
   status: string;
   message: string;
+  historyEntries?: HistoryEntry[];
 }
 
 const useUpdateTask = (projectId: string) => {
@@ -18,9 +18,11 @@ const useUpdateTask = (projectId: string) => {
 
   return useMutation({
     mutationFn: (taskData: UpdateTaskPayload) => {
-      const { id, ...rest } = taskData;
       return axiosInstance
-        .patch<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, rest)
+        .patch<UpdateTaskResponse>(
+          `tasks/update/${projectId}/${taskData.task.id}`,
+          taskData.task,
+        )
         .then((response) => response.data);
     },
     onSuccess: (data, variables) => {
@@ -33,7 +35,7 @@ const useUpdateTask = (projectId: string) => {
 
           if (Array.isArray(oldTasks)) {
             return oldTasks.map((task) =>
-              task.id === variables.id
+              task.id === variables.task.id
                 ? {
                     ...task,
                     ...updatedFields,
@@ -49,7 +51,7 @@ const useUpdateTask = (projectId: string) => {
       );
 
       queryClient.setQueryData<Task>(
-        ["task", projectId, variables.id],
+        ["task", projectId, variables.task.id],
         (oldTask) => {
           if (!oldTask) return oldTask;
           return {
@@ -57,6 +59,17 @@ const useUpdateTask = (projectId: string) => {
             ...updatedFields,
             updatedAt: new Date().toISOString(),
           };
+        },
+      );
+
+      queryClient.setQueryData<HistoryEntry[]>(
+        ["task_history", variables.task.id],
+        (oldHistory) => {
+          if (!oldHistory) return oldHistory;
+          if (data.historyEntries && data.historyEntries.length > 0) {
+            return [...data.historyEntries, ...oldHistory];
+          }
+          return oldHistory;
         },
       );
 

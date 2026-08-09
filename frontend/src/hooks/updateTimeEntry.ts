@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { TimeEntry } from "../components/types";
+import { HistoryEntry, TimeEntry } from "../components/types";
 
 export interface UpdateTimeEntryData {
   id: string;
@@ -14,6 +14,7 @@ export interface UpdateTimeEntryResponse {
   timeEntry: Partial<TimeEntry>;
   status: string;
   message: string;
+  historyEntries?: HistoryEntry[];
 }
 interface TimeEntriesCacheData {
   timeEntries: TimeEntry[];
@@ -61,6 +62,16 @@ const useUpdateTimeEntry = (taskId: string, projectId: string) => {
             timeEntries: updatedEntries,
             totalMinutes: newTotalMinutes,
           };
+        },
+      );
+      queryClient.setQueriesData<HistoryEntry[]>(
+        { queryKey: ["task_history", taskId] },
+        (oldHistory) => {
+          if (!oldHistory) return oldHistory;
+          if (data.historyEntries && data.historyEntries.length > 0) {
+            return [...data.historyEntries, ...oldHistory];
+          }
+          return oldHistory;
         },
       );
       console.log("Time entry updated successfully:", data);
