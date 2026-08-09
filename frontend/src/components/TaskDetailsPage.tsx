@@ -20,7 +20,7 @@ import InlineEditField from "../components/InlineEditField";
 import TaskHistoryDrawer from "../components/TaskHistoryDrawer";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useGetTask from "../hooks/getTaskHook";
-import useGetTimeEntries from "../hooks/getalltimeEntries";
+import useGetTimeEntries from "../hooks/getAlltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimeEntry";
 import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
@@ -245,7 +245,6 @@ const TaskDetailsPage = () => {
           estimatedTime: taskDraft.estimatedTime
             ? Number(taskDraft.estimatedTime)
             : null,
-          createdAt: task.createdAt,
         },
       },
       {
