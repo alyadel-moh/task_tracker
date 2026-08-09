@@ -196,7 +196,6 @@ const DashboardBoard = ({
                   <InlineEditField
                     label=""
                     value={activeProject.name}
-                    isSaving={savingField === "name"}
                     onSave={(val) => handleSaveProjectField("name", val)}
                   />
                   <span className="task-count-badge">
@@ -212,7 +211,6 @@ const DashboardBoard = ({
                     optional
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
-                    isSaving={savingField === "description"}
                     onSave={(val) => handleSaveProjectField("description", val)}
                   />
                 </div>
