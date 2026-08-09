@@ -27,6 +27,14 @@ async function findOwnedTask(taskId: string, userId: string) {
   });
   return task;
 }
+const isNumberInRange = (
+  val: any,
+  min: number = 0,
+  max: number = 525600, // e.g. 1 year in minutes max
+): boolean => {
+  if (typeof val !== "number" || !Number.isFinite(val)) return false;
+  return val >= min && val <= max;
+};
 
 async function create(
   req: AuthRequest<{ taskId: string }, {}, CreateTimeEntryBody>,
@@ -120,14 +128,11 @@ async function update(
     const { durationMinutes, entryDate, note } = req.body;
 
     if (durationMinutes !== undefined) {
-      if (
-        typeof durationMinutes !== "number" ||
-        durationMinutes <= 0 ||
-        !Number.isInteger(durationMinutes)
-      ) {
+      if (!isNumberInRange(durationMinutes, 1, 1440)) {
+        // 1440 mins = 24 hours
         return res.status(400).json({
-          error: "Bad Request",
-          message: "Duration must be a positive integer",
+          error: "BadRequest",
+          message: "durationMinutes must be between 1 and 1440 minutes",
         });
       }
     }

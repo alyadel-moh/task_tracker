@@ -22,10 +22,11 @@ const schema = z.object({
     (val) => (val === "" || Number.isNaN(val) ? undefined : Number(val)),
     z.number().min(0).optional(),
   ),
-  dueDate: z.preprocess(
-    (val) => (val === "" ? null : val),
-    z.string().nullable().optional(),
-  ),
+  dueDate: z
+    .string()
+    .datetime({ message: "dueDate must be a valid ISO date string" })
+    .optional()
+    .nullable(),
 });
 
 type FormData = z.infer<typeof schema>;
