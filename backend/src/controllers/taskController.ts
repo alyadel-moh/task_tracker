@@ -38,6 +38,19 @@ async function findOwnedProject(
   return !!project;
 }
 
+const isValidISODate = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+};
+const isNumberInRange = (
+  val: any,
+  min: number = 0,
+  max: number = 525600, // e.g. 1 year in minutes max
+): boolean => {
+  if (typeof val !== "number" || !Number.isFinite(val)) return false;
+  return val >= min && val <= max;
+};
+
 async function create(
   req: AuthRequest<{ projectId: string }, {}, CreateTaskBody>,
   res: Response,
@@ -52,13 +65,15 @@ async function create(
         .status(400)
         .json({ error: "BadRequest", message: "Task name is required" });
     }
-
-    if (!priority) {
-      return res
-        .status(400)
-        .json({ error: "BadRequest", message: "Task priority is required" });
+    if (estimatedTime !== undefined && estimatedTime !== null) {
+      if (!isNumberInRange(estimatedTime, 1, 525600)) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message:
+            "estimatedTime must be a positive number of minutes (minimum 1)",
+        });
+      }
     }
-
     const projectOwned = await findOwnedProject(
       req.user.id,
       req.params.projectId,
@@ -69,6 +84,14 @@ async function create(
         error: "Forbidden",
         message: "You are not the owner of this project",
       });
+    }
+    if (dueDate !== undefined && dueDate !== null) {
+      if (!isValidISODate(dueDate)) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "dueDate must be a valid ISO 8601 date string",
+        });
+      }
     }
 
     const newTask = await Task.create({
@@ -163,7 +186,13 @@ async function getAll(
 
     if (overdue === "true" || overdue === true) {
       whereClause.dueDate = { [Op.lt]: new Date() };
-      whereClause.status = whereClause.status || { [Op.ne]: "DONE" };
+      if (whereClause.status) {
+        whereClause.status = {
+          [Op.and]: [whereClause.status, { [Op.ne]: "DONE" }],
+        };
+      } else {
+        whereClause.status = { [Op.ne]: "DONE" };
+      }
     }
 
     const tasks = await Task.findAll({
@@ -231,15 +260,28 @@ async function update(
       updatedField.status = status;
       changedLabels.push("Status");
     }
-    if (estimatedTime !== undefined) {
-      task.estimatedTime = estimatedTime;
-      updatedField.estimatedTime = estimatedTime;
-      changedLabels.push("Estimated time");
+    if (estimatedTime !== undefined && estimatedTime !== null) {
+      if (!isNumberInRange(estimatedTime, 1, 525600)) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message:
+            "estimatedTime must be a positive number of minutes (minimum 1)",
+        });
+      }
     }
     if (dueDate !== undefined) {
-      task.dueDate = (dueDate as string) ? new Date(dueDate) : null;
-      updatedField.dueDate = dueDate;
-      changedLabels.push("Due date");
+      if (dueDate !== null && !isValidISODate(dueDate)) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "dueDate must be a valid ISO 8601 date string",
+        });
+      }
+
+      const parsedDueDate = dueDate ? new Date(dueDate) : null;
+      if (task.dueDate?.getTime() !== parsedDueDate?.getTime()) {
+        task.dueDate = parsedDueDate;
+        changedLabels.push("Due date");
+      }
     }
     if (priority !== undefined) {
       task.priority = priority as TaskPriority;
