@@ -17,7 +17,7 @@ import useGetProjects from "../hooks/getProjectsHook";
 import useGetTasks from "../hooks/getAllTasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import CreateTaskModal from "./CreateTaskModal";
+import CreateTaskModal from "./CreateTaskmodal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
