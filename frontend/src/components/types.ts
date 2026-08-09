@@ -4,10 +4,10 @@ export type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 export interface Task {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   projectId: string;
   priority: Priority;
-  dueDate?: string;
+  dueDate?: Date | string | null;
   estimatedTime?: number | null;
   status: Status;
   createdAt: string;

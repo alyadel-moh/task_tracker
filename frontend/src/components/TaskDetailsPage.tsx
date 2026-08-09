@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -22,8 +22,8 @@ import useUpdateTask from "../hooks/updateTaskHook";
 import useGetTask from "../hooks/getTaskHook";
 import useGetTimeEntries from "../hooks/getalltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
-import useUpdateTimeEntry from "../hooks/updateTimentry";
-import useDeleteTimeEntry from "../hooks/deleteTimentry";
+import useUpdateTimeEntry from "../hooks/updateTimeEntry";
+import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
 import "../css/TaskDetailsPage.css";
 import { Priority, Status } from "./types";
 
@@ -53,9 +53,10 @@ const formatTimestamp = (value: string): string => {
   });
 };
 
-const formatDateOnly = (value: string): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+const formatDateOnly = (value: string | Date | null): string => {
+  if (!value) return "";
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -63,25 +64,29 @@ const formatDateOnly = (value: string): string => {
   });
 };
 
-const formatForDateTimeInput = (value: string | null): string => {
+const formatForDateTimeInput = (value: string | Date | null): string => {
   if (!value) return "";
-  const date = new Date(value);
+  const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "";
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
+
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-const formatForDateInput = (value: string | null): string => {
+const formatForDateInput = (value: string | Date | null): string => {
   if (!value) return "";
-  const date = new Date(value);
+  const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "";
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
+
   return `${year}-${month}-${day}`;
 };
 
@@ -104,7 +109,6 @@ const TaskDetailsPage = () => {
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  // Local draft states for tracking edits before mutating backend
   const [taskDraft, setTaskDraft] = useState({
     name: "",
     description: "",
@@ -134,7 +138,7 @@ const TaskDetailsPage = () => {
   const entries = timeEntriesData?.timeEntries || [];
   const totalMinutes = timeEntriesData?.totalMinutes || 0;
 
-  // Sync initial server task into local draft state
+  // Sync server task into local draft state
   useEffect(() => {
     if (task) {
       setTaskDraft({
@@ -149,7 +153,7 @@ const TaskDetailsPage = () => {
     }
   }, [task]);
 
-  // Sync initial server time entries into local draft states
+  // Sync server time entries into local draft states
   useEffect(() => {
     if (entries.length > 0) {
       const initialDrafts: Record<string, EntryFormState> = {};
@@ -163,6 +167,19 @@ const TaskDetailsPage = () => {
       setEntryDrafts(initialDrafts);
     }
   }, [timeEntriesData]);
+
+  const isTaskDirty = useMemo(() => {
+    if (!task) return false;
+    return (
+      taskDraft.name.trim() !== (task.name || "").trim() ||
+      taskDraft.description.trim() !== (task.description || "").trim() ||
+      taskDraft.status !== (task.status || "TODO") ||
+      taskDraft.priority !== (task.priority || "LOW") ||
+      taskDraft.dueDate !== formatForDateTimeInput(task.dueDate || null) ||
+      taskDraft.estimatedTime !==
+        (task.estimatedTime != null ? String(task.estimatedTime) : "")
+    );
+  }, [taskDraft, task]);
 
   if (!task && (taskLoading || entriesLoading)) {
     return (
@@ -195,32 +212,16 @@ const TaskDetailsPage = () => {
   };
 
   const dueLabel = getDueLabel();
+  const dueUrgency = !dueLabel
+    ? null
+    : isOverdue
+      ? "overdue"
+      : dueLabel === "Due today"
+        ? "today"
+        : "upcoming";
 
-  const getDueUrgency = (): "overdue" | "today" | "upcoming" | null => {
-    if (!dueLabel) return null;
-    if (isOverdue) return "overdue";
-    if (dueLabel === "Due today") return "today";
-    return "upcoming";
-  };
-
-  const dueUrgency = getDueUrgency();
-
-  // Evaluates to true if any task field in taskDraft differs from current server task
-  const isTaskDirty =
-    taskDraft.name !== (task.name || "") ||
-    taskDraft.description !== (task.description || "") ||
-    taskDraft.status !== (task.status || "TODO") ||
-    taskDraft.priority !== (task.priority || "LOW") ||
-    taskDraft.dueDate !== formatForDateTimeInput(task.dueDate || null) ||
-    taskDraft.estimatedTime !==
-      (task.estimatedTime != null ? String(task.estimatedTime) : "");
-
-  // Update local task draft state when checkmark is clicked
   const updateTaskDraft = (field: string, value: string) => {
-    setTaskDraft((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setTaskDraft((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSaveAllTaskChanges = () => {
@@ -236,15 +237,15 @@ const TaskDetailsPage = () => {
         task: {
           id: taskId,
           name: taskDraft.name.trim(),
-          description: taskDraft.description || undefined,
+          description: taskDraft.description.trim()
+            ? taskDraft.description.trim()
+            : null,
           status: taskDraft.status as Status,
           priority: taskDraft.priority as Priority,
-          dueDate: taskDraft.dueDate
-            ? new Date(taskDraft.dueDate).toISOString()
-            : undefined,
+          dueDate: taskDraft.dueDate ? new Date(taskDraft.dueDate) : null,
           estimatedTime: taskDraft.estimatedTime
             ? Number(taskDraft.estimatedTime)
-            : undefined,
+            : null,
           createdAt: task.createdAt,
         },
       },
@@ -309,7 +310,6 @@ const TaskDetailsPage = () => {
     }));
   };
 
-  // Perform mutation for ALL modified fields on a time entry row
   const handleSaveEntry = (entry: any) => {
     const draft = entryDrafts[entry.id];
     if (!draft) return;
@@ -342,12 +342,9 @@ const TaskDetailsPage = () => {
 
   const handleDeleteEntry = (entryId: string) => {
     deleteEntryMutation.mutate(entryId, {
-      onSuccess: () => {
-        toast.success("Time entry deleted");
-      },
-      onError: (err: any) => {
-        toast.error(err?.response?.data?.message || "Failed to delete entry");
-      },
+      onSuccess: () => toast.success("Time entry deleted"),
+      onError: (err: any) =>
+        toast.error(err?.response?.data?.message || "Failed to delete entry"),
     });
   };
 
@@ -375,7 +372,7 @@ const TaskDetailsPage = () => {
           </button>
         </div>
 
-        {/* 2-Column Main Split Wrapper */}
+        {/* 2-Column Split Wrapper */}
         <div className="task-page-split">
           {/* Left Column: Task Details */}
           <div className="task-page-card">
@@ -396,7 +393,7 @@ const TaskDetailsPage = () => {
             </div>
 
             <div className="task-page-body">
-              {/* Task Name Title */}
+              {/* Task Name */}
               <div className="task-page-title-field">
                 <div className="task-field-label-with-icon">
                   <Tag size={14} className="field-icon" />
@@ -540,7 +537,6 @@ const TaskDetailsPage = () => {
                 </div>
               </div>
 
-              {/* SAVE TASK CHANGES BUTTON (Only visible when any field in taskDraft differs from server task) */}
               {isTaskDirty && (
                 <div className="save-task-container">
                   <button
@@ -561,7 +557,6 @@ const TaskDetailsPage = () => {
             </div>
           </div>
 
-          {/* Right Column: Time Entries */}
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -746,7 +741,7 @@ const TaskDetailsPage = () => {
                           />
                         </div>
 
-                        {/* SAVE ENTRY CHANGES BUTTON (Only visible when a field in this row is modified) */}
+                        {/* SAVE ENTRY CHANGES BUTTON */}
                         {isDirty && (
                           <div className="save-entry-container">
                             <button
