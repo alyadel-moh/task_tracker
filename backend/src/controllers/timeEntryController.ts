@@ -1,16 +1,20 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest"; // or wherever you define it
-import { Task, Project, TimeEntry } from "../models";
-
+import { Task, Project, TimeEntry, User, TaskHistory } from "../models";
+import {
+  recordTimeEntryCreated,
+  recordTimeEntryUpdated,
+  recordTimeEntryDeleted,
+} from "../services/task_history";
 interface CreateTimeEntryBody {
   durationMinutes: number;
-  entryDate: string;
+  entryDate: Date | string;
   note?: string;
 }
 
 interface UpdateTimeEntryBody {
   durationMinutes?: number;
-  entryDate?: string;
+  entryDate?: Date | string;
   note?: string;
 }
 
@@ -76,9 +80,31 @@ async function create(
       note: note || null,
     });
 
+    const historyEntry = await recordTimeEntryCreated(
+      req.params.taskId,
+      req.user.id,
+      {
+        durationMinutes,
+        entryDate: new Date(entryDate) ?? undefined,
+        note: note ?? undefined,
+      },
+    );
+
+    const taskHistoryEntry = await TaskHistory.findOne({
+      where: { id: historyEntry.id },
+      include: [
+        {
+          model: User,
+          as: "actor",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
+
     return res.status(201).json({
       message: "Time entry created successfully",
       timeEntry,
+      historyEntry: taskHistoryEntry,
     });
   } catch (err) {
     next(err);
@@ -162,8 +188,13 @@ async function update(
         message: "Time entry not found",
       });
     }
+    const before = {
+      durationMinutes: timeEntry.durationMinutes,
+      entryDate: timeEntry.entryDate,
+      note: timeEntry.note,
+    };
 
-    const updatedField: Partial<UpdateTimeEntryBody> = {};
+    const updatedFields: Partial<UpdateTimeEntryBody> = {};
     const changedLabels: string[] = [];
 
     if (
@@ -171,7 +202,7 @@ async function update(
       durationMinutes !== timeEntry.durationMinutes
     ) {
       timeEntry.durationMinutes = durationMinutes;
-      updatedField.durationMinutes = durationMinutes;
+      updatedFields.durationMinutes = durationMinutes;
       changedLabels.push("Duration");
     }
     if (
@@ -179,19 +210,46 @@ async function update(
       new Date(entryDate).getTime() !== timeEntry.entryDate.getTime()
     ) {
       timeEntry.entryDate = new Date(entryDate);
-      updatedField.entryDate = entryDate;
+      updatedFields.entryDate = entryDate;
       changedLabels.push("Entry date");
     }
     if (note !== undefined && note !== timeEntry.note) {
       timeEntry.note = note;
-      updatedField.note = note;
+      updatedFields.note = note;
       changedLabels.push("Note");
     }
 
     await timeEntry.save();
-
+    const historyEntries = await recordTimeEntryUpdated(
+      req.params.taskId,
+      req.user.id,
+      before,
+      {
+        durationMinutes:
+          updatedFields.durationMinutes ?? timeEntry.durationMinutes,
+        entryDate: updatedFields.entryDate
+          ? new Date(updatedFields.entryDate)
+          : timeEntry.entryDate,
+        note: updatedFields.note ?? timeEntry.note,
+      },
+    );
+    const detailedHistoryEntries = await Promise.all(
+      (historyEntries || []).map((entry) =>
+        TaskHistory.findOne({
+          where: { id: entry?.id },
+          include: [
+            {
+              model: User,
+              as: "actor",
+              attributes: ["id", "name", "email"],
+            },
+          ],
+        }),
+      ),
+    );
     return res.status(200).json({
-      timeEntry: updatedField,
+      timeEntry: updatedFields,
+      historyEntries: detailedHistoryEntries,
       message: changedLabels.length
         ? `${changedLabels.join(", ")} updated successfully`
         : "Time entry updated successfully",
@@ -226,8 +284,30 @@ async function remove(
     }
 
     await timeEntry.destroy();
+    const historyEntry = await recordTimeEntryDeleted(
+      req.params.taskId,
+      req.user.id,
+      {
+        durationMinutes: timeEntry.durationMinutes,
+        entryDate: timeEntry.entryDate
+          ? new Date(timeEntry.entryDate)
+          : undefined,
+        note: timeEntry.note,
+      },
+    );
+    const taskHistoryEntry = await TaskHistory.findOne({
+      where: { id: historyEntry.id },
+      include: [
+        {
+          model: User,
+          as: "actor",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
     return res.status(200).json({
       message: "Time entry deleted successfully",
+      historyEntry: taskHistoryEntry,
     });
   } catch (err) {
     next(err);

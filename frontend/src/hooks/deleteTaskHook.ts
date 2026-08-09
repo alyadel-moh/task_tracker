@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { Task } from "../components/types";
+import { HistoryEntry, Task } from "../components/types";
 
 interface DeleteTaskResponse {
   status: string;
   message: string;
+  historyEntry?: HistoryEntry;
 }
 
 const useDeleteTask = (projectId: string, taskId: string) => {
@@ -30,6 +31,16 @@ const useDeleteTask = (projectId: string, taskId: string) => {
           }
 
           return oldTasks;
+        },
+      );
+      queryClient.setQueriesData<HistoryEntry[]>(
+        { queryKey: ["task_history", taskId] },
+        (oldHistory) => {
+          if (!oldHistory) return oldHistory;
+          if (data.historyEntry) {
+            return [data.historyEntry, ...oldHistory];
+          }
+          return oldHistory;
         },
       );
     },

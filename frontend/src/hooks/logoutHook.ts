@@ -1,12 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { queryClient } from "../main";
 interface LogoutResponse {
   status: string;
   message: string;
 }
 const useLogout = () => {
+  const queryClient = useQueryClient();
   return useMutation<LogoutResponse, AxiosError>({
     mutationFn: () => {
       return axiosInstance
