@@ -7,7 +7,7 @@ import {
   recordTaskCreated,
   recordTaskUpdated,
   recordTaskDeleted,
-} from "../services/task_history";
+} from "../services/taskHistory";
 interface CreateTaskBody {
   name: string;
   description?: string;
@@ -22,7 +22,7 @@ interface UpdateTaskBody {
   description?: string;
   status?: string;
   estimatedTime?: number;
-  dueDate?: Date;
+  dueDate?: Date | string | null;
   priority?: string;
 }
 
@@ -55,8 +55,20 @@ const isNumberInRange = (
   if (typeof val !== "number" || !Number.isFinite(val)) return false;
   return val >= min && val <= max;
 };
+<<<<<<< HEAD
 const ALLOWED_STATUSES: string[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
+=======
+async function fetchHistoryWithActor(historyId?: string) {
+  if (!historyId) return null;
+  return TaskHistory.findOne({
+    where: { id: historyId },
+    include: [
+      { model: User, as: "actor", attributes: ["id", "name", "email"] },
+    ],
+  });
+}
+>>>>>>> 954148c (refactoring and updating logic done)
 
 async function create(
   req: AuthRequest<{ projectId: string }, {}, CreateTaskBody>,
@@ -124,16 +136,7 @@ async function create(
       projectId: req.params.projectId,
     });
     const historyEntry = await recordTaskCreated(newTask.id, req.user.id);
-    const taskHistoryEntry = await TaskHistory.findOne({
-      where: { id: historyEntry?.id },
-      include: [
-        {
-          model: User,
-          as: "actor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
 
     return res.status(201).json({
       message: "Task created successfully",
@@ -290,8 +293,8 @@ async function update(
       updatedFields.name = trimmedName;
       changedLabels.push("Task name");
     }
-    if (description !== undefined && description !== task.description) {
-      task.description = description;
+    if (description !== task.description) {
+      task.description = description || null;
       updatedFields.description = description;
       changedLabels.push("Description");
     }
@@ -326,12 +329,21 @@ async function update(
         return res.status(400).json({
           error: "BadRequest",
           message:
-            "estimatedTime must be a positive number of minutes (minimum 1)",
+            "estmatiedTime must be a positive number of minutes (minimum 1)",
         });
+      }
+      if (task.estimatedTime !== estimatedTime) {
+        task.estimatedTime = estimatedTime;
+        updatedFields.estimatedTime = estimatedTime;
+        changedLabels.push("Estimated time");
       }
     }
     if (dueDate !== undefined) {
-      if (dueDate !== null && !isValidISODate(dueDate.toISOString())) {
+      if (
+        dueDate !== null &&
+        typeof dueDate === "string" &&
+        !isValidISODate(dueDate)
+      ) {
         return res.status(400).json({
           error: "BadRequest",
           message: "dueDate must be a valid ISO 8601 date string",
@@ -339,8 +351,14 @@ async function update(
       }
 
       const parsedDueDate = dueDate ? new Date(dueDate) : null;
-      if (task.dueDate?.getTime() !== parsedDueDate?.getTime()) {
+      const currentMs = task.dueDate ? new Date(task.dueDate).getTime() : null;
+      const parsedMs = parsedDueDate ? parsedDueDate.getTime() : null;
+
+      if (currentMs !== parsedMs) {
         task.dueDate = parsedDueDate;
+        updatedFields.dueDate = parsedDueDate
+          ? parsedDueDate.toISOString()
+          : null;
         changedLabels.push("Due date");
       }
     }
@@ -352,17 +370,12 @@ async function update(
 
     await task.save();
 
-    const targetDate = dueDate
-      ? new Date(dueDate)
-      : task.dueDate
-        ? new Date(task.dueDate)
-        : undefined;
     const after = {
       name: name ?? task.name,
       description: description ?? task.description ?? undefined,
       status: status ?? task.status,
       estimatedTime: estimatedTime ?? task.estimatedTime ?? undefined,
-      dueDate: targetDate ? new Date(targetDate) : undefined,
+      dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       priority: priority ?? task.priority,
     };
 
@@ -373,18 +386,7 @@ async function update(
       after,
     );
     const detailedHistoryEntries = await Promise.all(
-      (historyEntries || []).map((entry) =>
-        TaskHistory.findOne({
-          where: { id: entry?.id },
-          include: [
-            {
-              model: User,
-              as: "actor",
-              attributes: ["id", "name", "email"],
-            },
-          ],
-        }),
-      ),
+      (historyEntries || []).map((entry) => fetchHistoryWithActor(entry?.id)),
     );
 
     const message = changedLabels.length
@@ -427,16 +429,7 @@ async function remove(
         .json({ error: "Not Found", message: "Task not found" });
     }
     const historyEntry = await recordTaskDeleted(task.id, req.user.id);
-    const taskHistoryEntry = await TaskHistory.findOne({
-      where: { id: historyEntry?.id },
-      include: [
-        {
-          model: User,
-          as: "actor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
+    const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
     await task.destroy();
     return res.status(200).json({
       message: "Task deleted successfully",

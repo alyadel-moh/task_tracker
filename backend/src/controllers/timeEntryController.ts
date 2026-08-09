@@ -5,7 +5,7 @@ import {
   recordTimeEntryCreated,
   recordTimeEntryUpdated,
   recordTimeEntryDeleted,
-} from "../services/task_history";
+} from "../services/taskHistory";
 interface CreateTimeEntryBody {
   durationMinutes: number;
   entryDate: Date | string;

@@ -29,8 +29,7 @@ import {
 import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
-import useGetTasks from "../hooks/getAlltasksHook";
-
+import useGetTasks from "../hooks/getAllTasksHook";
 interface DashboardBoardProps {
   activeProject: Project | null;
   tasks: Task[];
