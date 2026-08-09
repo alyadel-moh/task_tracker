@@ -785,5 +785,4 @@ const TaskDetailsPage = () => {
     </div>
   );
 };
-
 export default TaskDetailsPage;
