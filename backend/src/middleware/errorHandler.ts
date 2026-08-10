@@ -1,16 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Response } from "express";
 import {
   ValidationError,
   UniqueConstraintError,
   ForeignKeyConstraintError,
 } from "sequelize";
 
-export function errorHandler(
-  err: any,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function errorHandler(err: any, res: Response): void {
   console.error(err);
 
   if (

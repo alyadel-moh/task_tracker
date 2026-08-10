@@ -66,7 +66,11 @@ async function fetchHistoryWithActor(historyId?: string) {
 }
 
 async function create(
-  req: AuthRequest<{ projectId: string }, {}, CreateTaskBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    CreateTaskBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -152,7 +156,11 @@ async function create(
 }
 
 async function getById(
-  req: AuthRequest<{ id: string; projectId: string }>,
+  req: AuthRequest<
+    { id: string; projectId: string },
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -183,7 +191,7 @@ async function getById(
 }
 
 async function getAll(
-  req: AuthRequest<{ projectId: string }, {}, {}, TaskQuery>,
+  req: AuthRequest<Record<string, never>, Record<string, never>, TaskQuery>,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -246,7 +254,11 @@ async function getAll(
 }
 
 async function update(
-  req: AuthRequest<{ id: string; projectId: string }, {}, UpdateTaskBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    UpdateTaskBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {

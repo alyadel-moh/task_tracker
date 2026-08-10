@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
 import { Project } from "../components/types";
-import { Task } from "../components/types";
 interface DeleteProjectResponse {
   status: string;
   message: string;

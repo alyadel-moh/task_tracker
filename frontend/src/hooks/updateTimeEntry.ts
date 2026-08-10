@@ -21,20 +21,20 @@ interface TimeEntriesCacheData {
   totalMinutes: number;
 }
 
-const useUpdateTimeEntry = (taskId: string, projectId: string) => {
+const useUpdateTimeEntry = (taskId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation<UpdateTimeEntryResponse, AxiosError, UpdateTimeEntryData>({
-    mutationFn: ({ id, ...entryData }: UpdateTimeEntryData) => {
+    mutationFn: (entryData: UpdateTimeEntryData) => {
       return axiosInstance
         .patch<UpdateTimeEntryResponse>(
-          `time-entries/update/${taskId}/${id}`,
+          `time-entries/update/${taskId}/${entryData.id}`,
           entryData,
         )
         .then((response) => response.data);
     },
     onSuccess: (data, variables) => {
-      const { id, ...entryData } = variables;
+      const { id: _id, ...entryData } = variables;
       const updatedFields = data.timeEntry ?? entryData;
 
       queryClient.setQueryData<TimeEntriesCacheData>(

@@ -9,11 +9,10 @@ export interface ProjectAttributes {
   updatedAt?: Date;
 }
 
-export interface ProjectCreationAttributes extends Optional<
+export type ProjectCreationAttributes = Optional<
   ProjectAttributes,
   "id" | "description"
-> {}
-
+>;
 export class Project
   extends Model<ProjectAttributes, ProjectCreationAttributes>
   implements ProjectAttributes

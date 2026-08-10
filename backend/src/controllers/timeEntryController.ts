@@ -41,7 +41,11 @@ const isNumberInRange = (
 };
 
 async function create(
-  req: AuthRequest<{ taskId: string }, {}, CreateTimeEntryBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    CreateTimeEntryBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -112,7 +116,11 @@ async function create(
 }
 
 async function getAll(
-  req: AuthRequest<{ taskId: string }>,
+  req: AuthRequest<
+    { taskId: string },
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -146,7 +154,11 @@ async function getAll(
 }
 
 async function update(
-  req: AuthRequest<{ id: string; taskId: string }, {}, UpdateTimeEntryBody>,
+  req: AuthRequest<
+    { id: string; taskId: string },
+    Record<string, never>,
+    UpdateTimeEntryBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -260,7 +272,11 @@ async function update(
 }
 
 async function remove(
-  req: AuthRequest<{ id: string; taskId: string }>,
+  req: AuthRequest<
+    { id: string; taskId: string },
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {

@@ -16,10 +16,10 @@ export interface TaskAttributes {
   updatedAt?: Date;
 }
 
-export interface TaskCreationAttributes extends Optional<
+export type TaskCreationAttributes = Optional<
   TaskAttributes,
   "id" | "status" | "priority" | "description" | "dueDate" | "estimatedTime"
-> {}
+>;
 
 export class Task
   extends Model<TaskAttributes, TaskCreationAttributes>
