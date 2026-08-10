@@ -101,7 +101,6 @@ const DashboardBoard = ({
   userEmail,
   onLogout,
 }: DashboardBoardProps) => {
-  const [savingField, setSavingField] = useState<string | null>(null);
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,21 +159,18 @@ const DashboardBoard = ({
     value: string,
   ) => {
     if (!activeProject) return;
-    setSavingField(field);
 
     const payload = { [field]: value };
 
     updateProjectMutation.mutate(payload, {
       onSuccess: () => {
         toast.success(`Project ${field} updated successfully!`);
-        setSavingField(null);
       },
       onError: (error: any) => {
         const apiError =
           error?.response?.data?.message ??
           "Failed to update project. Please try again.";
         toast.error(apiError);
-        setSavingField(null);
       },
     });
   };

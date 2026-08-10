@@ -16,7 +16,11 @@ async function findOwnedTask(userId: string, taskId: string): Promise<boolean> {
 }
 
 async function getTaskHistory(
-  req: AuthRequest<{ taskId: string }>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {

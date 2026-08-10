@@ -132,9 +132,8 @@ const TaskDetailsPage = () => {
 
   const updateTaskMutation = useUpdateTask(projectId);
   const createEntryMutation = useCreateTimeEntry(taskId);
-  const updateEntryMutation = useUpdateTimeEntry(taskId, projectId);
+  const updateEntryMutation = useUpdateTimeEntry(taskId);
   const deleteEntryMutation = useDeleteTimeEntry(taskId);
-
   const entries = timeEntriesData?.timeEntries || [];
   const totalMinutes = timeEntriesData?.totalMinutes || 0;
 
@@ -155,9 +154,9 @@ const TaskDetailsPage = () => {
 
   // Sync server time entries into local draft states
   useEffect(() => {
-    if (entries.length > 0) {
+    if (timeEntriesData?.timeEntries?.length) {
       const initialDrafts: Record<string, EntryFormState> = {};
-      entries.forEach((entry: any) => {
+      timeEntriesData.timeEntries.forEach((entry: any) => {
         initialDrafts[entry.id] = {
           durationMinutes: String(entry.durationMinutes || ""),
           entryDate: formatForDateInput(entry.entry_date || entry.entryDate),
