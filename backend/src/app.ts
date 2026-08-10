@@ -10,10 +10,13 @@ import timeEntryRoutes from "./routes/timeEntryRoutes";
 import historyRoutes from "./routes/historyRoutes";
 import errorHandler from "./middleware/errorHandler";
 import { sequelize } from "./models";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 const app: Application = express();
 
 app.use(express.json());
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(cors());
 
 app.use("/api/auth", authRoutes); // use auth routes
