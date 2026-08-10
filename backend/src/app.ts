@@ -12,10 +12,12 @@ import errorHandler from "./middleware/errorHandler";
 import { sequelize } from "./models";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
+import { httpLogger } from "./middleware/httpLogger";
 
 const app: Application = express();
 
 app.use(express.json());
+app.use(httpLogger); // Place httpLogger at the very top of request pipeline
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(cors());
 
@@ -25,7 +27,6 @@ app.use("/api/tasks", taskRoutes); // use task routes
 app.use("/api/time-entries", timeEntryRoutes); // use time entry routes
 app.use("/api/task_history", historyRoutes); // use history routes
 
-// Error handling middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
