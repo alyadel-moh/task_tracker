@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,9 +12,12 @@ import {
   AlertTriangle,
   Trash2,
   Plus,
+  History,
+  Save,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "../components/InlineEditField";
+import TaskHistoryDrawer from "../components/TaskHistoryDrawer";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useGetTask from "../hooks/getTaskHook";
 import useGetTimeEntries from "../hooks/getalltimeEntries";
@@ -22,6 +25,7 @@ import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimentry";
 import useDeleteTimeEntry from "../hooks/deleteTimentry";
 import "../css/TaskDetailsPage.css";
+import { Priority, Status } from "./types";
 
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
@@ -81,10 +85,15 @@ const formatForDateInput = (value: string | null): string => {
   return `${year}-${month}-${day}`;
 };
 
+interface EntryFormState {
+  durationMinutes: string;
+  entryDate: string;
+  note: string;
+}
+
 const TaskDetailsPage = () => {
   const navigate = useNavigate();
-  const [savingField, setSavingField] = useState<string | null>(null);
-  const [savingEntryField, setSavingEntryField] = useState<string | null>(null);
+  const [savingTask, setSavingTask] = useState(false);
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [newDuration, setNewDuration] = useState("");
@@ -92,6 +101,23 @@ const TaskDetailsPage = () => {
     new Date().toISOString().split("T")[0],
   );
   const [newNote, setNewNote] = useState("");
+
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Local draft states for tracking edits before mutating backend
+  const [taskDraft, setTaskDraft] = useState({
+    name: "",
+    description: "",
+    status: "TODO",
+    priority: "LOW",
+    dueDate: "",
+    estimatedTime: "",
+  });
+
+  const [entryDrafts, setEntryDrafts] = useState<
+    Record<string, EntryFormState>
+  >({});
+  const [savingEntryId, setSavingEntryId] = useState<string | null>(null);
 
   const projectId = useParams<{ projectId: string }>().projectId ?? "";
   const taskId = useParams<{ taskId: string }>().taskId ?? "";
@@ -105,6 +131,39 @@ const TaskDetailsPage = () => {
   const updateEntryMutation = useUpdateTimeEntry(taskId, projectId);
   const deleteEntryMutation = useDeleteTimeEntry(taskId);
 
+  const entries = timeEntriesData?.timeEntries || [];
+  const totalMinutes = timeEntriesData?.totalMinutes || 0;
+
+  // Sync initial server task into local draft state
+  useEffect(() => {
+    if (task) {
+      setTaskDraft({
+        name: task.name || "",
+        description: task.description || "",
+        status: task.status || "TODO",
+        priority: task.priority || "LOW",
+        dueDate: formatForDateTimeInput(task.dueDate || null),
+        estimatedTime:
+          task.estimatedTime != null ? String(task.estimatedTime) : "",
+      });
+    }
+  }, [task]);
+
+  // Sync initial server time entries into local draft states
+  useEffect(() => {
+    if (entries.length > 0) {
+      const initialDrafts: Record<string, EntryFormState> = {};
+      entries.forEach((entry: any) => {
+        initialDrafts[entry.id] = {
+          durationMinutes: String(entry.durationMinutes || ""),
+          entryDate: formatForDateInput(entry.entry_date || entry.entryDate),
+          note: entry.note || "",
+        };
+      });
+      setEntryDrafts(initialDrafts);
+    }
+  }, [timeEntriesData]);
+
   if (!task && (taskLoading || entriesLoading)) {
     return (
       <div className="task-page-loading">
@@ -114,9 +173,6 @@ const TaskDetailsPage = () => {
   }
 
   if (!task) return null;
-
-  const entries = timeEntriesData?.timeEntries || [];
-  const totalMinutes = timeEntriesData?.totalMinutes || 0;
 
   const isOverdue =
     task.dueDate &&
@@ -149,37 +205,63 @@ const TaskDetailsPage = () => {
 
   const dueUrgency = getDueUrgency();
 
-  const saveField = (field: string, value: string) => {
-    setSavingField(field);
+  // Evaluates to true if any task field in taskDraft differs from current server task
+  const isTaskDirty =
+    taskDraft.name !== (task.name || "") ||
+    taskDraft.description !== (task.description || "") ||
+    taskDraft.status !== (task.status || "TODO") ||
+    taskDraft.priority !== (task.priority || "LOW") ||
+    taskDraft.dueDate !== formatForDateTimeInput(task.dueDate || null) ||
+    taskDraft.estimatedTime !==
+      (task.estimatedTime != null ? String(task.estimatedTime) : "");
 
-    let formattedValue: any = value;
-    if (field === "durationMinutes") {
-      formattedValue = value ? Number(value) : null;
-    } else if (field === "dueDate") {
-      formattedValue = value ? new Date(value).toISOString() : null;
-    } else if (field === "description") {
-      formattedValue = value ?? "";
+  // Update local task draft state when checkmark is clicked
+  const updateTaskDraft = (field: string, value: string) => {
+    setTaskDraft((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveAllTaskChanges = () => {
+    if (!taskDraft.name.trim()) {
+      toast.error("Task name cannot be empty");
+      return;
     }
+
+    setSavingTask(true);
 
     updateTaskMutation.mutate(
       {
-        id: task.id,
-        [field]: formattedValue,
+        task: {
+          id: taskId,
+          name: taskDraft.name.trim(),
+          description: taskDraft.description || undefined,
+          status: taskDraft.status as Status,
+          priority: taskDraft.priority as Priority,
+          dueDate: taskDraft.dueDate
+            ? new Date(taskDraft.dueDate).toISOString()
+            : undefined,
+          estimatedTime: taskDraft.estimatedTime
+            ? Number(taskDraft.estimatedTime)
+            : undefined,
+          createdAt: task.createdAt,
+        },
       },
       {
         onSuccess: (res: any) => {
           const backendMessage = res?.message || res?.data?.message;
-          if (backendMessage) {
-            toast.success(backendMessage, { id: "task-save" });
-          }
-          setSavingField(null);
+          toast.success(backendMessage || "Task changes saved successfully", {
+            id: "task-save",
+          });
+          setSavingTask(false);
         },
-        onError: (error: any) => {
-          const errorMessage = error?.response?.data?.message || error?.message;
-          if (errorMessage) {
-            toast.error(errorMessage, { id: "task-save" });
-          }
-          setSavingField(null);
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to save task changes",
+            { id: "task-save" },
+          );
+          setSavingTask(false);
         },
       },
     );
@@ -213,34 +295,49 @@ const TaskDetailsPage = () => {
     );
   };
 
-  const saveEntryField = (entryId: string, field: string, value: string) => {
-    const key = `${entryId}-${field}`;
-    setSavingEntryField(key);
-
-    let updatedVal: any = value;
-    if (field === "durationMinutes") updatedVal = Number(value);
-
-    updateEntryMutation.mutate(
-      {
-        id: entryId,
-        [field]: updatedVal,
+  const handleEntryDraftChange = (
+    entryId: string,
+    field: keyof EntryFormState,
+    value: string,
+  ) => {
+    setEntryDrafts((prev) => ({
+      ...prev,
+      [entryId]: {
+        ...prev[entryId],
+        [field]: value,
       },
-      {
-        onSuccess: (res: any) => {
-          const backendMessage = res?.message || res?.data?.message;
-          if (backendMessage) {
-            toast.success(backendMessage, { id: "entry-save" });
-          } else {
-            toast.success("Entry updated", { id: "entry-save" });
-          }
-          setSavingEntryField(null);
-        },
-        onError: (err: any) => {
-          toast.error(err?.response?.data?.message || "Failed to update entry");
-          setSavingEntryField(null);
-        },
+    }));
+  };
+
+  // Perform mutation for ALL modified fields on a time entry row
+  const handleSaveEntry = (entry: any) => {
+    const draft = entryDrafts[entry.id];
+    if (!draft) return;
+
+    setSavingEntryId(entry.id);
+
+    const payload: any = {
+      id: entry.id,
+      durationMinutes: Number(draft.durationMinutes),
+      entryDate: draft.entryDate,
+      note: draft.note || null,
+    };
+
+    updateEntryMutation.mutate(payload, {
+      onSuccess: (res: any) => {
+        const backendMessage = res?.message || res?.data?.message;
+        toast.success(backendMessage || "Entry updated successfully", {
+          id: "entry-save",
+        });
+        setSavingEntryId(null);
       },
-    );
+      onError: (err: any) => {
+        toast.error(
+          err?.response?.data?.message || "Failed to update time entry",
+        );
+        setSavingEntryId(null);
+      },
+    });
   };
 
   const handleDeleteEntry = (entryId: string) => {
@@ -267,13 +364,21 @@ const TaskDetailsPage = () => {
             <ArrowLeft size={16} />
             <span>Back to board</span>
           </button>
+
+          <button
+            type="button"
+            className="history-drawer-trigger-btn"
+            onClick={() => setIsHistoryOpen(true)}
+          >
+            <History size={16} />
+            <span>View history</span>
+          </button>
         </div>
 
         {/* 2-Column Main Split Wrapper */}
         <div className="task-page-split">
           {/* Left Column: Task Details */}
           <div className="task-page-card">
-            {/* Top Header Row */}
             <div className="task-page-card-header">
               <div className="task-page-header-left">
                 <div className="task-page-icon-wrapper">
@@ -290,9 +395,8 @@ const TaskDetailsPage = () => {
               </div>
             </div>
 
-            {/* Body Content */}
             <div className="task-page-body">
-              {/* Task Name Title with Icon */}
+              {/* Task Name Title */}
               <div className="task-page-title-field">
                 <div className="task-field-label-with-icon">
                   <Tag size={14} className="field-icon" />
@@ -300,13 +404,12 @@ const TaskDetailsPage = () => {
                 </div>
                 <InlineEditField
                   label=""
-                  value={task.name}
-                  isSaving={savingField === "name"}
-                  onSave={(v) => saveField("name", v)}
+                  value={taskDraft.name}
+                  onSave={(v) => updateTaskDraft("name", v)}
                 />
               </div>
 
-              {/* Description (Optional) */}
+              {/* Description */}
               <div className="task-page-field-group">
                 <div className="task-field-label-with-icon">
                   <FileText size={14} className="field-icon" />
@@ -317,10 +420,9 @@ const TaskDetailsPage = () => {
                   label=""
                   type="textarea"
                   optional
-                  value={task.description ?? ""}
+                  value={taskDraft.description}
                   placeholder="Add a detailed description..."
-                  isSaving={savingField === "description"}
-                  onSave={(v) => saveField("description", v)}
+                  onSave={(v) => updateTaskDraft("description", v)}
                 />
               </div>
 
@@ -338,19 +440,19 @@ const TaskDetailsPage = () => {
                     label=""
                     type="select"
                     options={STATUS_OPTIONS}
-                    value={task.status}
+                    value={taskDraft.status}
                     displayValue={
                       <span
-                        className={`task-badge badge-status badge-status-${task.status}`}
+                        className={`task-badge badge-status badge-status-${taskDraft.status}`}
                       >
                         {
-                          STATUS_OPTIONS.find((o) => o.value === task.status)
-                            ?.label
+                          STATUS_OPTIONS.find(
+                            (o) => o.value === taskDraft.status,
+                          )?.label
                         }
                       </span>
                     }
-                    isSaving={savingField === "status"}
-                    onSave={(v) => saveField("status", v)}
+                    onSave={(v) => updateTaskDraft("status", v)}
                   />
                 </div>
 
@@ -364,24 +466,23 @@ const TaskDetailsPage = () => {
                     label=""
                     type="select"
                     options={PRIORITY_OPTIONS}
-                    value={task.priority}
+                    value={taskDraft.priority}
                     displayValue={
                       <span
-                        className={`task-badge badge-priority badge-priority-${task.priority}`}
+                        className={`task-badge badge-priority badge-priority-${taskDraft.priority}`}
                       >
                         {
                           PRIORITY_OPTIONS.find(
-                            (o) => o.value === task.priority,
+                            (o) => o.value === taskDraft.priority,
                           )?.label
                         }
                       </span>
                     }
-                    isSaving={savingField === "priority"}
-                    onSave={(v) => saveField("priority", v)}
+                    onSave={(v) => updateTaskDraft("priority", v)}
                   />
                 </div>
 
-                {/* Due Date (Optional) */}
+                {/* Due Date */}
                 <div className="task-page-grid-item">
                   <div className="task-field-label-with-icon">
                     <Calendar size={14} className="field-icon" />
@@ -406,12 +507,13 @@ const TaskDetailsPage = () => {
                     type="datetime-local"
                     optional
                     placeholder="No due date set"
-                    value={formatForDateTimeInput(task.dueDate ?? null)}
+                    value={taskDraft.dueDate}
                     displayValue={
-                      task.dueDate ? formatTimestamp(task.dueDate) : undefined
+                      taskDraft.dueDate
+                        ? formatTimestamp(taskDraft.dueDate)
+                        : undefined
                     }
-                    isSaving={savingField === "dueDate"}
-                    onSave={(v) => saveField("dueDate", v)}
+                    onSave={(v) => updateTaskDraft("dueDate", v)}
                   />
                 </div>
 
@@ -426,22 +528,36 @@ const TaskDetailsPage = () => {
                     label=""
                     type="number"
                     optional
-                    value={
-                      task.estimatedTime != null
-                        ? String(task.estimatedTime)
-                        : ""
-                    }
+                    value={taskDraft.estimatedTime}
                     displayValue={
-                      task.estimatedTime != null
-                        ? `${task.estimatedTime} mins`
+                      taskDraft.estimatedTime
+                        ? `${taskDraft.estimatedTime} mins`
                         : undefined
                     }
                     placeholder="e.g. 60"
-                    isSaving={savingField === "estimatedTime"}
-                    onSave={(v) => saveField("estimatedTime", v)}
+                    onSave={(v) => updateTaskDraft("estimatedTime", v)}
                   />
                 </div>
               </div>
+
+              {/* SAVE TASK CHANGES BUTTON (Only visible when any field in taskDraft differs from server task) */}
+              {isTaskDirty && (
+                <div className="save-task-container">
+                  <button
+                    type="button"
+                    className="save-task-btn"
+                    disabled={savingTask}
+                    onClick={handleSaveAllTaskChanges}
+                  >
+                    {savingTask ? (
+                      <Loader2 size={16} className="spin" />
+                    ) : (
+                      <Save size={16} />
+                    )}
+                    <span>Save Task Changes</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -498,10 +614,13 @@ const TaskDetailsPage = () => {
                 </div>
 
                 <div className="add-entry-field">
-                  <label>Note (optional)</label>
+                  <label>
+                    Note{" "}
+                    <span className="field-label-optional">(optional)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="What did you work on?"
+                    placeholder="What did you work on? (optional)"
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                   />
@@ -534,57 +653,61 @@ const TaskDetailsPage = () => {
                 </div>
               ) : (
                 entries.map((entry: any) => {
-                  const createdAtVal = entry.createdAt || entry.created_at;
-                  const updatedAtVal = entry.updatedAt || entry.updated_at;
+                  const createdAtVal = entry.createdAt;
+                  const updatedAtVal = entry.updatedAt;
+                  const draft = entryDrafts[entry.id] || {
+                    durationMinutes: String(entry.durationMinutes || ""),
+                    entryDate: formatForDateInput(
+                      entry.entry_date || entry.entryDate,
+                    ),
+                    note: entry.note || "",
+                  };
+
+                  const isDirty =
+                    String(entry.durationMinutes) !== draft.durationMinutes ||
+                    formatForDateInput(entry.entry_date || entry.entryDate) !==
+                      draft.entryDate ||
+                    (entry.note || "") !== draft.note;
 
                   return (
                     <div className="entry-row" key={entry.id}>
                       <div className="entry-main">
-                        {/* Entry Timestamp Meta Badge */}
                         {createdAtVal && (
-                          <div
-                            className="task-page-meta-badge"
-                            style={{
-                              alignSelf: "flex-start",
-                              marginBottom: "10px",
-                              fontSize: "11px",
-                              padding: "4px 10px",
-                            }}
-                          >
-                            <span>Created {formatTimestamp(createdAtVal)}</span>
-                            {updatedAtVal && updatedAtVal !== createdAtVal && (
-                              <span>
-                                {" "}
-                                • Updated {formatTimestamp(updatedAtVal)}
-                              </span>
-                            )}
+                          <div className="entry-meta-badge-container">
+                            <span className="entry-created-badge">
+                              Created {formatTimestamp(createdAtVal)}
+                              {updatedAtVal &&
+                                updatedAtVal !== createdAtVal && (
+                                  <span>
+                                    {" "}
+                                    • Updated {formatTimestamp(updatedAtVal)}
+                                  </span>
+                                )}
+                            </span>
                           </div>
                         )}
 
-                        {/* Top Row: Duration and Date side-by-side */}
                         <div className="entry-row-header">
-                          {/* Duration Inline Edit */}
                           <div className="entry-field entry-duration">
                             <div className="task-field-label-with-icon">
                               <Clock size={13} className="field-icon" />
-                              <span>Duration</span>
+                              <span>Duration (mins)</span>
                             </div>
                             <InlineEditField
                               label=""
                               type="number"
-                              value={String(entry.durationMinutes)}
-                              displayValue={`${entry.durationMinutes} mins`}
-                              isSaving={
-                                savingEntryField ===
-                                `${entry.id}-durationMinutes`
-                              }
+                              value={draft.durationMinutes}
+                              displayValue={`${draft.durationMinutes} mins`}
                               onSave={(v) =>
-                                saveEntryField(entry.id, "durationMinutes", v)
+                                handleEntryDraftChange(
+                                  entry.id,
+                                  "durationMinutes",
+                                  v,
+                                )
                               }
                             />
                           </div>
 
-                          {/* Entry Date Inline Edit */}
                           <div className="entry-field entry-date">
                             <div className="task-field-label-with-icon">
                               <Calendar size={13} className="field-icon" />
@@ -593,43 +716,56 @@ const TaskDetailsPage = () => {
                             <InlineEditField
                               label=""
                               type="date"
-                              value={formatForDateInput(
-                                entry.entry_date || entry.entryDate,
-                              )}
-                              displayValue={formatDateOnly(
-                                entry.entry_date || entry.entryDate,
-                              )}
-                              isSaving={
-                                savingEntryField === `${entry.id}-entryDate`
-                              }
+                              value={draft.entryDate}
+                              displayValue={formatDateOnly(draft.entryDate)}
                               onSave={(v) =>
-                                saveEntryField(entry.id, "entryDate", v)
+                                handleEntryDraftChange(entry.id, "entryDate", v)
                               }
                             />
                           </div>
                         </div>
 
-                        {/* Divider */}
                         <hr className="entry-card-divider" />
 
-                        {/* Bottom Row: Note */}
                         <div className="entry-field entry-note">
                           <div className="task-field-label-with-icon">
                             <FileText size={13} className="field-icon" />
                             <span>Note</span>
+                            <span className="field-label-optional">
+                              (optional)
+                            </span>
                           </div>
                           <InlineEditField
                             label=""
                             optional
-                            placeholder="No note added"
-                            value={entry.note ?? ""}
-                            isSaving={savingEntryField === `${entry.id}-note`}
-                            onSave={(v) => saveEntryField(entry.id, "note", v)}
+                            placeholder="Add a note..."
+                            value={draft.note}
+                            onSave={(v) =>
+                              handleEntryDraftChange(entry.id, "note", v)
+                            }
                           />
                         </div>
+
+                        {/* SAVE ENTRY CHANGES BUTTON (Only visible when a field in this row is modified) */}
+                        {isDirty && (
+                          <div className="save-entry-container">
+                            <button
+                              type="button"
+                              className="save-task-btn"
+                              disabled={savingEntryId === entry.id}
+                              onClick={() => handleSaveEntry(entry)}
+                            >
+                              {savingEntryId === entry.id ? (
+                                <Loader2 size={16} className="spin" />
+                              ) : (
+                                <Save size={16} />
+                              )}
+                              <span>Save Entry Changes</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Trash Delete Action Button on Hover */}
                       <button
                         type="button"
                         className="entry-delete-btn"
@@ -646,6 +782,11 @@ const TaskDetailsPage = () => {
           </div>
         </div>
       </div>
+      <TaskHistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        taskId={taskId}
+      />
     </div>
   );
 };

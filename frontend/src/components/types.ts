@@ -37,6 +37,21 @@ export interface TimeEntry {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface HistoryEntry {
+  id: string;
+  eventType: string;
+  fieldChanged?: string | null;
+  oldValue?: string | null;
+  newValue?: string | null;
+  createdAt: string;
+  actor?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
 export const columns: { key: Status; label: string }[] = [
   { key: "TODO", label: "To do" },
   { key: "IN_PROGRESS", label: "In progress" },

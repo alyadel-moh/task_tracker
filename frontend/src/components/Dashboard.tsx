@@ -12,12 +12,12 @@ import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
 import { type Project, type Status, type Task } from "./types";
-import CreateProjectModal from "./CreateProjectModal";
+import CreateProjectModal from "./createprojectmodal";
 import useGetProjects from "../hooks/getProjectsHook";
-import useGetTasks from "../hooks/getAlltasksHook";
+import useGetTasks from "../hooks/getalltasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import CreateTaskModal from "./CreateTaskModal";
+import CreateTaskModal from "./Createtaskmodal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -53,7 +53,6 @@ const Dashboard = () => {
       setTasks(tasksData);
     }
   }, [tasksData]);
-
   useEffect(() => {
     if (!projectsData) {
       return;
@@ -75,10 +74,6 @@ const Dashboard = () => {
   const activeProject =
     projects.find((project: Project) => project.id === activeProjectId) ?? null;
 
-  const visibleTasks = activeProject
-    ? tasks.filter((task) => task.projectId === activeProject.id)
-    : tasks;
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { delay: 150, tolerance: 6 },
@@ -86,7 +81,7 @@ const Dashboard = () => {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    const task = visibleTasks.find((item) => item.id === event.active.id);
+    const task = tasksData?.find((item) => item.id === event.active.id);
     setDraggingTask(task ?? null);
   };
 
@@ -108,7 +103,6 @@ const Dashboard = () => {
 
     const previousStatus = task.status;
 
-    // Optimistic UI update
     setTasks((current) =>
       current.map((t) =>
         t.id === active.id ? { ...t, status: newStatus } : t,
@@ -215,7 +209,7 @@ const Dashboard = () => {
 
       <DashboardBoard
         activeProject={activeProject}
-        tasks={visibleTasks}
+        tasks={tasks}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         draggingTask={draggingTask}
@@ -270,8 +264,8 @@ const Dashboard = () => {
 
             <h2 className="modal-title">Delete "{activeProject.name}"?</h2>
             <p className="modal-subtitle">
-              This permanently deletes the project and all {visibleTasks.length}{" "}
-              of its tasks. This cannot be undone.
+              This permanently deletes the project and all {tasks.length} of its
+              tasks. This cannot be undone.
             </p>
 
             <div className="modal-actions">

@@ -4,7 +4,7 @@ import {
   getAll,
   update,
   remove,
-} from "../controllers/timeEntryController";
+} from "../controllers/timeentryController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();

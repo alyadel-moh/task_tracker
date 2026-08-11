@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { TimeEntry } from "../components/types";
+import { HistoryEntry, TimeEntry } from "../components/types";
 
 interface CreateTimeEntryData {
   note?: string;
@@ -14,6 +14,7 @@ interface CreateTimeEntryResponse {
   timeEntry: TimeEntry;
   status: string;
   message: string;
+  historyEntry?: HistoryEntry;
 }
 
 const useCreateTimeEntry = (taskId: string) => {
@@ -57,6 +58,16 @@ const useCreateTimeEntry = (taskId: string) => {
           }
 
           return oldTimeEntries;
+        },
+      );
+      queryClient.setQueryData<HistoryEntry[]>(
+        ["task_history", taskId],
+        (oldHistory) => {
+          if (!oldHistory) return oldHistory;
+          if (data.historyEntry) {
+            return [data.historyEntry, ...oldHistory];
+          }
+          return oldHistory;
         },
       );
     },

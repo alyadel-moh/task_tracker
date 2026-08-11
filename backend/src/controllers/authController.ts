@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "../models/index.js";
-import { generateToken } from "../utils/jwt.js";
+import { User } from "../models/index";
+import { generateToken } from "../utils/jwt";
 import bcrypt from "bcryptjs";
 
 interface RegisterBody {

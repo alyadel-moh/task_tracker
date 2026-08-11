@@ -29,7 +29,7 @@ import {
 import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
-import useGetTasks from "../hooks/getAlltasksHook";
+import useGetTasks from "../hooks/getalltasksHook";
 
 interface DashboardBoardProps {
   activeProject: Project | null;
@@ -196,6 +196,7 @@ const DashboardBoard = ({
                   <InlineEditField
                     label=""
                     value={activeProject.name}
+                    isSaving={savingField === "name"}
                     onSave={(val) => handleSaveProjectField("name", val)}
                   />
                   <span className="task-count-badge">
@@ -211,6 +212,7 @@ const DashboardBoard = ({
                     optional
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
+                    isSaving={savingField === "description"}
                     onSave={(val) => handleSaveProjectField("description", val)}
                   />
                 </div>
