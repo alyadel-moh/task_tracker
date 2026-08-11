@@ -8,7 +8,7 @@ import {
   FileText,
 } from "lucide-react";
 import "../css/TaskHistoryDrawer.css";
-import useGetTaskHistory from "../hooks/getallhistory";
+import useGetTaskHistory from "../hooks/getTaskHistoryHook";
 
 interface TaskHistoryDrawerProps {
   isOpen: boolean;
