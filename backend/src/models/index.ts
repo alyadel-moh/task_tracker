@@ -14,7 +14,7 @@ import initUserModel, { User } from "./user";
 import initProjectModel, { Project } from "./project";
 import initTaskModel, { Task } from "./task";
 import initTimeEntryModel, { TimeEntry } from "./time_entry";
-import initTaskHistoryModel, { TaskHistory } from "./task_history";
+import initTaskHistoryModel, { TaskHistory } from "./taskHistory";
 
 initUserModel(sequelize);
 initProjectModel(sequelize);
