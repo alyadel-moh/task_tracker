@@ -7,6 +7,8 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "dev": "nodemon --exec tsx src/app.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "migrate": "sequelize-cli db:migrate",
     "migrate:undo": "sequelize-cli db:migrate:undo",
     "seed": "sequelize-cli db:seed:all",
@@ -32,14 +34,15 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
+    "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^26.1.2",
+    "@types/node": "^22.10.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^8.66.0",
     "@typescript-eslint/parser": "^8.66.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
@@ -48,6 +51,7 @@
     "prettier": "^3.3.3",
     "sequelize-cli": "^6.6.2",
     "tsx": "^4.23.9",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.10"
   }
 }

@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
 import {
   PointerSensor,
-  type DragEndEvent,
-  type DragStartEvent,
   useSensor,
   useSensors,
+  DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
-import { type Project, type Status, type Task } from "./types";
+import { Project, Status, Task } from "./types";
 import CreateProjectModal from "./CreateProjectModal";
 import useGetProjects from "../hooks/getProjectsHook";
 import useGetTasks from "../hooks/getAllTasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import CreateTaskModal from "./CreateTaskmodal";
+import CreateTaskModal from "./CreateTaskModal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";

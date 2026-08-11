@@ -2,8 +2,8 @@ import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Dashboard from "../components/Dashboard";
 import PublicOnlyRoute from "../components/PublicOnlyRoute";
-import ProtectedRoute from "../components/ProtectedRoute";
-import TaskDetailsPage from "../components/TaskDetailsPage";
+const ProtectedRoute = lazy(() => import("../components/ProtectedRoute"));
+const TaskDetailsPage = lazy(() => import("../components/TaskDetailsPage"));
 const Signup = lazy(() => import("../components/Signup"));
 const Login = lazy(() => import("../components/Login"));
 
