@@ -122,7 +122,9 @@ const DashboardBoard = ({
   const updatedDateFormatted = formatDate(activeProject?.updatedAt);
 
   const getTaskCountForStatus = (statusKey: Status) => {
-    return tasks.filter((t: Task) => t.status === statusKey).length;
+    return (Array.isArray(tasks) ? tasks : []).filter(
+      (t: Task) => t.status === statusKey,
+    ).length;
   };
 
   const toggleStatusFilter = (status: Status) => {

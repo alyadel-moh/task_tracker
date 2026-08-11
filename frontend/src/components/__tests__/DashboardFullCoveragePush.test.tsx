@@ -81,7 +81,10 @@ describe("Dashboard Full Coverage Push Suite", () => {
     vi.clearAllMocks();
     localStorage.setItem("token", "test-token");
     queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
   });
 
@@ -99,13 +102,17 @@ describe("Dashboard Full Coverage Push Suite", () => {
     });
 
     // Switch active project in sidebar
-    const projectItems = screen.getAllByRole("button", { name: /Project Beta/i });
+    const projectItems = screen.getAllByRole("button", {
+      name: /Project Beta/i,
+    });
     if (projectItems.length > 0) {
       fireEvent.click(projectItems[0]);
     }
 
     // Open create project modal
-    const newProjButtons = screen.getAllByRole("button", { name: /new project/i });
+    const newProjButtons = screen.getAllByRole("button", {
+      name: /new project/i,
+    });
     if (newProjButtons.length > 0) {
       fireEvent.click(newProjButtons[0]);
     }

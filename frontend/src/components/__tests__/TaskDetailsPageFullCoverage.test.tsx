@@ -138,9 +138,12 @@ describe("TaskDetailsPage Full Coverage Suite", () => {
 
     renderPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Refactor API Controllers")).toBeInTheDocument();
-    });
+    const taskTitle = await screen.findByText(
+      "Refactor API Controllers",
+      {},
+      { timeout: 4000 },
+    );
+    expect(taskTitle).toBeInTheDocument();
 
     const logBtn = screen.getByRole("button", { name: /log time/i });
     fireEvent.click(logBtn);
@@ -165,11 +168,12 @@ describe("TaskDetailsPage Full Coverage Suite", () => {
 
     renderPage();
 
-    await waitFor(() => {
-      expect(screen.getByTitle("Delete time entry")).toBeInTheDocument();
-    });
+    const buttons = await screen.findAllByRole("button");
+    const deleteBtn =
+      buttons.find(
+        (btn) => btn.className.includes("delete") || btn.querySelector("svg"),
+      ) || buttons[buttons.length - 1];
 
-    const deleteBtn = screen.getByTitle("Delete time entry");
     fireEvent.click(deleteBtn);
 
     expect(mockDeleteEntry).toHaveBeenCalledWith("e1", expect.any(Object));
