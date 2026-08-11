@@ -50,6 +50,8 @@ const isNumberInRange = (
   if (typeof val !== "number" || !Number.isFinite(val)) return false;
   return val >= min && val <= max;
 };
+const ALLOWED_STATUSES: string[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
+const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
 
 async function create(
   req: AuthRequest<{ projectId: string }, {}, CreateTaskBody>,
@@ -93,15 +95,7 @@ async function create(
         });
       }
     }
-    const ALLOWED_STATUSES: string[] = [
-      "TODO",
-      "IN_PROGRESS",
-      "IN_REVIEW",
-      "DONE",
-    ];
-    const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
 
-    // TypeScript now allows status (string) inside .includes()
     if (status && !ALLOWED_STATUSES.includes(status)) {
       return res.status(400).json({
         status: "ERROR",
@@ -276,10 +270,31 @@ async function update(
       updatedField.description = description;
       changedLabels.push("Description");
     }
+    // 1. Validate status query/body parameter if provided
     if (status !== undefined) {
+      if (status && !ALLOWED_STATUSES.includes(status as string)) {
+        return res.status(400).json({
+          status: "ERROR",
+          message: `Invalid status value. Allowed values: ${ALLOWED_STATUSES.join(", ")}`,
+        });
+      }
+
       task.status = status as TaskStatus;
       updatedField.status = status;
       changedLabels.push("Status");
+    }
+
+    if (priority !== undefined) {
+      if (priority && !ALLOWED_PRIORITIES.includes(priority as string)) {
+        return res.status(400).json({
+          status: "ERROR",
+          message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
+        });
+      }
+
+      task.priority = priority as TaskPriority;
+      updatedField.priority = priority;
+      changedLabels.push("Priority");
     }
     if (estimatedTime !== undefined && estimatedTime !== null) {
       if (!isNumberInRange(estimatedTime, 1, 525600)) {
