@@ -93,7 +93,28 @@ async function create(
         });
       }
     }
+    const ALLOWED_STATUSES: string[] = [
+      "TODO",
+      "IN_PROGRESS",
+      "IN_REVIEW",
+      "DONE",
+    ];
+    const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
 
+    // TypeScript now allows status (string) inside .includes()
+    if (status && !ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: `Invalid status value. Allowed values: ${ALLOWED_STATUSES.join(", ")}`,
+      });
+    }
+
+    if (priority && !ALLOWED_PRIORITIES.includes(priority)) {
+      return res.status(400).json({
+        status: "ERROR",
+        message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
+      });
+    }
     const newTask = await Task.create({
       name: name.trim(),
       description: description || null,
