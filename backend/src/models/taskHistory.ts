@@ -14,7 +14,7 @@ export interface HistoryAttributes {
   createdAt?: Date;
 }
 
-export type HistoryCreationAttributes = Optional<
+export interface HistoryCreationAttributes extends Optional<
   HistoryAttributes,
   | "id"
   | "taskId"
@@ -23,7 +23,7 @@ export type HistoryCreationAttributes = Optional<
   | "oldValue"
   | "newValue"
   | "eventType"
->;
+> {}
 
 export class TaskHistory
   extends Model<HistoryAttributes, HistoryCreationAttributes>
