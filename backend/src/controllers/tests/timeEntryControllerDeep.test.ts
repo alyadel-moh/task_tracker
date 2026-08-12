@@ -52,7 +52,9 @@ describe("TimeEntry Controller Deep Coverage", () => {
 
       vi.mocked(Task.findOne).mockResolvedValue({ id: "t1" } as never);
       vi.mocked(TimeEntry.findOne).mockResolvedValue(mockEntry as never);
-      vi.mocked(historyService.recordTimeEntryUpdated).mockResolvedValue([{ id: "h1" }] as never);
+      vi.mocked(historyService.recordTimeEntryUpdated).mockResolvedValue([
+        { id: "h1" },
+      ] as never);
 
       await update(req, res, next);
 

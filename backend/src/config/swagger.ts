@@ -1,4 +1,5 @@
 import swaggerJSDoc from "swagger-jsdoc";
+import path from "path";
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -101,7 +102,14 @@ const options: swaggerJSDoc.Options = {
       },
     },
   },
-  apis: ["./src/routes/*.ts"],
+  apis: [
+    // Paths for production (Docker runs compiled .js in dist)
+    path.join(process.cwd(), "dist/routes/**/*.js"),
+    path.join(process.cwd(), "dist/controllers/**/*.js"),
+    // Paths for development (tsx runs .ts in src)
+    path.join(process.cwd(), "src/routes/**/*.ts"),
+    path.join(process.cwd(), "src/controllers/**/*.ts"),
+  ],
 };
 
 export const swaggerSpec = swaggerJSDoc(options);

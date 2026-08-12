@@ -324,7 +324,7 @@
   white-space: nowrap;
 }
 
-/* DESCRIPTION INPUT BOX REMAINS ORIGINAL AS REQUESTED */
+/* DESCRIPTION INPUT & PLACEHOLDER STYLING */
 .board-description-row {
   margin-top: 2px;
 }
@@ -332,6 +332,17 @@
 .board-description-row .inline-field-value {
   font-size: 13px;
   color: rgba(242, 241, 237, 0.55);
+  font-style: normal;
+}
+
+.board-description-row .inline-field-placeholder,
+.board-description-row .inline-field-empty,
+.board-description-row textarea::placeholder,
+.board-description-row input::placeholder {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-size: 13px;
+  color: rgba(242, 241, 237, 0.45);
 }
 
 .board-header-right {
@@ -593,6 +604,7 @@
 
 .column {
   min-width: 0;
+  position: relative;
 }
 
 .column-header {
@@ -637,17 +649,109 @@
   background: #4caf6f;
 }
 
+/* ---------- DRAG DROP ZONE & STATUS-MATCHING COLUMN HIGHLIGHTS ---------- */
+
 .column-drop-zone {
-  min-height: 60px;
+  min-height: 80px;
   border-radius: 14px;
+  position: relative;
   transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease;
+    background 0.12s ease,
+    border-color 0.12s ease;
+  border: 2px solid transparent;
 }
 
-.column-drop-zone-over {
-  background: rgba(75, 74, 224, 0.08);
-  box-shadow: inset 0 0 0 2px rgba(75, 74, 224, 0.4);
+/* 1. Target: To Do Column Drop Highlight (Gray) */
+.column-TODO .column-drop-zone-over {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* 2. Target: In Progress Column Drop Highlight (Indigo/Blue) */
+.column-IN_PROGRESS .column-drop-zone-over {
+  background: rgba(75, 74, 224, 0.15) !important;
+  border-color: #6366f1 !important;
+}
+
+/* 3. Target: In Review Column Drop Highlight (Amber/Yellow) */
+.column-IN_REVIEW .column-drop-zone-over {
+  background: rgba(217, 164, 65, 0.15) !important;
+  border-color: #d9a441 !important;
+}
+
+/* 4. Target: Done Column Drop Highlight (Emerald Green) */
+.column-DONE .column-drop-zone-over {
+  background: rgba(76, 175, 111, 0.15) !important;
+  border-color: #4caf6f !important;
+}
+
+.task-card-overlay-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  will-change: transform;
+  transform: translateZ(0); /* Hardware accelerated */
+}
+
+/* Base Transition Badge */
+.jira-transition-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.12s ease;
+}
+
+.jira-transition-badge .transition-arrow {
+  opacity: 0.85;
+}
+
+/* Badge Status Variants */
+.jira-transition-badge-TODO {
+  background: #252528;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  color: #f2f1ed;
+}
+
+.jira-transition-badge-TODO .transition-arrow {
+  color: #d1d5db;
+}
+
+.jira-transition-badge-IN_PROGRESS {
+  background: #1e1e38;
+  border: 1.5px solid #6366f1;
+  color: #a5b4fc;
+}
+
+.jira-transition-badge-IN_PROGRESS .transition-arrow {
+  color: #818cf8;
+}
+
+.jira-transition-badge-IN_REVIEW {
+  background: #2a2215;
+  border: 1.5px solid #d9a441;
+  color: #ffbf72;
+}
+
+.jira-transition-badge-IN_REVIEW .transition-arrow {
+  color: #f59e0b;
+}
+
+.jira-transition-badge-DONE {
+  background: #14281f;
+  border: 1.5px solid #4caf6f;
+  color: #7fd99a;
+}
+
+.jira-transition-badge-DONE .transition-arrow {
+  color: #34d399;
 }
 
 .column-empty {
@@ -674,7 +778,6 @@
   min-height: 120px;
   transition:
     border-color 0.15s ease,
-    transform 0.1s ease,
     box-shadow 0.15s ease;
   cursor: grab;
   touch-action: none;
@@ -763,11 +866,41 @@
   opacity: 0.35;
 }
 
+/* ---------- DYNAMIC STATUS OVERLAY CARD STYLES ---------- */
+
 .task-card-overlay {
   cursor: grabbing;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  border-color: rgba(75, 74, 224, 0.5);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
   width: 260px;
+  transform: scale(1.02);
+  border-radius: 14px;
+  border-width: 1.5px;
+  border-style: solid;
+  transition: border-color 0.12s ease;
+}
+
+/* 1. To Do Overlay Border (Neutral Gray) */
+.task-card-overlay-TODO {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.08);
+}
+
+/* 2. In Progress Overlay Border (Indigo/Blue) */
+.task-card-overlay-IN_PROGRESS {
+  border-color: #6366f1 !important;
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
+}
+
+/* 3. In Review Overlay Border (Amber/Yellow) */
+.task-card-overlay-IN_REVIEW {
+  border-color: #d9a441 !important;
+  box-shadow: 0 12px 32px rgba(217, 164, 65, 0.25);
+}
+
+/* 4. Done Overlay Border (Emerald Green) */
+.task-card-overlay-DONE {
+  border-color: #4caf6f !important;
+  box-shadow: 0 12px 32px rgba(76, 175, 111, 0.25);
 }
 
 .task-card-done {
@@ -1100,6 +1233,7 @@
     color: rgba(242, 241, 237, 0.55);
     cursor: pointer;
     white-space: nowrap;
+    transition: all 0.15s ease;
   }
 
   .column-tab-active {
@@ -1109,8 +1243,9 @@
   }
 
   .column-tab-over {
-    background: rgba(75, 74, 224, 0.35) !important;
+    background: #4b4ae0 !important;
     color: #ffffff !important;
+    box-shadow: 0 0 12px rgba(75, 74, 224, 0.6) !important;
   }
 
   .board {

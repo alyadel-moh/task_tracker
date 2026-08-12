@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types/AuthRequest"; // or wherever you define it
+import { AuthRequest } from "../types/AuthRequest";
 import { Task, Project, TimeEntry, User, TaskHistory } from "../models";
 import {
   recordTimeEntryCreated,
@@ -105,10 +105,17 @@ async function create(
       ],
     });
 
+    const totalMinutes = await TimeEntry.sum("durationMinutes", {
+      where: { taskId: req.params.taskId },
+    });
+    const estimatedMinutes = task.estimatedTime ?? 0;
+    const overrun = totalMinutes > estimatedMinutes;
+
     return res.status(201).json({
-      message: "Time entry created successfully",
+      message: "Time entry created successfully!",
       timeEntry,
       historyEntry: taskHistoryEntry,
+      overrun,
     });
   } catch (err) {
     next(err);
@@ -262,6 +269,11 @@ async function update(
     return res.status(200).json({
       timeEntry: updatedFields,
       historyEntries: detailedHistoryEntries,
+      overrun: changedLabels.includes("Duration")
+        ? (await TimeEntry.sum("durationMinutes", {
+            where: { taskId: req.params.taskId },
+          })) > (task.estimatedTime ?? 0)
+        : undefined,
       message: changedLabels.length
         ? `${changedLabels.join(", ")} updated successfully`
         : "Time entry updated successfully",

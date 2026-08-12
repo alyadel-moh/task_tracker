@@ -30,7 +30,12 @@ describe("taskController Deep Edge Cases", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    req = { user: { id: "u1" }, params: { projectId: "p1" }, body: {}, query: {} };
+    req = {
+      user: { id: "u1" },
+      params: { projectId: "p1" },
+      body: {},
+      query: {},
+    };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
@@ -48,8 +53,9 @@ describe("taskController Deep Edge Cases", () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          message: "estimatedTime must be a positive number of minutes (minimum 1)",
-        })
+          message:
+            "estimatedTime must be a positive number of minutes (minimum 1)",
+        }),
       );
     });
   });
@@ -84,7 +90,9 @@ describe("taskController Deep Edge Cases", () => {
       req.params = { id: "t1", projectId: "p1" };
       req.body = { name: "New Name" };
 
-      vi.mocked(Project.findOne).mockRejectedValue(new Error("Database Failure") as never);
+      vi.mocked(Project.findOne).mockRejectedValue(
+        new Error("Database Failure") as never,
+      );
 
       await update(req, res, next);
 
@@ -95,7 +103,9 @@ describe("taskController Deep Edge Cases", () => {
   describe("remove() catch handler", () => {
     it("forwards error to next() on deletion failure", async () => {
       req.params = { id: "t1", projectId: "p1" };
-      vi.mocked(Project.findOne).mockRejectedValue(new Error("Deletion Failure") as never);
+      vi.mocked(Project.findOne).mockRejectedValue(
+        new Error("Deletion Failure") as never,
+      );
 
       await remove(req, res, next);
 

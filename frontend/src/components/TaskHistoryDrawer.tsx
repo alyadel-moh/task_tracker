@@ -101,7 +101,6 @@ const getEventIcon = (eventType: string) => {
       );
     case "STATUS_CHANGED":
     case "FIELD_UPDATED":
-    case "TASK_UPDATED":
       return (
         <span className="history-item-icon history-item-icon-swap">
           <ArrowRightLeft size={14} />

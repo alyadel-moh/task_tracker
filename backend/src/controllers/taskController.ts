@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { Op, WhereOptions } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
-import { Task, Project, User, TaskHistory } from "../models";
+import { Task, Project, User, TaskHistory, TimeEntry } from "../models";
 import { TaskPriority, TaskStatus } from "../models/task";
 import {
   recordTaskCreated,
@@ -393,6 +393,11 @@ async function update(
     return res.status(200).json({
       task: updatedFields,
       message,
+      overrun: changedLabels.includes("Estimated time")
+        ? (await TimeEntry.sum("durationMinutes", {
+            where: { taskId: req.params.id },
+          })) > (task.estimatedTime ?? 0)
+        : undefined,
       historyEntries: detailedHistoryEntries,
     });
   } catch (err) {

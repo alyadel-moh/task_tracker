@@ -93,18 +93,18 @@ export async function recordTaskUpdated(
         }),
       );
     }
-    if (toComparable(before.status) !== toComparable(after.status)) {
-      historyEntries.push(
-        await logTaskHistory({
-          taskId,
-          actorId,
-          eventType: "STATUS_CHANGED",
-          fieldChanged: "status",
-          oldValue: before.status,
-          newValue: after.status,
-        }),
-      );
-    }
+  }
+  if (toComparable(before.status) !== toComparable(after.status)) {
+    historyEntries.push(
+      await logTaskHistory({
+        taskId,
+        actorId,
+        eventType: "STATUS_CHANGED",
+        fieldChanged: "status",
+        oldValue: before.status,
+        newValue: after.status,
+      }),
+    );
   }
   return historyEntries;
 }

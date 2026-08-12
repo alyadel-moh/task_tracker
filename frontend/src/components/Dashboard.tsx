@@ -5,6 +5,7 @@ import {
   useSensors,
   DragEndEvent,
   DragStartEvent,
+  DragOverEvent,
 } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
+  const [overColumnStatus, setOverColumnStatus] = useState<Status | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
@@ -53,11 +55,9 @@ const Dashboard = () => {
       setTasks(tasksData);
     }
   }, [tasksData]);
-  useEffect(() => {
-    if (!projectsData) {
-      return;
-    }
 
+  useEffect(() => {
+    if (!projectsData) return;
     if (!projectsData.length) {
       setActiveProjectId(null);
       return;
@@ -76,7 +76,7 @@ const Dashboard = () => {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 150, tolerance: 6 },
+      activationConstraint: { distance: 5 },
     }),
   );
 
@@ -85,10 +85,28 @@ const Dashboard = () => {
     setDraggingTask(task ?? null);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (!over) {
+      setOverColumnStatus(null);
+      return;
+    }
+
+    const overId = String(over.id);
+    const targetStatus = (
+      overId.startsWith("tab-")
+        ? overId.replace("tab-", "")
+        : overId.replace("column-", "")
+    ) as Status;
+
+    setOverColumnStatus(targetStatus);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     const task = draggingTask;
     setDraggingTask(null);
+    setOverColumnStatus(null);
 
     if (!over || !task) return;
 
@@ -215,7 +233,9 @@ const Dashboard = () => {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         draggingTask={draggingTask}
+        overColumnStatus={overColumnStatus}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         sensors={sensors}
         isProjectMenuOpen={isProjectMenuOpen}
@@ -247,7 +267,6 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Centered deletion confirmation modal overlay */}
       {isConfirmingDelete && activeProject?.id && (
         <div
           className="modal-overlay"

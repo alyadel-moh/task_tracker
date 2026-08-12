@@ -21,11 +21,15 @@ describe("TaskHistoryDrawer", () => {
     });
   });
 
-  const renderComponent = (props: { isOpen: boolean; onClose: () => void; taskId: string }) => {
+  const renderComponent = (props: {
+    isOpen: boolean;
+    onClose: () => void;
+    taskId: string;
+  }) => {
     return render(
       <QueryClientProvider client={queryClient}>
         <TaskHistoryDrawer {...props} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 

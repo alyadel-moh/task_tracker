@@ -13,6 +13,7 @@ interface CreateTimeEntryData {
 interface CreateTimeEntryResponse {
   timeEntry: TimeEntry;
   status: string;
+  overrun: boolean | undefined;
   message: string;
   historyEntry?: HistoryEntry;
 }
