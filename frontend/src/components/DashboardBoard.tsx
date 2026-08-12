@@ -4,6 +4,7 @@ import {
   DragOverlay,
   type DragEndEvent,
   type DragStartEvent,
+  type DragOverEvent,
 } from "@dnd-kit/core";
 import {
   ChevronDown,
@@ -14,6 +15,7 @@ import {
   Search,
   X,
   AlertTriangle,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
@@ -30,13 +32,16 @@ import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
 import useGetTasks from "../hooks/getAllTasksHook";
+
 interface DashboardBoardProps {
   activeProject: Project | null;
   tasks: Task[];
   activeTab: Status;
   onSelectTab: (status: Status) => void;
   draggingTask: Task | null;
+  overColumnStatus?: Status | null;
   onDragStart: (event: DragStartEvent) => void;
+  onDragOver?: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
   isProjectMenuOpen: boolean;
   onToggleProjectMenu: () => void;
@@ -66,6 +71,13 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: "HIGH", label: "High" },
 ];
 
+const STATUS_LABELS: Record<Status, string> = {
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  IN_REVIEW: "In Review",
+  DONE: "Done",
+};
+
 const formatDate = (dateString?: string) => {
   if (!dateString) return null;
   const date = new Date(dateString);
@@ -85,7 +97,9 @@ const DashboardBoard = ({
   activeTab,
   onSelectTab,
   draggingTask,
+  overColumnStatus,
   onDragStart,
+  onDragOver,
   sensors,
   onDragEnd,
   isProjectMenuOpen,
@@ -181,6 +195,7 @@ const DashboardBoard = ({
     <DndContext
       sensors={sensors}
       onDragStart={onDragStart}
+      onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
       <main className="board-panel">
@@ -492,7 +507,26 @@ const DashboardBoard = ({
       </main>
 
       <DragOverlay>
-        {draggingTask ? <TaskOverlay task={draggingTask} /> : null}
+        {draggingTask ? (
+          <div className="task-card-overlay-wrapper">
+            {overColumnStatus && overColumnStatus !== draggingTask.status && (
+              <div
+                className={`jira-transition-badge jira-transition-badge-${overColumnStatus}`}
+              >
+                <span>{STATUS_LABELS[draggingTask.status]}</span>
+                <ArrowRight size={14} className="transition-arrow" />
+                <span>{STATUS_LABELS[overColumnStatus]}</span>
+              </div>
+            )}
+            <div
+              className={`task-card-overlay task-card-overlay-${
+                overColumnStatus || draggingTask.status
+              }`}
+            >
+              <TaskOverlay task={draggingTask} />
+            </div>
+          </div>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

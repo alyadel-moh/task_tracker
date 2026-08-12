@@ -8,6 +8,7 @@ interface UpdateTaskPayload {
 
 interface UpdateTaskResponse {
   task: Partial<Task>;
+  overrun: boolean | undefined;
   status: string;
   message: string;
   historyEntries?: HistoryEntry[];

@@ -13,6 +13,7 @@ export interface UpdateTimeEntryData {
 export interface UpdateTimeEntryResponse {
   timeEntry: Partial<TimeEntry>;
   status: string;
+  overrun: boolean | undefined;
   message: string;
   historyEntries?: HistoryEntry[];
 }

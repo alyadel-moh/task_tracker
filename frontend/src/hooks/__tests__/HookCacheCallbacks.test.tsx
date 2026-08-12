@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import useUpdateTask from "../updateTaskHook";
-import useCreateTask from "../createtaskHook";
+import useCreateTask from "../createTaskHook";
 import useDeleteTask from "../deleteTaskHook";
 import useCreateTimeEntry from "../createTimeEntry";
 import { axiosInstance } from "../../api-client";

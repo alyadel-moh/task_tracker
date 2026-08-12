@@ -106,6 +106,7 @@ const TaskDetailsPage = () => {
     new Date().toISOString().split("T")[0],
   );
   const [newNote, setNewNote] = useState("");
+  const [overrun, setoverrun] = useState(false);
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -250,6 +251,7 @@ const TaskDetailsPage = () => {
       {
         onSuccess: (res: any) => {
           const backendMessage = res?.message || res?.data?.message;
+          setoverrun(res?.overrun || false);
           toast.success(backendMessage || "Task changes saved successfully", {
             id: "task-save",
           });
@@ -281,8 +283,10 @@ const TaskDetailsPage = () => {
         taskId: taskId,
       },
       {
-        onSuccess: () => {
-          toast.success("Time entry logged");
+        onSuccess: (res) => {
+          const backendMessage = res?.message || null;
+          toast.success(backendMessage);
+          setoverrun(res.overrun || false);
           setNewDuration("");
           setNewNote("");
           setShowAddEntry(false);
@@ -324,6 +328,8 @@ const TaskDetailsPage = () => {
     updateEntryMutation.mutate(payload, {
       onSuccess: (res: any) => {
         const backendMessage = res?.message || res?.data?.message;
+        const overrun = res?.overrun ?? false;
+        setoverrun(overrun);
         toast.success(backendMessage || "Entry updated successfully", {
           id: "entry-save",
         });
@@ -554,7 +560,6 @@ const TaskDetailsPage = () => {
               )}
             </div>
           </div>
-
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -563,9 +568,16 @@ const TaskDetailsPage = () => {
                 </div>
                 <div>
                   <h2 className="task-page-main-title">Time Entries</h2>
-                  <span className="entries-total-subtext">
-                    Total: {totalMinutes} mins
-                  </span>
+                  <div className="entries-subtext-container">
+                    <span className="entries-total-subtext">
+                      Total: {totalMinutes} mins
+                    </span>
+                    {overrun && (
+                      <span className="entries-overrun-badge">
+                        ⚠️ Exceeds estimated time
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -613,7 +625,7 @@ const TaskDetailsPage = () => {
                   </label>
                   <input
                     type="text"
-                    placeholder="What did you work on? (optional)"
+                    placeholder="What did you work on?"
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                   />

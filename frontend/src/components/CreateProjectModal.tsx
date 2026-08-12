@@ -5,7 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import useCreateProject from "../hooks/createProjectHook";
-import "../css/createProjectmodal.css";
+import "../css/CreateProjectModal.css";
 
 const schema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),

@@ -30,7 +30,12 @@ describe("taskController Coverage Push", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    req = { user: { id: "u1" }, params: { projectId: "p1" }, body: {}, query: {} };
+    req = {
+      user: { id: "u1" },
+      params: { projectId: "p1" },
+      body: {},
+      query: {},
+    };
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
@@ -47,13 +52,15 @@ describe("taskController Coverage Push", () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringMatching(/dueDate/i) })
+        expect.objectContaining({ message: expect.stringMatching(/dueDate/i) }),
       );
     });
 
     it("passes error to next() when creation throws unexpected error", async () => {
       req.body = { name: "Task" };
-      vi.mocked(Project.findOne).mockRejectedValue(new Error("DB Error") as never);
+      vi.mocked(Project.findOne).mockRejectedValue(
+        new Error("DB Error") as never,
+      );
 
       await create(req, res, next);
 
@@ -132,7 +139,10 @@ describe("taskController Coverage Push", () => {
       req.body = { name: "   " };
 
       vi.mocked(Project.findOne).mockResolvedValue({ id: "p1" } as never);
-      vi.mocked(Task.findOne).mockResolvedValue({ id: "t1", name: "Existing" } as never);
+      vi.mocked(Task.findOne).mockResolvedValue({
+        id: "t1",
+        name: "Existing",
+      } as never);
 
       await update(req, res, next);
 
@@ -185,7 +195,7 @@ describe("taskController Coverage Push", () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: "No changes made" })
+        expect.objectContaining({ message: "No changes made" }),
       );
     });
   });

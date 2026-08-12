@@ -19,6 +19,9 @@ describe("JWT Utility", () => {
   it("verifies and decodes a JWT token", () => {
     const decoded = verifyToken("mocked.jwt.token");
     expect(decoded).toEqual({ id: "u1", email: "aly@example.com" });
-    expect(jwt.verify).toHaveBeenCalledWith("mocked.jwt.token", expect.any(String));
+    expect(jwt.verify).toHaveBeenCalledWith(
+      "mocked.jwt.token",
+      expect.any(String),
+    );
   });
 });

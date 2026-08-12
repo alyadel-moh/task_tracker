@@ -2,7 +2,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import useCreateTask from "../createtaskHook";
+import useCreateTask from "../createTaskHook";
 import { axiosInstance } from "../../api-client";
 
 vi.mock("../../api-client", () => ({
@@ -60,6 +60,9 @@ describe("useCreateTask Full Branch Coverage", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(axiosInstance.post).toHaveBeenCalledWith("tasks/create/p1", expect.anything());
+    expect(axiosInstance.post).toHaveBeenCalledWith(
+      "tasks/create/p1",
+      expect.anything(),
+    );
   });
 });

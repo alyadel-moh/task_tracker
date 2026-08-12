@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      # Host:container - lets you connect with a local DB client (psql,
+      # TablePlus, etc.) at localhost:5432 while developing, without this
+      # the DB would only be reachable from other containers on the
+      # compose network, not your host machine.
+      - "5432:5432"
+    volumes:
+      # Named volume, NOT a bind mount to a project folder - this is what
+      # makes "preserve database data during normal development use" true.
+      # `docker compose down` leaves this volume alone; only
+      # `docker compose down -v` explicitly wipes it. Postgres's actual
+      # data files live inside Docker's own storage, not literally on disk
+      # in your project folder.
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Backend's `depends_on: condition: service_healthy` below waits on
+      # this - without it, the backend container could start and try to
+      # connect before Postgres has actually finished initializing.
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # "postgres" here is the service name above, resolved automatically
+      # by Docker's internal DNS - this only works between containers on
+      # the same compose network, which is why the frontend (browser-side)
+      # can't use this same value for its own API calls.
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the JS bundle at build time (see frontend Dockerfile) -
+        # this MUST be the host-published port (localhost:3000), not
+        # "backend:3000". The browser running this JS has no idea what
+        # Docker's internal network even is; it only knows about ports
+        # actually published to your machine.
+        VITE_API_URL: http://localhost:3000
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

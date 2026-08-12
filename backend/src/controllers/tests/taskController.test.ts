@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { create, getById, getAll, update, remove } from "../taskController";
+import { create, update, remove } from "../taskController";
 import { Task, Project } from "../../models";
 import * as historyService from "../../services/taskHistory";
 
