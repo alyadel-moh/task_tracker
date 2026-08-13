@@ -55,10 +55,8 @@ const isNumberInRange = (
   if (typeof val !== "number" || !Number.isFinite(val)) return false;
   return val >= min && val <= max;
 };
-<<<<<<< HEAD
 const ALLOWED_STATUSES: string[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
-=======
 async function fetchHistoryWithActor(historyId?: string) {
   if (!historyId) return null;
   return TaskHistory.findOne({
@@ -68,7 +66,6 @@ async function fetchHistoryWithActor(historyId?: string) {
     ],
   });
 }
->>>>>>> 954148c (refactoring and updating logic done)
 
 async function create(
   req: AuthRequest<
