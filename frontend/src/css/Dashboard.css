@@ -143,33 +143,81 @@
   background: transparent;
 }
 
-/* ---------- User Account Section (Sidebar Bottom) ---------- */
+/* ---------- User Account Section (Sidebar Bottom - Entire Card Clickable) ---------- */
 
 .sidebar-user {
   margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 8px 10px;
+  gap: 12px;
+  padding: 10px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer !important;
+  user-select: none;
+  background: transparent;
+  transition:
+    background 0.18s ease,
+    transform 0.12s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Guarantee clicking internal avatar or text passes click directly to parent card */
+.sidebar-user * {
+  pointer-events: none !important;
+}
+
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-user:active {
+  transform: scale(0.97) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.sidebar-user:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.6);
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: rgba(75, 74, 224, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   color: #9fa3f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sidebar-user:hover .user-avatar {
+  border-color: rgba(159, 163, 245, 0.8) !important;
+  box-shadow: 0 0 10px rgba(75, 74, 224, 0.4) !important;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .user-info {
   min-width: 0;
+  flex: 1;
 }
 
 .user-name {
@@ -180,6 +228,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.sidebar-user:hover .user-name {
+  color: #ffffff;
 }
 
 .user-email {
@@ -189,6 +242,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.sidebar-user:hover .user-email {
+  color: rgba(242, 241, 237, 0.75);
 }
 
 .sidebar-user-actions {
@@ -625,7 +683,6 @@
   margin-left: 2px;
 }
 
-/* Status Dots for Column Headers */
 .status-dot {
   width: 7px;
   height: 7px;
@@ -661,25 +718,21 @@
   border: 2px solid transparent;
 }
 
-/* 1. Target: To Do Column Drop Highlight (Gray) */
 .column-TODO .column-drop-zone-over {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.35) !important;
 }
 
-/* 2. Target: In Progress Column Drop Highlight (Indigo/Blue) */
 .column-IN_PROGRESS .column-drop-zone-over {
   background: rgba(75, 74, 224, 0.15) !important;
   border-color: #6366f1 !important;
 }
 
-/* 3. Target: In Review Column Drop Highlight (Amber/Yellow) */
 .column-IN_REVIEW .column-drop-zone-over {
   background: rgba(217, 164, 65, 0.15) !important;
   border-color: #d9a441 !important;
 }
 
-/* 4. Target: Done Column Drop Highlight (Emerald Green) */
 .column-DONE .column-drop-zone-over {
   background: rgba(76, 175, 111, 0.15) !important;
   border-color: #4caf6f !important;
@@ -692,10 +745,9 @@
   gap: 8px;
   pointer-events: none;
   will-change: transform;
-  transform: translateZ(0); /* Hardware accelerated */
+  transform: translateZ(0);
 }
 
-/* Base Transition Badge */
 .jira-transition-badge {
   display: inline-flex;
   align-items: center;
@@ -713,7 +765,6 @@
   opacity: 0.85;
 }
 
-/* Badge Status Variants */
 .jira-transition-badge-TODO {
   background: #252528;
   border: 1.5px solid rgba(255, 255, 255, 0.28);
@@ -879,25 +930,21 @@
   transition: border-color 0.12s ease;
 }
 
-/* 1. To Do Overlay Border (Neutral Gray) */
 .task-card-overlay-TODO {
   border-color: rgba(255, 255, 255, 0.45) !important;
   box-shadow: 0 12px 32px rgba(255, 255, 255, 0.08);
 }
 
-/* 2. In Progress Overlay Border (Indigo/Blue) */
 .task-card-overlay-IN_PROGRESS {
   border-color: #6366f1 !important;
   box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
 }
 
-/* 3. In Review Overlay Border (Amber/Yellow) */
 .task-card-overlay-IN_REVIEW {
   border-color: #d9a441 !important;
   box-shadow: 0 12px 32px rgba(217, 164, 65, 0.25);
 }
 
-/* 4. Done Overlay Border (Emerald Green) */
 .task-card-overlay-DONE {
   border-color: #4caf6f !important;
   box-shadow: 0 12px 32px rgba(76, 175, 111, 0.25);
@@ -984,6 +1031,95 @@
 .task-due-overdue {
   color: #ff9b9b;
   font-weight: 600;
+}
+
+/* ---------- FORM & FIELD POLISHING (TASK MODAL) ---------- */
+
+.task-field-label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(242, 241, 237, 0.7);
+  margin-bottom: 6px;
+}
+
+.task-field-label-with-icon .field-icon {
+  color: rgba(242, 241, 237, 0.45);
+  flex-shrink: 0;
+}
+
+.field-label-optional {
+  font-weight: 400;
+  color: rgba(242, 241, 237, 0.35);
+  font-size: 11px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: #171715 !important;
+  color: #f2f1ed !important;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field input {
+  height: 42px;
+}
+
+.field select {
+  height: 42px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(242, 241, 237, 0.45)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(242, 241, 237, 0.3);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(0.2) saturate(0) hue-rotate(0deg);
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.9;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 /* ---------- MODAL & BUTTON STYLES (GLOBAL) ---------- */

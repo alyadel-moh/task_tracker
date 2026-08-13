@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { register, login, me, logout } from "../controllers/authController";
+import {
+  register,
+  login,
+  me,
+  logout,
+  update,
+} from "../controllers/authController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -149,5 +155,7 @@ router.post("/logout", logout); // public (stateless, nothing to check)
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get("/me", authenticate, me);
+
+router.patch("/update", authenticate, update);
 
 export default router;

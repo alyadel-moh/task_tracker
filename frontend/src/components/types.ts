@@ -26,6 +26,7 @@ export interface Project {
 export interface User {
   id: string;
   name: string;
+  photoUrl?: string | null;
   email: string;
 }
 

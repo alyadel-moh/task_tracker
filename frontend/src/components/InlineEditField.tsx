@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Check, X, Edit2 } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface Option {
   value: string;
@@ -42,8 +42,8 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   }, [isEditing]);
 
   const handleConfirmLocalEdit = () => {
-    onSave(draftValue); // Updates the local draft state in parent
-    setIsEditing(false); // Closes the inline edit input
+    onSave(draftValue);
+    setIsEditing(false);
   };
 
   const handleCancelLocalEdit = () => {
@@ -87,7 +87,6 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
         )}
 
         <div className="inline-field-actions">
-          {/* Prevent default on mousedown guarantees single-click confirmation */}
           <button
             type="button"
             className="inline-field-action inline-field-save"
@@ -114,18 +113,16 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   }
 
   return (
-    <div className="inline-field-display" onClick={() => setIsEditing(true)}>
+    <div
+      className="inline-field-display"
+      onClick={() => setIsEditing(true)}
+      role="button"
+      tabIndex={0}
+    >
       <div className="inline-field-value">
         {displayValue ||
           (value ? value : <span className="placeholder">{placeholder}</span>)}
       </div>
-      <button
-        type="button"
-        className="inline-field-edit-button"
-        aria-label="Edit field"
-      >
-        <Edit2 size={14} />
-      </button>
     </div>
   );
 };

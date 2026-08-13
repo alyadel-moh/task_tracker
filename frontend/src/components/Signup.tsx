@@ -10,15 +10,18 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Camera,
+  UploadCloud,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/Signup.css";
 import useRegister from "../hooks/registerHook";
+import { uploadImageToCloudinary } from "../hooks/UploadPhoto";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.email({ message: "Invalid email address" }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters" }),
@@ -28,6 +31,10 @@ type FormData = z.infer<typeof schema>;
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
   const signupMutation = useRegister();
   const navigate = useNavigate();
 
@@ -38,24 +45,52 @@ const Signup = () => {
     reset,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  const onSubmit = (data: FormData) => {
-    signupMutation.mutate(data, {
-      onSuccess: () => {
-        toast.success("Account created successfully!");
-        reset();
-        navigate("/login");
-      },
-      onError: (error: any) => {
-        const message =
-          error?.response?.data?.message ?? "Error occurred during signup.";
-        toast.error(message);
-      },
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      let photoUrl: string | null = null;
+
+      if (selectedFile) {
+        setIsUploadingPhoto(true);
+        photoUrl = await uploadImageToCloudinary(selectedFile);
+      }
+
+      signupMutation.mutate(
+        { ...data, photoUrl },
+        {
+          onSuccess: () => {
+            toast.success("Account created successfully!");
+            reset();
+            setPreviewUrl(null);
+            setSelectedFile(null);
+            navigate("/login");
+          },
+          onError: (error: any) => {
+            const message =
+              error?.response?.data?.message ?? "Error occurred during signup.";
+            toast.error(message);
+          },
+        },
+      );
+    } catch (_uploadError) {
+      toast.error("Failed to upload profile photo. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const onInvalid = () => {
     toast.error("Please fill in all required fields correctly.");
   };
+
+  const isPending = signupMutation.isPending || isUploadingPhoto;
 
   return (
     <div className="signup-page">
@@ -74,6 +109,34 @@ const Signup = () => {
           onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
+          {/* Profile Photo Field */}
+          <div className="field photo-field">
+            <span className="field-label">Profile Photo (Optional)</span>
+            <div className="photo-upload-wrapper">
+              <div className="photo-preview">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Avatar preview" />
+                ) : (
+                  <Camera size={24} className="camera-placeholder" />
+                )}
+              </div>
+
+              <label htmlFor="photo-input" className="photo-upload-btn">
+                <UploadCloud size={16} />
+                <span>{selectedFile ? "Change Photo" : "Upload Photo"}</span>
+              </label>
+
+              <input
+                id="photo-input"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+                disabled={isPending}
+              />
+            </div>
+          </div>
+
           <label className="field">
             <span className="field-label">Name</span>
             <div className="input-with-icon">
@@ -82,6 +145,7 @@ const Signup = () => {
                 type="text"
                 placeholder="Enter your username"
                 {...register("name")}
+                disabled={isPending}
               />
             </div>
             {errors.name && (
@@ -98,6 +162,7 @@ const Signup = () => {
                 placeholder="name@example.com"
                 autoComplete="email"
                 {...register("email")}
+                disabled={isPending}
               />
             </div>
             {errors.email && (
@@ -113,12 +178,14 @@ const Signup = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="At least 8 characters"
                 {...register("password")}
+                disabled={isPending}
               />
               <button
                 type="button"
                 className="password-toggle"
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 onClick={() => setShowPassword((current) => !current)}
+                disabled={isPending}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -128,15 +195,13 @@ const Signup = () => {
             )}
           </label>
 
-          <button
-            type="submit"
-            className="signup-submit"
-            disabled={signupMutation.isPending}
-          >
-            {signupMutation.isPending ? (
+          <button type="submit" className="signup-submit" disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 size={16} className="spin" />
-                Creating account...
+                {isUploadingPhoto
+                  ? "Uploading photo..."
+                  : "Creating account..."}
               </>
             ) : (
               "Sign up"

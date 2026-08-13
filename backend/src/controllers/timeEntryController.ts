@@ -237,8 +237,9 @@ async function update(
       updatedFields.note = note;
       changedLabels.push("Note");
     }
-
-    await timeEntry.save();
+    if (changedLabels.length > 0) {
+      await timeEntry.save();
+    }
     const historyEntries = await recordTimeEntryUpdated(
       req.params.taskId,
       req.user.id,

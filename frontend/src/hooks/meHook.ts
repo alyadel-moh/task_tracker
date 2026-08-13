@@ -5,6 +5,7 @@ import { axiosInstance } from "../api-client";
 interface User {
   id: string;
   name: string;
+  photoUrl?: string | null;
   email: string;
 }
 

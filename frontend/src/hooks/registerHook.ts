@@ -4,6 +4,7 @@ import { axiosInstance } from "../api-client";
 interface RegisterUserData {
   name: string;
   email: string;
+  photoUrl?: string | null;
   password: string;
 }
 interface RegisterUserResponse {

@@ -318,7 +318,7 @@ async function update(
       updatedFields.status = status;
       changedLabels.push("Status");
     }
-    if (estimatedTime !== undefined) {
+    if (estimatedTime !== undefined && estimatedTime !== task.estimatedTime) {
       if (
         estimatedTime !== null &&
         !isNumberInRange(estimatedTime, 1, 525600)
@@ -335,7 +335,7 @@ async function update(
         changedLabels.push("Estimated time");
       }
     }
-    if (dueDate !== undefined) {
+    if (dueDate !== undefined && dueDate !== task.dueDate) {
       if (
         dueDate !== null &&
         typeof dueDate === "string" &&
@@ -364,8 +364,9 @@ async function update(
       updatedFields.priority = priority;
       changedLabels.push("Priority");
     }
-
-    await task.save();
+    if (changedLabels.length > 0) {
+      await task.save();
+    }
 
     const after = {
       name: name ?? task.name,

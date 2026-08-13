@@ -11,7 +11,7 @@ services:
       # TablePlus, etc.) at localhost:5432 while developing, without this
       # the DB would only be reachable from other containers on the
       # compose network, not your host machine.
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       # Named volume, NOT a bind mount to a project folder - this is what
       # makes "preserve database data during normal development use" true.

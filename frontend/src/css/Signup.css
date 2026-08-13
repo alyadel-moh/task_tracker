@@ -80,6 +80,103 @@
   flex-direction: column;
 }
 
+/* ==========================================================================
+   Avatar Upload Styles
+   ========================================================================== */
+.photo-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.photo-field .field-label {
+  align-self: flex-start;
+  margin-bottom: 12px;
+}
+
+.photo-upload-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circular Avatar Preview Container */
+.photo-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(10, 10, 8, 0.45);
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.camera-placeholder {
+  color: rgba(255, 255, 255, 0.55);
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Hover state on avatar ring */
+.photo-upload-wrapper:hover .photo-preview {
+  border-color: rgba(255, 255, 255, 0.6);
+  border-style: solid;
+  background: rgba(10, 10, 8, 0.65);
+}
+
+.photo-upload-wrapper:hover .camera-placeholder {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+/* Camera Badge Upload Button */
+.photo-upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.photo-upload-btn span {
+  display: none; /* Hide button text to keep clean badge shape */
+}
+
+.photo-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   Input Fields
+   ========================================================================== */
 .field {
   display: block;
   margin-bottom: 18px;
@@ -93,7 +190,7 @@
   margin-bottom: 7px;
 }
 
-/* Input & Icon Alignment Fixes */
+/* Input & Icon Alignment */
 .input-with-icon {
   position: relative;
   display: flex;
@@ -114,7 +211,7 @@
 .input-with-icon input {
   width: 100%;
   height: 46px;
-  padding-left: 42px !important; /* Ensures space for left icon */
+  padding-left: 42px !important;
   padding-right: 14px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
@@ -136,7 +233,7 @@
 }
 
 .input-with-icon input[type="password"] {
-  padding-right: 42px !important; /* Space for password eye icon */
+  padding-right: 42px !important;
 }
 
 .field input::placeholder {
@@ -167,7 +264,7 @@
   transition: background-color 99999s ease-in-out 0s;
 }
 
-/* Suppress native browser icons that collide with custom icons */
+/* Suppress native browser icons */
 .field input::-webkit-contacts-auto-fill-button,
 .field input::-webkit-credentials-auto-fill-button {
   visibility: hidden;

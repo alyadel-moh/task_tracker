@@ -99,8 +99,9 @@ async function update(
       updatedField.description = description;
       changedLabels.push("Description");
     }
-
-    await project.save();
+    if (changedLabels.length > 0) {
+      await project.save();
+    }
 
     return res.status(200).json({
       status: "success",

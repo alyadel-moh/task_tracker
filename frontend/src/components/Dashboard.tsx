@@ -41,8 +41,10 @@ const Dashboard = () => {
   const tasksQuery = useGetTasks({ projectId: activeProjectId });
   const { data: tasksData } = tasksQuery;
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  // Keep user type aligned with Query output
   const userQuery = useGetUser();
-  const user = userQuery.data ?? null;
+  const user = userQuery.data;
 
   const logoutMutation = useLogout();
   const navigate = useNavigate();
@@ -219,8 +221,7 @@ const Dashboard = () => {
       <DashboardSidebar
         projects={projects}
         activeProjectId={activeProjectId}
-        userName={user?.name ?? "Guest"}
-        userEmail={user?.email ?? "No email available"}
+        user={user ?? null}
         onSelectProject={handleSelectProject}
         onCreateProject={handleOpenCreateProject}
         onLogout={handleLogout}

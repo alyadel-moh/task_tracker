@@ -1,5 +1,15 @@
 import { useEffect } from "react";
-import { X, ListPlus, Loader2 } from "lucide-react";
+import {
+  X,
+  ListPlus,
+  Loader2,
+  Tag,
+  FileText,
+  CheckSquare,
+  AlertCircle,
+  Clock,
+  Calendar,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -124,64 +134,83 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
           onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
+          {/* Title Field */}
           <label className="field">
             <span className="field-label">Title</span>
-            <input
-              type="text"
-              placeholder="e.g. Design landing page hero"
-              autoFocus
-              {...register("name")}
-            />
+            <div className="field-input-wrapper">
+              <Tag size={15} className="input-inside-icon" />
+              <input
+                type="text"
+                placeholder="e.g. Design landing page hero"
+                autoFocus
+                {...register("name")}
+              />
+            </div>
             {errors.name && (
               <small className="field-error">{errors.name.message}</small>
             )}
           </label>
 
+          {/* Description Field */}
           <label className="field">
             <span className="field-label">
               Description{" "}
               <span className="field-label-optional">(optional)</span>
             </span>
-            <textarea
-              placeholder="Add more detail about this task"
-              rows={3}
-              {...register("description")}
-            />
+            <div className="field-input-wrapper textarea-wrapper">
+              <FileText size={15} className="input-inside-icon textarea-icon" />
+              <textarea
+                placeholder="Add more detail about this task"
+                rows={3}
+                {...register("description")}
+              />
+            </div>
           </label>
 
+          {/* Status & Priority Row */}
           <div className="field-row">
             <label className="field">
               <span className="field-label">Status</span>
-              <select {...register("status")}>
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="DONE">Done</option>
-              </select>
+              <div className="field-input-wrapper">
+                <CheckSquare size={15} className="input-inside-icon" />
+                <select {...register("status")}>
+                  <option value="TODO">To Do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="IN_REVIEW">In Review</option>
+                  <option value="DONE">Done</option>
+                </select>
+              </div>
             </label>
 
             <label className="field">
               <span className="field-label">Priority</span>
-              <select {...register("priority")}>
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-              </select>
+              <div className="field-input-wrapper">
+                <AlertCircle size={15} className="input-inside-icon" />
+                <select {...register("priority")}>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                </select>
+              </div>
             </label>
           </div>
 
+          {/* Estimated Time & Due Date Row */}
           <div className="field-row">
             <label className="field">
               <span className="field-label">
                 Estimated time{" "}
                 <span className="field-label-optional">(minutes)</span>
               </span>
-              <input
-                type="number"
-                min="0"
-                placeholder="e.g. 120"
-                {...register("estimatedTime")}
-              />
+              <div className="field-input-wrapper">
+                <Clock size={15} className="input-inside-icon" />
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 120"
+                  {...register("estimatedTime")}
+                />
+              </div>
             </label>
 
             <label className="field">
@@ -189,10 +218,14 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
                 Due date{" "}
                 <span className="field-label-optional">(optional)</span>
               </span>
-              <input type="datetime-local" {...register("dueDate")} />
+              <div className="field-input-wrapper">
+                <Calendar size={15} className="input-inside-icon" />
+                <input type="datetime-local" {...register("dueDate")} />
+              </div>
             </label>
           </div>
 
+          {/* Action Buttons */}
           <div className="modal-actions">
             <button
               type="button"
