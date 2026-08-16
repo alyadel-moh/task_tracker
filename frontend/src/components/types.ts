@@ -28,6 +28,7 @@ export interface User {
   name: string;
   photoUrl?: string | null;
   email: string;
+  updatedAt: string;
 }
 
 export interface TimeEntry {

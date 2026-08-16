@@ -48,7 +48,6 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
     );
   };
 
-  // Trigger toast when form validation fails (e.g., clicking Submit with empty name)
   const onInvalid = () => {
     toast.error("Please fill in all required fields.");
   };
@@ -122,14 +121,6 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
           </label>
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="modal-button modal-button-secondary"
-              onClick={onClose}
-              disabled={createProject.isPending}
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className="modal-button modal-button-primary"

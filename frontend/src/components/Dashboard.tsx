@@ -22,6 +22,7 @@ import CreateTaskModal from "./CreateTaskModal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import UserProfileModal from "./UserProfileModal";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Status>("TODO");
@@ -33,6 +34,7 @@ const Dashboard = () => {
   const [overColumnStatus, setOverColumnStatus] = useState<Status | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
 
   const projectsQuery = useGetProjects();
   const { data: projectsData } = projectsQuery;
@@ -242,14 +244,14 @@ const Dashboard = () => {
         isProjectMenuOpen={isProjectMenuOpen}
         onToggleProjectMenu={() => setIsProjectMenuOpen((open) => !open)}
         isUserMenuOpen={isUserMenuOpen}
+        onOpenUserProfileModal={() => setIsUserProfileModalOpen(true)}
         onToggleUserMenu={() => setIsUserMenuOpen((open) => !open)}
         projects={projects}
         activeProjectId={activeProjectId}
         onSelectProject={handleSelectProject}
         onCreateTask={handleOpenCreateTask}
         onCreateProject={handleOpenCreateProject}
-        userName={user?.name ?? "Guest"}
-        userEmail={user?.email ?? "No email available"}
+        user={user ?? null}
         onLogout={handleLogout}
       />
 
@@ -317,6 +319,12 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      )}
+      {isUserProfileModalOpen && (
+        <UserProfileModal
+          user={user ?? null}
+          onClose={() => setIsUserProfileModalOpen(false)}
+        />
       )}
     </div>
   );

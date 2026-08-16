@@ -8,7 +8,6 @@ import {
   CheckSquare,
   AlertCircle,
   Clock,
-  Calendar,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -218,23 +217,21 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
                 Due date{" "}
                 <span className="field-label-optional">(optional)</span>
               </span>
-              <div className="field-input-wrapper">
-                <Calendar size={15} className="input-inside-icon" />
-                <input type="datetime-local" {...register("dueDate")} />
-              </div>
+              <input
+                type="datetime-local"
+                className="date-input-standalone"
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch {}
+                }}
+                {...register("dueDate")}
+              />
             </label>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Button */}
           <div className="modal-actions">
-            <button
-              type="button"
-              className="modal-button modal-button-secondary"
-              onClick={onClose}
-              disabled={createtaskmutation.isPending}
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className="modal-button modal-button-primary"

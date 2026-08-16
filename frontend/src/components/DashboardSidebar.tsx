@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Folder, LogOut, Plus, Trash2 } from "lucide-react";
+import {
+  Folder,
+  LogOut,
+  Plus,
+  Trash2,
+  Clock,
+  Mail,
+  UserIcon,
+} from "lucide-react";
 import { User, type Project } from "./types";
 import UserProfileModal from "./UserProfileModal";
 
@@ -15,6 +23,17 @@ interface DashboardSidebarProps {
   onDeletePhoto?: () => void;
 }
 
+const formatDate = (dateString?: string) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 const DashboardSidebar = ({
   projects,
   user,
@@ -27,10 +46,12 @@ const DashboardSidebar = ({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const userInitials = user?.name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase();
+
+  const userUpdatedDate = formatDate(user?.updatedAt);
 
   return (
     <>
@@ -96,8 +117,29 @@ const DashboardSidebar = ({
             )}
           </div>
           <div className="user-info">
-            <p className="user-name">{user?.name}</p>
-            <p className="user-email">{user?.email}</p>
+            <div className="user-name">
+              <UserIcon
+                size={14}
+                className="user-info-icon"
+                aria-hidden="true"
+              />
+              <span>{user?.name}</span>
+            </div>
+            <div className="user-email">
+              <Mail size={14} className="user-info-icon" aria-hidden="true" />
+              <span>{user?.email}</span>
+            </div>
+
+            {userUpdatedDate && (
+              <div className="user-dates">
+                {userUpdatedDate && (
+                  <span className="user-date-item">
+                    <Clock size={11} aria-hidden="true" />
+                    <span>Updated {userUpdatedDate}</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

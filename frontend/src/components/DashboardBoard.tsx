@@ -16,6 +16,7 @@ import {
   X,
   AlertTriangle,
   ArrowRight,
+  UserCog,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
@@ -27,6 +28,7 @@ import {
   type Status,
   type Task,
   type Priority,
+  User,
 } from "./types";
 import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
@@ -47,6 +49,7 @@ interface DashboardBoardProps {
   onToggleProjectMenu: () => void;
   isUserMenuOpen: boolean;
   onToggleUserMenu: () => void;
+  onOpenUserProfileModal: () => void;
   projects: Project[];
   activeProjectId: string | null;
   onSelectProject: (projectId: string) => void;
@@ -56,6 +59,7 @@ interface DashboardBoardProps {
   onCreateTask: () => void;
   onLogout: () => void;
   sensors: any;
+  user: User | null;
 }
 
 const STATUS_OPTIONS: { value: Status; label: string }[] = [
@@ -106,11 +110,13 @@ const DashboardBoard = ({
   onToggleProjectMenu,
   isUserMenuOpen,
   onToggleUserMenu,
+  onOpenUserProfileModal,
   onCreateTask,
   projects,
   activeProjectId,
   onSelectProject,
   onCreateProject,
+  user,
   userName,
   userEmail,
   onLogout,
@@ -269,6 +275,7 @@ const DashboardBoard = ({
         <div className="board-header board-header-mobile">
           <div className="mobile-header-top-row">
             <button
+              type="button"
               className="mobile-project-select"
               onClick={onToggleProjectMenu}
               aria-expanded={isProjectMenuOpen}
@@ -281,14 +288,34 @@ const DashboardBoard = ({
               />
             </button>
             <button
+              type="button"
               className="mobile-user-button"
               onClick={onToggleUserMenu}
               aria-expanded={isUserMenuOpen}
               aria-label="Account menu"
             >
-              {userName.charAt(0).toUpperCase()}
+              {user?.photoUrl ? (
+                <img src={user.photoUrl} alt={userName} />
+              ) : (
+                <span>{userName ? userName.charAt(0).toUpperCase() : "U"}</span>
+              )}
             </button>
           </div>
+
+          {/* Render Created & Updated metadata side-by-side in one pill */}
+          {activeProject && (createdDateFormatted || updatedDateFormatted) && (
+            <div className="board-meta-pill mobile-project-meta-pill">
+              {createdDateFormatted && (
+                <span>Created {createdDateFormatted}</span>
+              )}
+              {createdDateFormatted && updatedDateFormatted && (
+                <span className="pill-dot">•</span>
+              )}
+              {updatedDateFormatted && (
+                <span>Updated {updatedDateFormatted}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search and Multi-Filter Toolbar Component */}
@@ -389,10 +416,26 @@ const DashboardBoard = ({
             />
             <div className="mobile-user-menu">
               <div className="mobile-user-menu-header">
-                <p className="user-name">{userName}</p>
-                <p className="user-email">{userEmail}</p>
+                <p className="user-name">{user?.name || userName || "User"}</p>
+                <p className="user-email">
+                  {user?.email || userEmail || "No email provided"}
+                </p>
               </div>
+
               <button
+                type="button"
+                className="mobile-project-menu-item"
+                onClick={() => {
+                  onToggleUserMenu();
+                  onOpenUserProfileModal();
+                }}
+              >
+                <UserCog size={16} aria-hidden="true" />
+                <span>Account Settings</span>
+              </button>
+
+              <button
+                type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-danger"
                 onClick={onLogout}
               >
@@ -414,17 +457,22 @@ const DashboardBoard = ({
               {projects.map((project) => (
                 <div key={project.id} className="project-item-row">
                   <button
+                    type="button"
                     className={`mobile-project-menu-item ${
                       project.id === activeProjectId
                         ? "mobile-project-menu-item-active"
                         : ""
                     }`}
-                    onClick={() => onSelectProject(project.id)}
+                    onClick={() => {
+                      onSelectProject(project.id);
+                      onToggleProjectMenu();
+                    }}
                   >
                     <Folder size={16} aria-hidden="true" />
                     <span>{project.name}</span>
                   </button>
                   <button
+                    type="button"
                     className="project-item-edit"
                     aria-label={`Edit ${project.name}`}
                     onClick={(event) => {
@@ -437,6 +485,7 @@ const DashboardBoard = ({
               ))}
 
               <button
+                type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-new"
                 onClick={() => {
                   onToggleProjectMenu();
@@ -501,7 +550,12 @@ const DashboardBoard = ({
           })}
         </div>
 
-        <button className="fab" aria-label="New task" onClick={onCreateTask}>
+        <button
+          type="button"
+          className="fab"
+          aria-label="New task"
+          onClick={onCreateTask}
+        >
           <Plus size={20} />
         </button>
       </main>

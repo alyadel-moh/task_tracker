@@ -1,6 +1,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useRef, useState } from "react";
-import { X, Pencil, Trash2, UserCog } from "lucide-react";
+import {
+  X,
+  Pencil,
+  Trash2,
+  UserCog,
+  User as UserIcon,
+  Mail,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "./InlineEditField";
 import useUpdateUser from "../hooks/updateUserHook";
@@ -11,14 +18,9 @@ import { User } from "./types";
 interface UserProfileModalProps {
   user: User | null;
   onClose: () => void;
-  onUpdateProfile?: (user: User) => Promise<void> | void;
 }
 
-const UserProfileModal = ({
-  user,
-  onClose,
-  onUpdateProfile,
-}: UserProfileModalProps) => {
+const UserProfileModal = ({ user, onClose }: UserProfileModalProps) => {
   if (!user) return null;
 
   const [imgError, setImgError] = useState(false);
@@ -82,9 +84,6 @@ const UserProfileModal = ({
           toast.success(backendMessage || "Profile updated successfully", {
             id: "user-update",
           });
-          if (onUpdateProfile) {
-            onUpdateProfile(updatedUserPayload);
-          }
         },
         onError: (err: any) => {
           toast.error(
@@ -204,7 +203,22 @@ const UserProfileModal = ({
         <div className="modal-form">
           {/* Name Field */}
           <div className="field">
-            <span className="field-label">Name</span>
+            <span
+              className="field-label"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              <UserIcon
+                size={15}
+                style={{ flexShrink: 0 }}
+                aria-hidden="true"
+              />
+              <span>Name</span>
+            </span>
             <InlineEditField
               value={userDraft.name}
               type="text"
@@ -218,7 +232,18 @@ const UserProfileModal = ({
 
           {/* Email Field */}
           <div className="field">
-            <span className="field-label">Email address</span>
+            <span
+              className="field-label"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "8px",
+              }}
+            >
+              <Mail size={15} style={{ flexShrink: 0 }} aria-hidden="true" />
+              <span>Email address</span>
+            </span>
             <InlineEditField
               value={userDraft.email}
               type="text"

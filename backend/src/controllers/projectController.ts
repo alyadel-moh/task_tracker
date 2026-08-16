@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
-import { Project } from "../models";
+import { Column, Project, sequelize } from "../models";
+import { ColumnCreationAttributes } from "../models/column";
 
 interface CreateProjectBody {
   name: string;
@@ -21,28 +22,70 @@ async function create(
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
+  const { name, description } = req.body;
+  if (!name || !name.trim()) {
+    return res
+      .status(400)
+      .json({ error: "BadRequest", message: "Project name is required" });
+  }
+  const transaction = await sequelize.transaction();
+
   try {
-    const { name, description } = req.body;
-    if (!name || !name.trim()) {
-      return res
-        .status(400)
-        .json({ error: "BadRequest", message: "Project name is required" });
-    }
-    const project = await Project.create({
-      userId: req.user.id,
-      name: name.trim(),
-      description: description || null,
-    });
+    const project = await Project.create(
+      {
+        userId: req.user.id,
+        name: name.trim(),
+        description: description || null,
+      },
+      { transaction },
+    );
+    const defaultColumns: ColumnCreationAttributes[] = [
+      {
+        name: "TODO",
+        position: 0,
+        isDefault: true,
+        mappedStatus: "TODO",
+        projectId: project.id,
+      },
+      {
+        name: "IN_PROGRESS",
+        position: 1,
+        isDefault: true,
+        mappedStatus: "IN_PROGRESS",
+        projectId: project.id,
+      },
+      {
+        name: "IN_REVIEW",
+        position: 2,
+        isDefault: true,
+        mappedStatus: "IN_REVIEW",
+        projectId: project.id,
+      },
+      {
+        name: "DONE",
+        position: 3,
+        isDefault: true,
+        mappedStatus: "DONE",
+        projectId: project.id,
+      },
+    ];
+    await Column.bulkCreate(defaultColumns, { transaction });
+    await transaction.commit();
     return res
       .status(201)
       .json({ message: "Project created successfully", project });
   } catch (err) {
+    await transaction.rollback();
     next(err);
   }
 }
 
 async function getAll(
-  req: AuthRequest<Record<string, never>, Record<string, never>, Body>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -58,11 +101,7 @@ async function getAll(
 }
 
 async function update(
-  req: AuthRequest<
-    Record<string, never>,
-    Record<string, never>,
-    UpdateProjectBody
-  >,
+  req: AuthRequest<{ id: string }, Record<string, never>, UpdateProjectBody>,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -79,7 +118,7 @@ async function update(
         .json({ error: "Not Found", message: "Project not found" });
     }
 
-    const updatedField: { name?: string; description?: string } = {};
+    const updatedField: UpdateProjectBody = {};
     const changedLabels: string[] = [];
 
     if (name !== undefined) {
@@ -115,7 +154,7 @@ async function update(
 
 async function remove(
   req: AuthRequest<
-    Record<string, never>,
+    { id: string },
     Record<string, never>,
     Record<string, never>
   >,

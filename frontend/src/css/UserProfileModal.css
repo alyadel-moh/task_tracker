@@ -49,6 +49,7 @@
   }
 }
 
+/* Header */
 .modal-header {
   display: flex;
   align-items: center;
@@ -197,7 +198,7 @@
   background: #dc2626;
 }
 
-/* Form Styles */
+/* Form & Field Label Alignment */
 .modal-form {
   display: flex;
   flex-direction: column;
@@ -205,15 +206,24 @@
 
 .field {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
+/* Label flex layout to perfectly align the icon & text */
 .field-label {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 500;
   color: rgba(242, 241, 237, 0.7);
-  display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.field-label svg {
+  color: rgba(242, 241, 237, 0.5);
+  flex-shrink: 0;
 }
 
 /* Actions */

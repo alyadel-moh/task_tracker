@@ -115,7 +115,7 @@ async function update(
         .json({ error: "Not Found", message: "User not found" });
     }
 
-    const updatedField: UpdateUserBody = {};
+    const updatedFields: UpdateUserBody = {};
     const changedLabels: string[] = [];
 
     if (name !== undefined && user.name !== name) {
@@ -127,7 +127,7 @@ async function update(
         });
       }
       user.name = trimmedName;
-      updatedField.name = trimmedName;
+      updatedFields.name = trimmedName;
       changedLabels.push("Name");
     }
     if (email !== undefined && user.email !== email) {
@@ -139,12 +139,12 @@ async function update(
         });
       }
       user.email = email;
-      updatedField.email = email;
+      updatedFields.email = email;
       changedLabels.push("Email");
     }
     if (photoUrl !== undefined && user.photoUrl !== photoUrl) {
       user.photoUrl = photoUrl;
-      updatedField.photoUrl = photoUrl;
+      updatedFields.photoUrl = photoUrl;
       changedLabels.push("Photo URL");
     }
 
@@ -155,12 +155,7 @@ async function update(
     return res.status(200).json({
       status: "success",
       message: `${changedLabels.join(", ") || "User"} updated successfully`,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        photoUrl: user.photoUrl,
-      },
+      user: updatedFields,
     });
   } catch (err) {
     next(err);
@@ -174,8 +169,8 @@ async function me(req: Request, res: Response): Promise<void> {
       .json({ error: "Unauthorized", message: "User not authenticated" });
     return;
   }
-  const { id, name, email, photoUrl } = req.user;
-  res.status(200).json({ id, name, email, photoUrl });
+  const { id, name, email, photoUrl, updatedAt } = req.user;
+  res.status(200).json({ id, name, email, photoUrl, updatedAt });
 }
 
 async function logout(_req: Request, res: Response): Promise<void> {
