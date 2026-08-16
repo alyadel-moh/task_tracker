@@ -1,19 +1,27 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-
+import { Project } from "../components/types";
+import { Task } from "../components/types";
 interface DeleteProjectResponse {
   status: string;
   message: string;
 }
+
 const useDeleteProject = () => {
+  const queryClient = useQueryClient();
+
   return useMutation<DeleteProjectResponse, AxiosError, string>({
-    mutationFn: (id: string) => {
+    mutationFn: (projectId: string) => {
       return axiosInstance
-        .delete<DeleteProjectResponse>(`projects/delete/${id}`)
+        .delete<DeleteProjectResponse>(`projects/delete/${projectId}`)
         .then((response) => response.data);
     },
-    onSuccess: (data: DeleteProjectResponse) => {
+    onSuccess: (data, deletedProjectId) => {
+      queryClient.setQueryData<Project[]>(["projects"], (oldProjects) => {
+        if (!oldProjects) return [];
+        return oldProjects.filter((project) => project.id !== deletedProjectId);
+      });
       console.log("Project deleted successfully:", data);
     },
     onError: (error: AxiosError) => {
@@ -21,4 +29,5 @@ const useDeleteProject = () => {
     },
   });
 };
+
 export default useDeleteProject;

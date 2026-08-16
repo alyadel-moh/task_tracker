@@ -1,35 +1,68 @@
-import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../api-client";
-interface updateTaskData {
+import { Task } from "../components/types";
+
+interface UpdateTaskPayload {
   id: string;
-  name: string;
-  description: string;
-  status: string;
-  priority: string;
-  estimatedTime: number | null;
-  dueDate: string | null;
+  [key: string]: any;
 }
+
 interface UpdateTaskResponse {
+  task: Partial<Task>;
   status: string;
   message: string;
 }
+
 const useUpdateTask = (projectId: string) => {
-  return useMutation<UpdateTaskResponse, AxiosError, updateTaskData>({
-    mutationFn: ({ id, ...taskData }: updateTaskData) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskData: UpdateTaskPayload) => {
+      const { id, ...rest } = taskData;
       return axiosInstance
-        .put<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, taskData)
+        .patch<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, rest)
         .then((response) => response.data);
     },
-    onMutate: async (newTaskData: updateTaskData) => {
-      console.log("Updating task:", newTaskData);
-    },
-    onSuccess: (data: UpdateTaskResponse) => {
+    onSuccess: (data, variables) => {
+      const updatedFields = data.task;
+
+      queryClient.setQueriesData<Task[]>(
+        { queryKey: ["tasks", projectId] },
+        (oldTasks) => {
+          if (!oldTasks) return oldTasks;
+
+          if (Array.isArray(oldTasks)) {
+            return oldTasks.map((task) =>
+              task.id === variables.id
+                ? {
+                    ...task,
+                    ...updatedFields,
+                    updatedAt:
+                      updatedFields.updatedAt ?? new Date().toISOString(),
+                  }
+                : task,
+            );
+          }
+
+          return oldTasks;
+        },
+      );
+
+      queryClient.setQueryData<Task>(
+        ["task", projectId, variables.id],
+        (oldTask) => {
+          if (!oldTask) return oldTask;
+          return {
+            ...oldTask,
+            ...updatedFields,
+            updatedAt: new Date().toISOString(),
+          };
+        },
+      );
+
       console.log("Task updated successfully:", data);
-    },
-    onError: (error: AxiosError) => {
-      console.error("Error updating task:", error);
     },
   });
 };
+
 export default useUpdateTask;

@@ -9,7 +9,7 @@ const PublicOnlyRoute = ({ children }: PublicOnlyRouteProps) => {
   const token = localStorage.getItem("token");
 
   if (token) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/projects" replace />;
   }
 
   return <>{children}</>;

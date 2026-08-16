@@ -12,20 +12,18 @@ import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
 import { type Project, type Status, type Task } from "./types";
-import CreateProjectModal from "./createprojectmodal";
+import CreateProjectModal from "./CreateProjectModal";
 import useGetProjects from "../hooks/getProjectsHook";
-import useGetTasks from "../hooks/getalltasksHook";
+import useGetTasks from "../hooks/getAlltasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import ProjectDetailsModal from "./Projectdetailsmodal";
-import CreateTaskModal from "./Createtaskmodal";
+import CreateTaskModal from "./CreateTaskModal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Status>("TODO");
-  const [editProject, setEditProject] = useState<Project | null>(null);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -35,11 +33,11 @@ const Dashboard = () => {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
   const projectsQuery = useGetProjects();
-  const { data: projectsData, refetch } = projectsQuery;
+  const { data: projectsData } = projectsQuery;
   const projects = projectsData ?? [];
 
-  const tasksQuery = useGetTasks(activeProjectId);
-  const { data: tasksData, refetch: refetchTasks } = tasksQuery;
+  const tasksQuery = useGetTasks({ projectId: activeProjectId });
+  const { data: tasksData } = tasksQuery;
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const userQuery = useGetUser();
   const user = userQuery.data ?? null;
@@ -87,9 +85,6 @@ const Dashboard = () => {
     }),
   );
 
-  const taskCount = (status: Status) =>
-    visibleTasks.filter((task) => task.status === status).length;
-
   const handleDragStart = (event: DragStartEvent) => {
     const task = visibleTasks.find((item) => item.id === event.active.id);
     setDraggingTask(task ?? null);
@@ -133,8 +128,9 @@ const Dashboard = () => {
       },
       {
         onSuccess: () => {
-          toast.success(`Task moved to ${newStatus.replace("_", " ")}`);
-          refetchTasks();
+          toast.success(
+            `Task moved to ${newStatus.replace("_", " ").toLowerCase()} successfully!`,
+          );
         },
         onError: (error: any) => {
           setTasks((current) =>
@@ -192,8 +188,8 @@ const Dashboard = () => {
       onSuccess: () => {
         toast.success("Project deleted successfully!");
         setIsConfirmingDelete(false);
-        refetch();
         setActiveProjectId(null);
+        setTasks([]);
       },
       onError: (error: any) => {
         const apiError =
@@ -222,23 +218,15 @@ const Dashboard = () => {
         tasks={visibleTasks}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
-        taskCount={taskCount}
         draggingTask={draggingTask}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         sensors={sensors}
-        onEditProject={(projectId: string) => {
-          const project = projects.find((p) => p.id === projectId);
-          if (project) {
-            setEditProject(project);
-          }
-        }}
         isProjectMenuOpen={isProjectMenuOpen}
         onToggleProjectMenu={() => setIsProjectMenuOpen((open) => !open)}
         isUserMenuOpen={isUserMenuOpen}
         onToggleUserMenu={() => setIsUserMenuOpen((open) => !open)}
         projects={projects}
-        refetchProjects={refetch}
         activeProjectId={activeProjectId}
         onSelectProject={handleSelectProject}
         onCreateTask={handleOpenCreateTask}
@@ -246,14 +234,12 @@ const Dashboard = () => {
         userName={user?.name ?? "Guest"}
         userEmail={user?.email ?? "No email available"}
         onLogout={handleLogout}
-        refetchTasks={refetchTasks}
       />
 
       {isCreateTaskOpen && (
         <CreateTaskModal
           onClose={() => setIsCreateTaskOpen(false)}
           projectId={activeProjectId ?? ""}
-          refetchTasks={refetchTasks}
         />
       )}
 
@@ -262,19 +248,6 @@ const Dashboard = () => {
           onClose={() => {
             setIsCreateProjectOpen(false);
           }}
-          refetchprojects={refetch}
-        />
-      )}
-
-      {editProject && (
-        <ProjectDetailsModal
-          taskCount={
-            visibleTasks.filter((task) => task.projectId === editProject.id)
-              .length
-          }
-          project={editProject}
-          onClose={() => setEditProject(null)}
-          refetchProjects={refetch}
         />
       )}
 

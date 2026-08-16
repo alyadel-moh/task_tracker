@@ -12,22 +12,30 @@ import {
   Pencil,
   Plus,
   Search,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
-import { columns, type Project, type Status, type Task } from "./types";
+import {
+  columns,
+  type Project,
+  type Status,
+  type Task,
+  type Priority,
+} from "./types";
 import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
+import useGetTasks from "../hooks/getAlltasksHook";
 
 interface DashboardBoardProps {
   activeProject: Project | null;
   tasks: Task[];
   activeTab: Status;
   onSelectTab: (status: Status) => void;
-  taskCount: (status: Status) => number;
   draggingTask: Task | null;
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
@@ -36,7 +44,6 @@ interface DashboardBoardProps {
   isUserMenuOpen: boolean;
   onToggleUserMenu: () => void;
   projects: Project[];
-  onEditProject: (projectId: string) => void;
   activeProjectId: string | null;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
@@ -45,9 +52,20 @@ interface DashboardBoardProps {
   onCreateTask: () => void;
   onLogout: () => void;
   sensors: any;
-  refetchProjects?: () => void;
-  refetchTasks?: () => void;
 }
+
+const STATUS_OPTIONS: { value: Status; label: string }[] = [
+  { value: "TODO", label: "To Do" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "IN_REVIEW", label: "In Review" },
+  { value: "DONE", label: "Done" },
+];
+
+const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
+];
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return null;
@@ -64,17 +82,14 @@ const formatDate = (dateString?: string) => {
 
 const DashboardBoard = ({
   activeProject,
-  tasks,
+  tasks: initialTasks,
   activeTab,
   onSelectTab,
-  taskCount,
   draggingTask,
-  refetchTasks,
   onDragStart,
   sensors,
   onDragEnd,
   isProjectMenuOpen,
-  onEditProject,
   onToggleProjectMenu,
   isUserMenuOpen,
   onToggleUserMenu,
@@ -86,13 +101,60 @@ const DashboardBoard = ({
   userName,
   userEmail,
   onLogout,
-  refetchProjects,
 }: DashboardBoardProps) => {
   const [savingField, setSavingField] = useState<string | null>(null);
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatuses, setSelectedStatuses] = useState<Status[]>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
+  const [overdueOnly, setOverdueOnly] = useState(false);
+
+  const { data: fetchedTasks } = useGetTasks({
+    projectId: activeProject?.id,
+    search: searchQuery,
+    status: selectedStatuses,
+    priority: selectedPriorities,
+    overdue: overdueOnly,
+  });
+
+  const tasks = fetchedTasks ?? initialTasks;
+
   const createdDateFormatted = formatDate(activeProject?.createdAt);
   const updatedDateFormatted = formatDate(activeProject?.updatedAt);
+
+  const getTaskCountForStatus = (statusKey: Status) => {
+    return tasks.filter((t: Task) => t.status === statusKey).length;
+  };
+
+  const toggleStatusFilter = (status: Status) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status],
+    );
+  };
+
+  const togglePriorityFilter = (priority: Priority) => {
+    setSelectedPriorities((prev) =>
+      prev.includes(priority)
+        ? prev.filter((p) => p !== priority)
+        : [...prev, priority],
+    );
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedStatuses([]);
+    setSelectedPriorities([]);
+    setOverdueOnly(false);
+  };
+
+  const isFilteredActive =
+    searchQuery !== "" ||
+    selectedStatuses.length > 0 ||
+    selectedPriorities.length > 0 ||
+    overdueOnly;
 
   const handleSaveProjectField = (
     field: "name" | "description",
@@ -101,27 +163,21 @@ const DashboardBoard = ({
     if (!activeProject) return;
     setSavingField(field);
 
-    updateProjectMutation.mutate(
-      {
-        name: field === "name" ? value : activeProject.name,
-        description:
-          field === "description" ? value : (activeProject.description ?? ""),
+    const payload = { [field]: value };
+
+    updateProjectMutation.mutate(payload, {
+      onSuccess: () => {
+        toast.success(`Project ${field} updated successfully!`);
+        setSavingField(null);
       },
-      {
-        onSuccess: () => {
-          toast.success("Project updated successfully!");
-          refetchProjects?.();
-          setSavingField(null);
-        },
-        onError: (error: any) => {
-          const apiError =
-            error?.response?.data?.message ??
-            "Failed to update project. Please try again.";
-          toast.error(apiError);
-          setSavingField(null);
-        },
+      onError: (error: any) => {
+        const apiError =
+          error?.response?.data?.message ??
+          "Failed to update project. Please try again.";
+        toast.error(apiError);
+        setSavingField(null);
       },
-    );
+    });
   };
 
   return (
@@ -145,6 +201,7 @@ const DashboardBoard = ({
                   />
                   <span className="task-count-badge">
                     {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+                    {isFilteredActive && " (filtered)"}
                   </span>
                 </div>
 
@@ -222,11 +279,96 @@ const DashboardBoard = ({
               {userName.charAt(0).toUpperCase()}
             </button>
           </div>
-          <div className="mobile-search">
-            <Search size={14} aria-hidden="true" />
-            <span>Search tasks</span>
-          </div>
         </div>
+
+        {/* Search and Multi-Filter Toolbar Component */}
+        {activeProject && (
+          <div className="task-filter-bar">
+            {/* Search Input Box */}
+            <div className="filter-search-wrapper">
+              <Search size={16} className="filter-search-icon" />
+              <input
+                type="text"
+                placeholder="Search tasks by title or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="filter-search-input"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="filter-clear-search"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Options Row */}
+            <div className="filter-group-options">
+              {/* Status Pills */}
+              <div className="filter-pills-group">
+                <span className="filter-label">Status:</span>
+                {STATUS_OPTIONS.map((opt) => {
+                  const active = selectedStatuses.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`filter-pill ${active ? "active" : ""}`}
+                      onClick={() => toggleStatusFilter(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Priority Pills */}
+              <div className="filter-pills-group">
+                <span className="filter-label">Priority:</span>
+                {PRIORITY_OPTIONS.map((opt) => {
+                  const active = selectedPriorities.includes(opt.value);
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`filter-pill ${active ? "active" : ""}`}
+                      onClick={() => togglePriorityFilter(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Overdue Pill */}
+              <button
+                type="button"
+                className={`filter-pill filter-pill-overdue ${
+                  overdueOnly ? "active" : ""
+                }`}
+                onClick={() => setOverdueOnly(!overdueOnly)}
+              >
+                <AlertTriangle size={13} />
+                <span>Overdue</span>
+              </button>
+
+              {/* Clear All Filters */}
+              {isFilteredActive && (
+                <button
+                  type="button"
+                  className="filter-reset-btn"
+                  onClick={handleResetFilters}
+                >
+                  <X size={14} />
+                  <span>Clear filters</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* User Menu Popup */}
         {isUserMenuOpen && (
@@ -277,7 +419,6 @@ const DashboardBoard = ({
                     aria-label={`Edit ${project.name}`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onEditProject(project.id);
                     }}
                   >
                     <Pencil size={13} aria-hidden="true" />
@@ -306,7 +447,7 @@ const DashboardBoard = ({
               key={col.key}
               status={col.key}
               label={col.label}
-              count={taskCount(col.key)}
+              count={getTaskCountForStatus(col.key)}
               isActive={activeTab === col.key}
               onSelect={() => onSelectTab(col.key)}
             />
@@ -315,35 +456,39 @@ const DashboardBoard = ({
 
         {/* Kanban Board Area */}
         <div className="board">
-          {columns.map((col) => (
-            <div
-              key={col.key}
-              className={`column column-${col.key} ${
-                activeTab === col.key ? "column-active" : ""
-              }`}
-            >
-              <div className="column-header column-header-desktop">
-                <span className={`status-dot status-dot-${col.key}`} />
-                <span>{col.label}</span>
-                <span className="column-count">{taskCount(col.key)}</span>
-              </div>
+          {columns.map((col) => {
+            const colTasks = tasks.filter(
+              (task: Task) => task.status === col.key,
+            );
 
-              <ColumnDropZone status={col.key}>
-                {tasks
-                  .filter((task) => task.status === col.key)
-                  .map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      refetchTasks={refetchTasks}
-                    />
+            return (
+              <div
+                key={col.key}
+                className={`column column-${col.key} ${
+                  activeTab === col.key ? "column-active" : ""
+                }`}
+              >
+                <div className="column-header column-header-desktop">
+                  <span className={`status-dot status-dot-${col.key}`} />
+                  <span>{col.label}</span>
+                  <span className="column-count">{colTasks.length}</span>
+                </div>
+
+                <ColumnDropZone status={col.key}>
+                  {colTasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
                   ))}
-                {taskCount(col.key) === 0 && (
-                  <p className="column-empty">Drop a task here</p>
-                )}
-              </ColumnDropZone>
-            </div>
-          ))}
+                  {colTasks.length === 0 && (
+                    <p className="column-empty">
+                      {isFilteredActive
+                        ? "No matching tasks"
+                        : "Drop a task here"}
+                    </p>
+                  )}
+                </ColumnDropZone>
+              </div>
+            );
+          })}
         </div>
 
         <button className="fab" aria-label="New task" onClick={onCreateTask}>
