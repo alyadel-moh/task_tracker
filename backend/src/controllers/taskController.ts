@@ -3,11 +3,7 @@ import { Op, WhereOptions } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
 import { Task, Project, User, TaskHistory } from "../models";
 import { TaskPriority, TaskStatus } from "../models/task";
-import {
-  recordTaskCreated,
-  recordTaskUpdated,
-  recordTaskDeleted,
-} from "../services/taskHistory";
+import { recordTaskCreated, recordTaskUpdated } from "../services/taskHistory";
 interface CreateTaskBody {
   name: string;
   description?: string;
@@ -302,7 +298,7 @@ async function update(
       updatedFields.name = trimmedName;
       changedLabels.push("Task name");
     }
-    if (description !== task.description) {
+    if (description !== task.description && description !== undefined) {
       task.description = description || null;
       updatedFields.description = description;
       changedLabels.push("Description");
@@ -437,12 +433,9 @@ async function remove(
         .status(404)
         .json({ error: "Not Found", message: "Task not found" });
     }
-    const historyEntry = await recordTaskDeleted(task.id, req.user.id);
-    const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
     await task.destroy();
     return res.status(200).json({
       message: "Task deleted successfully",
-      historyEntry: taskHistoryEntry,
     });
   } catch (err) {
     next(err);

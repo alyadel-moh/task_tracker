@@ -33,7 +33,7 @@ export default {
 
       event_type: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       field_changed: {
         type: DataTypes.STRING,

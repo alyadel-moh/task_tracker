@@ -37,7 +37,7 @@ const FIELD_LABEL_MAP: Record<string, string> = {
   status: "Status",
   priority: "Priority",
   dueDate: "Due Date",
-  estimatedMinutes: "Estimated Time",
+  estimatedTime: "Estimated Time",
   durationMinutes: "Duration",
   note: "Note",
   entryDate: "Date",

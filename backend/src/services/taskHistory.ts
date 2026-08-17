@@ -93,31 +93,20 @@ export async function recordTaskUpdated(
         }),
       );
     }
-    if (toComparable(before.status) !== toComparable(after.status)) {
-      historyEntries.push(
-        await logTaskHistory({
-          taskId,
-          actorId,
-          eventType: "STATUS_CHANGED",
-          fieldChanged: "status",
-          oldValue: before.status,
-          newValue: after.status,
-        }),
-      );
-    }
+  }
+  if (toComparable(before.status) !== toComparable(after.status)) {
+    historyEntries.push(
+      await logTaskHistory({
+        taskId,
+        actorId,
+        eventType: "STATUS_CHANGED",
+        fieldChanged: "status",
+        oldValue: before.status,
+        newValue: after.status,
+      }),
+    );
   }
   return historyEntries;
-}
-
-export async function recordTaskDeleted(
-  taskId: string,
-  actorId: string,
-): Promise<TaskHistory> {
-  return logTaskHistory({
-    taskId,
-    actorId,
-    eventType: "TASK_DELETED",
-  });
 }
 
 export async function recordTimeEntryCreated(
