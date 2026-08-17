@@ -35,10 +35,8 @@ export interface Statuss {
   projectId: string;
   name: string;
   position: number;
-  isDefault: boolean;
+  isDefault: boolean | undefined;
   mappedStatus?: Status | null;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface TimeEntry {

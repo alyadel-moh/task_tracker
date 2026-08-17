@@ -7,6 +7,10 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
   ChevronDown,
   Folder,
   LogOut,
@@ -19,37 +23,28 @@ import {
   UserCog,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import ColumnDropZone from "./ColumnDropZone";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
+import SortableColumn from "./SortableColumn";
 import {
   type Project,
   type Task,
   type Priority,
-  type Status,
+  type Statuss,
   User,
 } from "./types";
-import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
 import useGetTasks from "../hooks/getAllTasksHook";
-import useGetStatuses from "../hooks/getAllStatusesHook";
-
-export interface ColumnStatus {
-  id: string;
-  name: string;
-  position: number;
-  isDefault?: boolean;
-  mappedStatus?: Status | null;
-  projectId: string;
-}
 
 interface DashboardBoardProps {
   activeProject: Project | null;
   tasks: Task[];
+  statuses: Statuss[];
   activeTab: string;
   onSelectTab: (statusId: string) => void;
   draggingTask: Task | null;
+  draggingColumn?: Statuss | null;
   overColumnStatus?: string | null;
   onDragStart: (event: DragStartEvent) => void;
   onDragOver?: (event: DragOverEvent) => void;
@@ -77,8 +72,8 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
 ];
 
 const DEFAULT_STATUS_MAP: Record<string, string> = {
-  TODO: "To do",
-  IN_PROGRESS: "In progress",
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
   DONE: "Done",
 };
 
@@ -115,9 +110,11 @@ const formatDate = (dateString?: string) => {
 const DashboardBoard = ({
   activeProject,
   tasks: initialTasks,
+  statuses,
   activeTab,
   onSelectTab,
   draggingTask,
+  draggingColumn,
   overColumnStatus,
   onDragStart,
   onDragOver,
@@ -139,24 +136,19 @@ const DashboardBoard = ({
 }: DashboardBoardProps) => {
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
 
-  const { data: fetchedStatuses = [] } = useGetStatuses(
-    activeProject?.id ?? "",
-  );
-
-  const columns: ColumnStatus[] = useMemo(() => {
-    if (!Array.isArray(fetchedStatuses) || fetchedStatuses.length === 0) {
+  const columns: Statuss[] = useMemo(() => {
+    if (!Array.isArray(statuses) || statuses.length === 0) {
       return [];
     }
-    return fetchedStatuses
-      .filter((col): col is ColumnStatus =>
+    return statuses
+      .filter((col): col is Statuss =>
         Boolean(col && typeof col === "object" && col.id),
       )
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
       .map((col) => ({
         ...col,
         name: formatStatusName(col.name, col.mappedStatus),
       }));
-  }, [fetchedStatuses]);
+  }, [statuses]);
 
   useEffect(() => {
     if (
@@ -252,6 +244,11 @@ const DashboardBoard = ({
       },
     });
   };
+
+  const columnSortableIds = useMemo(
+    () => columns.map((c) => `col-${c.id}`),
+    [columns],
+  );
 
   const draggingTaskStatusId =
     draggingTask?.statusId ?? (draggingTask as any)?.status_id;
@@ -587,49 +584,30 @@ const DashboardBoard = ({
             </div>
           )}
 
-          {columns.map((col) => {
-            const colTasks = tasks.filter((task: Task) => {
-              if (!task) return false;
-              const taskStatusId = task.statusId ?? (task as any).status_id;
-              return taskStatusId === col.id;
-            });
+          <SortableContext
+            items={columnSortableIds}
+            strategy={horizontalListSortingStrategy}
+          >
+            {columns.map((col) => {
+              const colTasks = tasks.filter((task: Task) => {
+                if (!task) return false;
+                const taskStatusId = task.statusId ?? (task as any).status_id;
+                return taskStatusId === col.id;
+              });
 
-            const statusClassModifier = (
-              col.mappedStatus || "DEFAULT"
-            ).toLowerCase();
+              return (
+                <SortableColumn
+                  key={col.id}
+                  column={col}
+                  tasks={colTasks}
+                  activeTab={activeTab}
+                  isFilteredActive={isFilteredActive}
+                />
+              );
+            })}
+          </SortableContext>
 
-            return (
-              <div
-                key={col.id}
-                className={`column column-${statusClassModifier} ${
-                  activeTab === col.id ? "column-active" : ""
-                }`}
-              >
-                <div className="column-header column-header-desktop">
-                  <span
-                    className={`status-dot status-dot-${statusClassModifier}`}
-                  />
-                  <span>{col.name}</span>
-                  <span className="column-count">{colTasks.length}</span>
-                </div>
-
-                <ColumnDropZone status={col.id as any}>
-                  {colTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                  {colTasks.length === 0 && (
-                    <p className="column-empty">
-                      {isFilteredActive
-                        ? "No matching tasks"
-                        : "Drop a task here"}
-                    </p>
-                  )}
-                </ColumnDropZone>
-              </div>
-            );
-          })}
-
-          {/* Rectangular Transparent Green Add Column Button */}
+          {/* Add Column Button */}
           {activeProject && (
             <div className="column add-column-wrapper">
               <div className="column-header column-header-desktop add-column-header-spacer">
@@ -679,6 +657,21 @@ const DashboardBoard = ({
             )}
             <div className="task-card-overlay">
               <TaskOverlay task={draggingTask} />
+            </div>
+          </div>
+        ) : draggingColumn ? (
+          <div
+            className={`column column-${(
+              draggingColumn.mappedStatus || "DEFAULT"
+            ).toLowerCase()} dragging-column-overlay`}
+          >
+            <div className="column-header column-header-desktop">
+              <span
+                className={`status-dot status-dot-${(
+                  draggingColumn.mappedStatus || "DEFAULT"
+                ).toLowerCase()}`}
+              />
+              <span>{draggingColumn.name}</span>
             </div>
           </div>
         ) : null}

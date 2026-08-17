@@ -7,12 +7,13 @@ import {
   DragStartEvent,
   DragOverEvent,
 } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
-import { Project, Task } from "./types";
+import { Project, Task, Statuss } from "./types";
 import CreateProjectModal from "./CreateProjectModal";
 import useGetProjects from "../hooks/getProjectsHook";
 import useGetTasks from "../hooks/getAllTasksHook";
@@ -21,6 +22,7 @@ import useLogout from "../hooks/logoutHook";
 import CreateTaskModal from "./CreateTaskModal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
+import useGetStatuses from "../hooks/getAllStatusesHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import UserProfileModal from "./UserProfileModal";
 import CreateStatusModal from "./CreateStatusModal";
@@ -31,20 +33,26 @@ const Dashboard = () => {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
-  const [draggingTask, setDraggingTask] = useState<Task | null>(null);
-  const [overColumnStatus, setOverColumnStatus] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
   const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  const [draggingTask, setDraggingTask] = useState<Task | null>(null);
+  const [draggingColumn, setDraggingColumn] = useState<Statuss | null>(null);
+  const [overColumnStatus, setOverColumnStatus] = useState<string | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [statuses, setStatuses] = useState<Statuss[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
   const projectsQuery = useGetProjects();
   const { data: projectsData } = projectsQuery;
   const projects = projectsData ?? [];
 
+  const statusesQuery = useGetStatuses(activeProjectId ?? "");
+  const { data: fetchedStatuses = [] } = statusesQuery;
+
   const tasksQuery = useGetTasks({ projectId: activeProjectId ?? undefined });
   const { data: tasksData } = tasksQuery;
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const userQuery = useGetUser();
   const user = userQuery.data;
@@ -60,6 +68,16 @@ const Dashboard = () => {
       setTasks(tasksData);
     }
   }, [tasksData]);
+
+  useEffect(() => {
+    if (Array.isArray(fetchedStatuses)) {
+      setStatuses(
+        [...fetchedStatuses].sort(
+          (a: any, b: any) => (a.position ?? 0) - (b.position ?? 0),
+        ),
+      );
+    }
+  }, [fetchedStatuses]);
 
   useEffect(() => {
     if (!projectsData) return;
@@ -86,29 +104,64 @@ const Dashboard = () => {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    const activeId = String(event.active.id);
+
+    if (activeId.startsWith("col-")) {
+      const colId = activeId.replace("col-", "");
+      const foundColumn = statuses.find((col) => col.id === colId);
+      setDraggingColumn(foundColumn ?? null);
+      return;
+    }
+
     const task = tasks.find((item) => item.id === event.active.id);
     setDraggingTask(task ?? null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
+    const { over, active } = event;
     if (!over) {
       setOverColumnStatus(null);
       return;
     }
+
+    const activeId = String(active.id);
+    if (activeId.startsWith("col-")) return;
 
     const overId = String(over.id);
     const targetStatusId = overId.startsWith("tab-")
       ? overId.replace("tab-", "")
       : overId.startsWith("column-")
         ? overId.replace("column-", "")
-        : overId;
+        : overId.startsWith("col-")
+          ? overId.replace("col-", "")
+          : overId;
 
     setOverColumnStatus(targetStatusId);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    const activeId = String(active.id);
+
+    // 1. Column Drag Reordering
+    if (activeId.startsWith("col-")) {
+      setDraggingColumn(null);
+      if (!over) return;
+      const overId = String(over.id);
+
+      if (activeId !== overId && overId.startsWith("col-")) {
+        const oldIndex = statuses.findIndex((c) => `col-${c.id}` === activeId);
+        const newIndex = statuses.findIndex((c) => `col-${c.id}` === overId);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const updated = arrayMove(statuses, oldIndex, newIndex);
+          setStatuses(updated);
+        }
+      }
+      return;
+    }
+
+    // 2. Task Card Drag & Drop
     const task = draggingTask;
     setDraggingTask(null);
     setOverColumnStatus(null);
@@ -120,14 +173,15 @@ const Dashboard = () => {
       ? overId.replace("tab-", "")
       : overId.startsWith("column-")
         ? overId.replace("column-", "")
-        : overId;
+        : overId.startsWith("col-")
+          ? overId.replace("col-", "")
+          : overId;
 
     const currentStatusId = task.statusId ?? (task as any).status_id;
     if (newStatusId === currentStatusId) return;
 
     const previousStatusId = currentStatusId;
 
-    // Optimistic UI update
     setTasks((current) =>
       current.map((t) =>
         t.id === active.id ? { ...t, statusId: newStatusId } : t,
@@ -138,21 +192,14 @@ const Dashboard = () => {
     updateTaskMutation.mutate(
       {
         task: {
-          id: task.id,
           statusId: newStatusId,
-          name: task.name,
-          description: task.description,
-          priority: task.priority,
-          estimatedTime: task.estimatedTime ?? null,
-          dueDate: task.dueDate ?? undefined,
         },
       },
       {
         onSuccess: () => {
-          toast.success("Task moved to " + newStatusId + "  successfully!");
+          toast.success("Task moved successfully!");
         },
         onError: (error: any) => {
-          // Revert state on network/server error
           setTasks((current) =>
             current.map((t) =>
               t.id === active.id ? { ...t, statusId: previousStatusId } : t,
@@ -189,6 +236,7 @@ const Dashboard = () => {
   const handleOpenCreateProject = () => {
     setIsProjectMenuOpen(false);
     setIsUserMenuOpen(false);
+    setIsUserProfileModalOpen(false);
     setIsCreateProjectOpen(true);
   };
 
@@ -199,6 +247,7 @@ const Dashboard = () => {
     }
     setIsProjectMenuOpen(false);
     setIsUserMenuOpen(false);
+    setIsUserProfileModalOpen(false);
     setIsCreateTaskOpen(true);
   };
 
@@ -236,9 +285,11 @@ const Dashboard = () => {
       <DashboardBoard
         activeProject={activeProject}
         tasks={tasks}
+        statuses={statuses}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         draggingTask={draggingTask}
+        draggingColumn={draggingColumn}
         overColumnStatus={overColumnStatus}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -247,16 +298,19 @@ const Dashboard = () => {
         isProjectMenuOpen={isProjectMenuOpen}
         onToggleProjectMenu={() => setIsProjectMenuOpen((open) => !open)}
         isUserMenuOpen={isUserMenuOpen}
-        onOpenUserProfileModal={() => setIsUserProfileModalOpen(true)}
         onToggleUserMenu={() => setIsUserMenuOpen((open) => !open)}
+        onOpenUserProfileModal={() => {
+          setIsUserMenuOpen(false);
+          setIsUserProfileModalOpen(true);
+        }}
         projects={projects}
         activeProjectId={activeProjectId}
         onSelectProject={handleSelectProject}
         onCreateTask={handleOpenCreateTask}
         onCreateProject={handleOpenCreateProject}
+        onToggleAddColumnModal={() => setIsAddColumnModalOpen((open) => !open)}
         user={user ?? null}
         onLogout={handleLogout}
-        onToggleAddColumnModal={() => setIsAddColumnModalOpen((open) => !open)}
       />
 
       {isCreateTaskOpen && (
@@ -331,6 +385,7 @@ const Dashboard = () => {
           onClose={() => setIsUserProfileModalOpen(false)}
         />
       )}
+
       {isAddColumnModalOpen && (
         <CreateStatusModal
           onClose={() => setIsAddColumnModalOpen(false)}
