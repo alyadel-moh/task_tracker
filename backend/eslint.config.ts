@@ -18,7 +18,12 @@ export default [
     rules: {
       ...typescriptEslint.configs.recommended.rules,
       ...prettierConfig.rules,
-      "prettier/prettier": "error",
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto",
+        },
+      ],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

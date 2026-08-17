@@ -28,11 +28,18 @@ describe("useRegister", () => {
 
     const { result } = renderHook(() => useRegister(), { wrapper });
 
-    const newUserData = { name: "Aly", email: "aly@example.com", password: "password123" };
+    const newUserData = {
+      name: "Aly",
+      email: "aly@example.com",
+      password: "password123",
+    };
     result.current.mutate(newUserData);
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockResponse);
-    expect(axiosInstance.post).toHaveBeenCalledWith("auth/register", newUserData);
+    expect(axiosInstance.post).toHaveBeenCalledWith(
+      "auth/register",
+      newUserData,
+    );
   });
 });

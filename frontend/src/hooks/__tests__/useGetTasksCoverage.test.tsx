@@ -46,7 +46,7 @@ describe("useGetTasks Full Coverage Suite", () => {
           priority: ["HIGH"],
           overdue: true,
         }),
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -63,7 +63,7 @@ describe("useGetTasks Full Coverage Suite", () => {
           priority: ["HIGH"],
           overdue: true,
         },
-      })
+      }),
     );
 
     // Test the paramsSerializer callback branch

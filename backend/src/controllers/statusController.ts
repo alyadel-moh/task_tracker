@@ -1,17 +1,17 @@
 import { Response, NextFunction } from "express";
 import { Op } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
-import { Column, sequelize, Project } from "../models";
+import { Status, sequelize, Project } from "../models";
 
-interface UpdateColumnBody {
+interface UpdateStatusBody {
   name?: string;
   position?: number;
 }
 async function update(
   req: AuthRequest<
-    { projectId: string; columnId: string },
+    { projectId: string; statusId: string },
     Record<string, never>,
-    UpdateColumnBody
+    UpdateStatusBody
   >,
   res: Response,
   next: NextFunction,
@@ -19,11 +19,11 @@ async function update(
   const transaction = await sequelize.transaction();
 
   try {
-    const { projectId, columnId } = req.params;
+    const { projectId, statusId } = req.params;
     const { name, position } = req.body;
 
-    const column = await Column.findOne({
-      where: { id: columnId, projectId },
+    const status = await Status.findOne({
+      where: { id: statusId, projectId },
       include: [
         {
           model: Project,
@@ -34,13 +34,13 @@ async function update(
       transaction,
     });
 
-    if (!column) {
+    if (!status) {
       await transaction.rollback();
       return res
         .status(404)
-        .json({ error: "Not Found", message: "Column not found" });
+        .json({ error: "Not Found", message: "Status not found" });
     }
-    const updatedFields: UpdateColumnBody = {};
+    const updatedFields: UpdateStatusBody = {};
     const updatedLabels: string[] = [];
     if (name !== undefined) {
       const trimmedName = name.trim();
@@ -48,55 +48,55 @@ async function update(
         await transaction.rollback();
         return res.status(400).json({
           error: "BadRequest",
-          message: "Column name cannot be empty",
+          message: "Status name cannot be empty",
         });
       }
       updatedFields.name = trimmedName;
       updatedLabels.push("Name");
-      column.name = trimmedName;
+      status.name = trimmedName;
     }
 
-    if (position !== undefined && position !== column.position) {
-      const oldPosition = column.position;
+    if (position !== undefined && position !== status.position) {
+      const oldPosition = status.position;
       const newPosition = position;
 
       if (newPosition < oldPosition) {
-        await Column.increment("position", {
+        await Status.increment("position", {
           by: 1,
           where: {
-            projectId: column.projectId,
+            projectId: status.projectId,
             position: {
               [Op.gte]: newPosition,
               [Op.lt]: oldPosition,
             },
-            id: { [Op.ne]: column.id },
+            id: { [Op.ne]: status.id },
           },
           transaction,
         });
       } else if (newPosition > oldPosition) {
-        await Column.decrement("position", {
+        await Status.decrement("position", {
           by: 1,
           where: {
-            projectId: column.projectId,
+            projectId: status.projectId,
             position: {
               [Op.gt]: oldPosition,
               [Op.lte]: newPosition,
             },
-            id: { [Op.ne]: column.id },
+            id: { [Op.ne]: status.id },
           },
           transaction,
         });
       }
-      column.position = newPosition;
+      status.position = newPosition;
       updatedFields.position = newPosition;
       updatedLabels.push("Position");
     }
-    await column.save({ transaction });
+    await status.save({ transaction });
     await transaction.commit();
     return res.status(200).json({
       status: "success",
-      message: "Column updated successfully",
-      column: updatedFields,
+      message: "Status updated successfully",
+      updatedFields: updatedFields,
     });
   } catch (err) {
     await transaction.rollback();
@@ -118,7 +118,7 @@ async function create(
   if (!name || !name.trim()) {
     return res
       .status(400)
-      .json({ error: "BadRequest", message: "Column name is required" });
+      .json({ error: "BadRequest", message: "Status name is required" });
   }
   const transaction = await sequelize.transaction();
   try {
@@ -134,15 +134,15 @@ async function create(
         .json({ error: "Not Found", message: "Project not found" });
     }
 
-    const maxPositionColumn = await Column.findOne({
+    const maxPositionStatus = await Status.findOne({
       where: { projectId },
       order: [["position", "DESC"]],
       transaction,
     });
 
-    const newPosition = maxPositionColumn ? maxPositionColumn.position + 1 : 0;
+    const newPosition = maxPositionStatus ? maxPositionStatus.position + 1 : 0;
 
-    const newColumn = await Column.create(
+    const newStatus = await Status.create(
       {
         name: name.trim(),
         position: newPosition,
@@ -154,8 +154,8 @@ async function create(
 
     await transaction.commit();
     return res.status(201).json({
-      message: "Column created successfully",
-      column: newColumn,
+      message: "Status created successfully",
+      newStatus,
     });
   } catch (err) {
     await transaction.rollback();
@@ -165,7 +165,7 @@ async function create(
 
 async function remove(
   req: AuthRequest<
-    { projectId: string; columnId: string },
+    { projectId: string; statusId: string },
     Record<string, never>,
     Record<string, never>
   >,
@@ -174,10 +174,10 @@ async function remove(
 ): Promise<Response | void> {
   const transaction = await sequelize.transaction();
   try {
-    const { projectId, columnId } = req.params;
+    const { projectId, statusId } = req.params;
 
-    const column = await Column.findOne({
-      where: { id: columnId, projectId },
+    const status = await Status.findOne({
+      where: { id: statusId, projectId },
       include: [
         {
           model: Project,
@@ -188,31 +188,31 @@ async function remove(
       transaction,
     });
 
-    if (!column) {
+    if (!status) {
       await transaction.rollback();
       return res
         .status(404)
-        .json({ error: "Not Found", message: "Column not found" });
+        .json({ error: "Not Found", message: "Status not found" });
     }
-    if (column.isDefault) {
+    if (status.isDefault) {
       await transaction.rollback();
       return res.status(400).json({
         error: "BadRequest",
-        message: "Default columns cannot be deleted",
+        message: "Default statuses cannot be deleted",
       });
     }
-    const deletedposition = column.position;
-    await column.destroy({ transaction });
-    await Column.decrement("position", {
+    const deletedposition = status.position;
+    await status.destroy({ transaction });
+    await Status.decrement("position", {
       by: 1,
       where: {
-        projectId: column.projectId,
+        projectId: status.projectId,
         position: { [Op.gt]: deletedposition },
       },
       transaction,
     });
     await transaction.commit();
-    return res.status(200).json({ message: "Column deleted successfully" });
+    return res.status(200).json({ message: "Status deleted successfully" });
   } catch (err) {
     await transaction.rollback();
     next(err);
@@ -240,12 +240,12 @@ async function getAll(
         .json({ error: "Not Found", message: "Project not found" });
     }
 
-    const columns = await Column.findAll({
+    const statuses = await Status.findAll({
       where: { projectId },
       order: [["position", "ASC"]],
     });
 
-    return res.status(200).json(columns);
+    return res.status(200).json(statuses);
   } catch (err) {
     next(err);
   }

@@ -1,38 +1,37 @@
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 
-export interface ColumnAttributes {
+export interface StatusAttributes {
   id: string;
   projectId: string;
   name: string;
   position: number;
   isDefault: boolean;
-  mappedStatus?: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | null;
+  mappedStatus?: "TODO" | "IN_PROGRESS" | "DONE" | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export type ColumnCreationAttributes = Optional<
-  ColumnAttributes,
+export type StatusCreationAttributes = Optional<
+  StatusAttributes,
   "id" | "isDefault" | "mappedStatus"
 >;
-export class Column
-  extends Model<ColumnAttributes, ColumnCreationAttributes>
-  implements ColumnAttributes
+export class Status
+  extends Model<StatusAttributes, StatusCreationAttributes>
+  implements StatusAttributes
 {
   declare public id: string;
   declare public projectId: string;
   declare public name: string;
   declare public position: number;
   declare public isDefault: boolean;
-  declare public mappedStatus?:
-    "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE" | null;
+  declare public mappedStatus?: "TODO" | "IN_PROGRESS" | "DONE" | null;
 
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
 }
 
-export default (sequelize: Sequelize): typeof Column => {
-  Column.init(
+export default (sequelize: Sequelize): typeof Status => {
+  Status.init(
     {
       id: {
         type: DataTypes.UUID,
@@ -53,7 +52,7 @@ export default (sequelize: Sequelize): typeof Column => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: { notEmpty: { msg: "Column name is required" } },
+        validate: { notEmpty: { msg: "Status name is required" } },
       },
       position: {
         type: DataTypes.INTEGER,
@@ -66,12 +65,12 @@ export default (sequelize: Sequelize): typeof Column => {
         field: "is_default",
       },
       mappedStatus: {
-        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"),
+        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "DONE"),
         allowNull: true,
         field: "mapped_status",
         validate: {
           isIn: {
-            args: [["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", null]],
+            args: [["TODO", "IN_PROGRESS", "DONE", null]],
             msg: "Invalid mapped status",
           },
         },
@@ -79,11 +78,11 @@ export default (sequelize: Sequelize): typeof Column => {
     },
     {
       sequelize,
-      tableName: "columns",
+      tableName: "statuses",
       timestamps: true,
       underscored: true,
     },
   );
 
-  return Column;
+  return Status;
 };

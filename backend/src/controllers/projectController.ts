@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
-import { Column, Project, sequelize } from "../models";
-import { ColumnCreationAttributes } from "../models/column";
+import { Status, Project, sequelize } from "../models";
+import { StatusCreationAttributes } from "../models/status";
 
 interface CreateProjectBody {
   name: string;
@@ -39,7 +39,7 @@ async function create(
       },
       { transaction },
     );
-    const defaultColumns: ColumnCreationAttributes[] = [
+    const defaultStatuses: StatusCreationAttributes[] = [
       {
         name: "TODO",
         position: 0,
@@ -55,13 +55,6 @@ async function create(
         projectId: project.id,
       },
       {
-        name: "IN_REVIEW",
-        position: 2,
-        isDefault: true,
-        mappedStatus: "IN_REVIEW",
-        projectId: project.id,
-      },
-      {
         name: "DONE",
         position: 3,
         isDefault: true,
@@ -69,7 +62,7 @@ async function create(
         projectId: project.id,
       },
     ];
-    await Column.bulkCreate(defaultColumns, { transaction });
+    await Status.bulkCreate(defaultStatuses, { transaction });
     await transaction.commit();
     return res
       .status(201)

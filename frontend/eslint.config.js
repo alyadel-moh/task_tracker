@@ -34,7 +34,12 @@ export default [
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       ...prettierConfig.rules,
-      "prettier/prettier": "error",
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto",
+        },
+      ],
       "react/react-in-jsx-scope": "off",
       "react/no-unescaped-entities": "off", // Disables ' and " unescaped JSX errors
       "react-hooks/exhaustive-deps": "warn",

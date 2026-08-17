@@ -1,5 +1,5 @@
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
-export type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
+export type Status = "TODO" | "IN_PROGRESS" | "DONE";
 
 export interface Task {
   id: string;
@@ -9,7 +9,7 @@ export interface Task {
   priority: Priority;
   dueDate?: Date | string | null;
   estimatedTime?: number | null;
-  status: Status;
+  statusId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +28,16 @@ export interface User {
   name: string;
   photoUrl?: string | null;
   email: string;
+  updatedAt?: string;
+}
+export interface Statuss {
+  id: string;
+  projectId: string;
+  name: string;
+  position: number;
+  isDefault: boolean;
+  mappedStatus?: Status | null;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -57,6 +67,5 @@ export interface HistoryEntry {
 export const columns: { key: Status; label: string }[] = [
   { key: "TODO", label: "To do" },
   { key: "IN_PROGRESS", label: "In progress" },
-  { key: "IN_REVIEW", label: "In review" },
   { key: "DONE", label: "Done" },
 ];

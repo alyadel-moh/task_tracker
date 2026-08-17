@@ -5,8 +5,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import DashboardBoard from "../DashboardBoard";
 
 const mockTasks = [
-  { id: "t1", name: "Initial Setup", status: "TODO", priority: "LOW", projectId: "p1" },
-  { id: "t2", name: "Write Unit Tests", status: "IN_PROGRESS", priority: "HIGH", projectId: "p1" },
+  {
+    id: "t1",
+    name: "Initial Setup",
+    status: "TODO",
+    priority: "LOW",
+    projectId: "p1",
+  },
+  {
+    id: "t2",
+    name: "Write Unit Tests",
+    status: "IN_PROGRESS",
+    priority: "HIGH",
+    projectId: "p1",
+  },
 ];
 
 describe("DashboardBoard Deep Coverage", () => {
@@ -33,7 +45,7 @@ describe("DashboardBoard Deep Coverage", () => {
             onAddTaskClick={onAddTaskClick}
           />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Initial Setup")).toBeInTheDocument();

@@ -36,7 +36,6 @@ const PRIORITY_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: "TODO", label: "To Do" },
   { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "IN_REVIEW", label: "In Review" },
   { value: "DONE", label: "Done" },
 ];
 

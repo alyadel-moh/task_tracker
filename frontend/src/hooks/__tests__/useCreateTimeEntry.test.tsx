@@ -39,13 +39,22 @@ describe("useCreateTimeEntry", () => {
 
     vi.mocked(axiosInstance.post).mockResolvedValueOnce({ data: mockResponse });
 
-    const { result } = renderHook(() => useCreateTimeEntry(taskId), { wrapper });
+    const { result } = renderHook(() => useCreateTimeEntry(taskId), {
+      wrapper,
+    });
 
-    result.current.mutate({ durationMinutes: 30, entryDate: "2026-08-11", taskId });
+    result.current.mutate({
+      durationMinutes: 30,
+      entryDate: "2026-08-11",
+      taskId,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const updatedCache = queryClient.getQueryData<any>(["time-entries", taskId]);
+    const updatedCache = queryClient.getQueryData<any>([
+      "time-entries",
+      taskId,
+    ]);
     expect(updatedCache.timeEntries).toHaveLength(2);
     expect(updatedCache.totalMinutes).toBe(45);
   });

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Folder,
   LogOut,
@@ -9,7 +8,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { User, type Project } from "./types";
-import UserProfileModal from "./UserProfileModal";
 
 interface DashboardSidebarProps {
   projects: Project[];
@@ -21,6 +19,7 @@ interface DashboardSidebarProps {
   onDeleteProject: (bool: boolean) => void;
   onModifyPhoto?: () => void;
   onDeletePhoto?: () => void;
+  onOpenUserProfileModal: () => void;
 }
 
 const formatDate = (dateString?: string) => {
@@ -42,9 +41,8 @@ const DashboardSidebar = ({
   activeProjectId,
   onDeleteProject,
   onLogout,
+  onOpenUserProfileModal,
 }: DashboardSidebarProps) => {
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
   const userInitials = user?.name
     ?.split(" ")
     .map((n) => n[0])
@@ -95,13 +93,13 @@ const DashboardSidebar = ({
         {/* Clickable User Card trigger for Profile Modal */}
         <div
           className="sidebar-user"
-          onClick={() => setIsProfileModalOpen(true)}
+          onClick={onOpenUserProfileModal}
           role="button"
           tabIndex={0}
           title="View profile details"
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
-              setIsProfileModalOpen(true);
+              onOpenUserProfileModal();
             }
           }}
         >
@@ -153,14 +151,6 @@ const DashboardSidebar = ({
           </button>
         </div>
       </aside>
-
-      {/* Render Profile Modal when state is true */}
-      {isProfileModalOpen && user && (
-        <UserProfileModal
-          user={user}
-          onClose={() => setIsProfileModalOpen(false)}
-        />
-      )}
     </>
   );
 };

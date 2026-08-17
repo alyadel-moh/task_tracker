@@ -24,12 +24,19 @@ describe("useLogin", () => {
   );
 
   it("logs in user and saves token to localStorage", async () => {
-    const mockResponse = { status: "SUCCESS", message: "Logged in", token: "jwt-token-123" };
+    const mockResponse = {
+      status: "SUCCESS",
+      message: "Logged in",
+      token: "jwt-token-123",
+    };
     vi.mocked(axiosInstance.post).mockResolvedValueOnce({ data: mockResponse });
 
     const { result } = renderHook(() => useLogin(), { wrapper });
 
-    result.current.mutate({ email: "aly@example.com", password: "password123" });
+    result.current.mutate({
+      email: "aly@example.com",
+      password: "password123",
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(localStorage.getItem("token")).toBe("jwt-token-123");

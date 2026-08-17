@@ -14,6 +14,9 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
+  "prettier": {
+    "endOfLine": "auto"
+  },
   "dependencies": {
     "@cloudinary/react": "^1.14.4",
     "@cloudinary/url-gen": "^1.22.0",

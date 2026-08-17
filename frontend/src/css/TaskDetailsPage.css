@@ -291,12 +291,6 @@ body {
   border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-.badge-status-IN_REVIEW {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
 .badge-status-DONE {
   background: rgba(34, 197, 94, 0.12);
   color: #4ade80;

@@ -4,7 +4,7 @@ import {
   getAll,
   update,
   remove,
-} from "../controllers/columnController";
+} from "../controllers/statusController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -12,10 +12,10 @@ const router = Router();
 router.use(authenticate);
 /**
  * @openapi
- * /api/projects/columns/{projectId}:
+ * /api/projects/statuses/{projectId}:
  *   get:
- *     summary: Retrieve all columns for a specific project
- *     tags: [Columns]
+ *     summary: Retrieve all statuses for a specific project
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -28,13 +28,13 @@ router.use(authenticate);
  *         description: Unique ID of the project
  *     responses:
  *       200:
- *         description: List of project columns ordered by position
+ *         description: List of project statuses ordered by position
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Column'
+ *                 $ref: '#/components/schemas/Status'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -52,10 +52,10 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/columns/{projectId}:
+ * /api/projects/statuses/{projectId}:
  *   post:
- *     summary: Create a new custom column at the end of the board
- *     tags: [Columns]
+ *     summary: Create a new custom status at the end of the board
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -79,7 +79,7 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
  *                 example: QA Testing
  *     responses:
  *       201:
- *         description: Column created successfully
+ *         description: Status created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -87,11 +87,11 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Column created successfully
- *                 column:
- *                   $ref: '#/components/schemas/Column'
+ *                   example: Status created successfully
+ *                 status:
+ *                   $ref: '#/components/schemas/Status'
  *       400:
- *         description: Column name is required or empty
+ *         description: Status name is required or empty
  *         content:
  *           application/json:
  *             schema:
@@ -113,10 +113,10 @@ router.post("/:projectId", create as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/columns/{projectId}/{columnId}:
+ * /api/projects/statuses/{projectId}/{statusId}:
  *   patch:
- *     summary: Update column title or reorder its position
- *     tags: [Columns]
+ *     summary: Update status title or reorder its position
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -128,12 +128,12 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *           format: uuid
  *         description: Unique ID of the project
  *       - in: path
- *         name: columnId
+ *         name: statusId
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique ID of the column to update
+ *         description: Unique ID of the status to update
  *     requestBody:
  *       required: true
  *       content:
@@ -149,7 +149,7 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *                 example: 2
  *     responses:
  *       200:
- *         description: Column updated successfully
+ *         description: Status updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -160,8 +160,8 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Column updated successfully
- *                 column:
+ *                   example: Status updated successfully
+ *                 status:
  *                   type: object
  *                   properties:
  *                     name:
@@ -169,7 +169,7 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *                     position:
  *                       type: integer
  *       400:
- *         description: Column name cannot be empty
+ *         description: Status name cannot be empty
  *         content:
  *           application/json:
  *             schema:
@@ -181,20 +181,20 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
- *         description: Column not found
+ *         description: Status not found
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch("/:projectId/:columnId", update as unknown as RequestHandler);
+router.patch("/:projectId/:statusId", update as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/columns/{projectId}/{columnId}:
+ * /api/projects/statuses/{projectId}/{statusId}:
  *   delete:
- *     summary: Delete a custom column and reorder remaining columns
- *     tags: [Columns]
+ *     summary: Delete a custom status and reorder remaining statuses
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -206,15 +206,15 @@ router.patch("/:projectId/:columnId", update as unknown as RequestHandler);
  *           format: uuid
  *         description: Unique ID of the project
  *       - in: path
- *         name: columnId
+ *         name: statusId
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique ID of the column to delete
+ *         description: Unique ID of the status to delete
  *     responses:
  *       200:
- *         description: Column deleted successfully
+ *         description: Status deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -222,9 +222,9 @@ router.patch("/:projectId/:columnId", update as unknown as RequestHandler);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Column deleted successfully
+ *                   example: Status deleted successfully
  *       400:
- *         description: Default columns cannot be deleted
+ *         description: Default statuses cannot be deleted
  *         content:
  *           application/json:
  *             schema:
@@ -236,10 +236,12 @@ router.patch("/:projectId/:columnId", update as unknown as RequestHandler);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
- *         description: Column not found
+ *         description: Status not found
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete("/:projectId/:columnId", remove as unknown as RequestHandler);
+router.delete("/:projectId/:statusId", remove as unknown as RequestHandler);
+
+export default router;

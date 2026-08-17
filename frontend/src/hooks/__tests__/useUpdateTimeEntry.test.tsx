@@ -43,19 +43,29 @@ describe("useUpdateTimeEntry", () => {
       historyEntries: [{ id: "h2", fieldChanged: "note" }],
     };
 
-    vi.mocked(axiosInstance.patch).mockResolvedValueOnce({ data: mockResponse });
+    vi.mocked(axiosInstance.patch).mockResolvedValueOnce({
+      data: mockResponse,
+    });
 
-    const { result } = renderHook(() => useUpdateTimeEntry(taskId), { wrapper });
+    const { result } = renderHook(() => useUpdateTimeEntry(taskId), {
+      wrapper,
+    });
 
     result.current.mutate({ id: "e1", note: "Updated note" });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const updatedCache = queryClient.getQueryData<any>(["time-entries", taskId]);
+    const updatedCache = queryClient.getQueryData<any>([
+      "time-entries",
+      taskId,
+    ]);
     expect(updatedCache.totalMinutes).toBe(65); // 45 + 20
     expect(updatedCache.timeEntries[0].note).toBe("Updated note");
 
-    const updatedHistory = queryClient.getQueryData<any[]>(["task_history", taskId]);
+    const updatedHistory = queryClient.getQueryData<any[]>([
+      "task_history",
+      taskId,
+    ]);
     expect(updatedHistory).toHaveLength(2);
     expect(updatedHistory?.[0].id).toBe("h2");
   });

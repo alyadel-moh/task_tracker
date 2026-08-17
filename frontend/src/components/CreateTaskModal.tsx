@@ -8,6 +8,7 @@ import {
   CheckSquare,
   AlertCircle,
   Clock,
+  Calendar,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +17,7 @@ import { toast } from "react-hot-toast";
 import "../css/CreateProjectModal.css";
 import "../css/TaskModal.css";
 import useCreateTask from "../hooks/createTaskHook";
+import useGetStatuses from "../hooks/getAllStatusesHook";
 
 interface CreateTaskModalProps {
   projectId: string;
@@ -25,7 +27,7 @@ interface CreateTaskModalProps {
 const schema = z.object({
   name: z.string().min(1, { message: "Task title is required" }),
   description: z.string().optional(),
-  status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
+  statusId: z.string().min(1, { message: "Status is required" }),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
   estimatedTime: z.preprocess(
     (val) =>
@@ -44,30 +46,41 @@ type SchemaOutput = z.output<typeof schema>;
 
 const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
   const createtaskmutation = useCreateTask(projectId);
+  const { data: statuses = [] } = useGetStatuses(projectId);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<SchemaInput, any, SchemaOutput>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
       description: "",
-      status: "TODO",
+      statusId: "",
       priority: "MEDIUM",
       estimatedTime: undefined,
       dueDate: null,
     },
   });
 
+  useEffect(() => {
+    if (statuses.length > 0) {
+      const defaultCol = statuses.find((s: any) => s.isDefault) ?? statuses[0];
+      if (defaultCol?.id) {
+        setValue("statusId", defaultCol.id);
+      }
+    }
+  }, [statuses, setValue]);
+
   const onSubmit = (data: SchemaOutput) => {
     createtaskmutation.mutate(
       {
-        name: data.name,
+        name: data.name.trim(),
         description: data.description ?? "",
-        status: data.status,
+        statusId: data.statusId,
         priority: data.priority,
         estimatedTime: data.estimatedTime ?? null,
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
@@ -110,7 +123,7 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <div className="modal-header-icon">
+          <div className="modal-header-icon task-modal-header-icon">
             <ListPlus size={18} aria-hidden="true" />
           </div>
           <button
@@ -126,7 +139,9 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
         <h2 id="create-task-title" className="modal-title">
           New task
         </h2>
-        <p className="modal-subtitle">Add a task to this project's board.</p>
+        <p className="modal-subtitle modal-subtitle-compact">
+          Add a task to this project's board.
+        </p>
 
         <form
           className="modal-form"
@@ -134,75 +149,77 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
           noValidate
         >
           {/* Title Field */}
-          <label className="field">
+          <div className="field">
             <span className="field-label">Title</span>
-            <div className="field-input-wrapper">
-              <Tag size={15} className="input-inside-icon" />
+            <div className="input-with-icon">
+              <Tag size={15} className="input-icon" />
               <input
                 type="text"
                 placeholder="e.g. Design landing page hero"
                 autoFocus
+                className={errors.name ? "input-error" : ""}
                 {...register("name")}
               />
             </div>
             {errors.name && (
               <small className="field-error">{errors.name.message}</small>
             )}
-          </label>
+          </div>
 
           {/* Description Field */}
-          <label className="field">
+          <div className="field">
             <span className="field-label">
               Description{" "}
               <span className="field-label-optional">(optional)</span>
             </span>
-            <div className="field-input-wrapper textarea-wrapper">
-              <FileText size={15} className="input-inside-icon textarea-icon" />
+            <div className="input-with-icon textarea-wrapper">
+              <FileText size={15} className="input-icon textarea-icon" />
               <textarea
                 placeholder="Add more detail about this task"
                 rows={3}
                 {...register("description")}
               />
             </div>
-          </label>
+          </div>
 
           {/* Status & Priority Row */}
           <div className="field-row">
-            <label className="field">
+            <div className="field">
               <span className="field-label">Status</span>
-              <div className="field-input-wrapper">
-                <CheckSquare size={15} className="input-inside-icon" />
-                <select {...register("status")}>
-                  <option value="TODO">To Do</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="IN_REVIEW">In Review</option>
-                  <option value="DONE">Done</option>
+              <div className="input-with-icon select-wrapper">
+                <CheckSquare size={15} className="input-icon" />
+                <select {...register("statusId")}>
+                  {statuses.map((col: any) => (
+                    <option key={col.id} value={col.id}>
+                      {col.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </label>
+            </div>
 
-            <label className="field">
+            <div className="field">
               <span className="field-label">Priority</span>
-              <div className="field-input-wrapper">
-                <AlertCircle size={15} className="input-inside-icon" />
+              <div className="input-with-icon select-wrapper">
+                <AlertCircle size={15} className="input-icon" />
                 <select {...register("priority")}>
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HIGH">High</option>
                 </select>
               </div>
-            </label>
+            </div>
           </div>
 
           {/* Estimated Time & Due Date Row */}
           <div className="field-row">
-            <label className="field">
+            <div className="field">
               <span className="field-label">
                 Estimated time{" "}
                 <span className="field-label-optional">(minutes)</span>
               </span>
-              <div className="field-input-wrapper">
-                <Clock size={15} className="input-inside-icon" />
+              <div className="input-with-icon">
+                <Clock size={15} className="input-icon" />
                 <input
                   type="number"
                   min="0"
@@ -210,37 +227,39 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
                   {...register("estimatedTime")}
                 />
               </div>
-            </label>
+            </div>
 
-            <label className="field">
+            <div className="field">
               <span className="field-label">
                 Due date{" "}
                 <span className="field-label-optional">(optional)</span>
               </span>
-              <input
-                type="datetime-local"
-                className="date-input-standalone"
-                onClick={(e) => {
-                  try {
-                    e.currentTarget.showPicker();
-                  } catch {}
-                }}
-                {...register("dueDate")}
-              />
-            </label>
+              <div className="input-with-icon">
+                <Calendar size={15} className="input-icon" />
+                <input
+                  type="datetime-local"
+                  onClick={(e) => {
+                    try {
+                      e.currentTarget.showPicker();
+                    } catch {}
+                  }}
+                  {...register("dueDate")}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Action Button */}
-          <div className="modal-actions">
+          {/* Full Width Submit Button */}
+          <div className="modal-actions-full">
             <button
               type="submit"
-              className="modal-button modal-button-primary"
+              className="modal-button modal-button-primary modal-button-full"
               disabled={createtaskmutation.isPending}
             >
               {createtaskmutation.isPending ? (
                 <>
-                  <Loader2 size={14} className="spin" />
-                  Creating...
+                  <Loader2 size={16} className="spin" />
+                  <span>Creating...</span>
                 </>
               ) : (
                 "Create task"

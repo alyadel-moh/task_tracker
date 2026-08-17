@@ -15,14 +15,14 @@ import initProjectModel, { Project } from "./project";
 import initTaskModel, { Task } from "./task";
 import initTimeEntryModel, { TimeEntry } from "./timeEntry";
 import initTaskHistoryModel, { TaskHistory } from "./taskHistory";
-import initColumnModel, { Column } from "./column";
+import initStatusModel, { Status } from "./status";
 
 initUserModel(sequelize);
 initProjectModel(sequelize);
 initTaskModel(sequelize);
 initTimeEntryModel(sequelize);
 initTaskHistoryModel(sequelize);
-initColumnModel(sequelize);
+initStatusModel(sequelize);
 
 User.hasMany(Project, {
   foreignKey: "userId",
@@ -55,15 +55,15 @@ User.hasMany(TaskHistory, {
   as: "historyRecords",
 });
 
-Column.hasMany(Task, {
-  foreignKey: "columnId",
+Status.hasMany(Task, {
+  foreignKey: "statusId",
   as: "tasks",
   onDelete: "RESTRICT",
 });
-Task.belongsTo(Column, { foreignKey: "columnId", as: "column" });
+Task.belongsTo(Status, { foreignKey: "statusId", as: "status" });
 
 TaskHistory.belongsTo(Task, { foreignKey: "taskId", as: "task" });
 TaskHistory.belongsTo(User, { foreignKey: "actorId", as: "actor" });
 
-export { User, Project, Task, TimeEntry, TaskHistory, Column };
+export { User, Project, Task, TimeEntry, TaskHistory, Status };
 export default sequelize;

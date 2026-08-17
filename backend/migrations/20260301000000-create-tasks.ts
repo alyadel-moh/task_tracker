@@ -26,10 +26,6 @@ export default {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      status: {
-        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"),
-        defaultValue: "TODO",
-      },
       priority: {
         type: DataTypes.ENUM("LOW", "MEDIUM", "HIGH"),
         defaultValue: "MEDIUM",

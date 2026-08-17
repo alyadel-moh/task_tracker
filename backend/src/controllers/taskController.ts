@@ -1,8 +1,8 @@
 import { Response, NextFunction } from "express";
 import { Op, WhereOptions } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
-import { Task, Project, User, TaskHistory, TimeEntry } from "../models";
-import { TaskPriority, TaskStatus } from "../models/task";
+import { Task, Project, User, TaskHistory, TimeEntry, Status } from "../models";
+import { TaskPriority } from "../models/task";
 import {
   recordTaskCreated,
   recordTaskUpdated,
@@ -11,16 +11,16 @@ import {
 interface CreateTaskBody {
   name: string;
   description?: string;
-  status?: string;
+  statusId?: string;
   estimatedTime?: number;
   dueDate?: string;
-  priority: string;
+  priority?: string;
 }
 
 interface UpdateTaskBody {
   name?: string;
   description?: string;
-  status?: string;
+  statusId?: string;
   estimatedTime?: number;
   dueDate?: Date | string | null;
   priority?: string;
@@ -44,11 +44,12 @@ async function findOwnedProject(
 }
 
 const isValidISODate = (dateString: string): boolean => {
+  if (!dateString || typeof dateString !== "string") return false;
   const date = new Date(dateString);
   return !isNaN(date.getTime());
 };
 const isNumberInRange = (
-  val: any,
+  val: unknown,
   min: number = 0,
   max: number = 525600, // e.g. 1 year in minutes max
 ): boolean => {
@@ -64,7 +65,9 @@ async function fetchHistoryWithActor(historyId?: string) {
     ],
   });
 }
-
+const ALLOWED_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
+const ALLOWED_STATUSES = ["TODO", "IN_PROGRESS", "DONE"] as const;
+type MappedStatusType = (typeof ALLOWED_STATUSES)[number];
 async function create(
   req: AuthRequest<
     Record<string, never>,
@@ -75,9 +78,16 @@ async function create(
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const { name, description, status, estimatedTime, dueDate, priority } =
+    const projectId = req.params.projectId;
+    const { name, description, statusId, estimatedTime, dueDate, priority } =
       req.body;
-
+    const projectOwned = await findOwnedProject(req.user.id, projectId);
+    if (!projectOwned) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "You are not the owner of this project",
+      });
+    }
     if (!name || !name.trim()) {
       return res
         .status(400)
@@ -92,17 +102,6 @@ async function create(
         });
       }
     }
-    const projectOwned = await findOwnedProject(
-      req.user.id,
-      req.params.projectId,
-    );
-
-    if (!projectOwned) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "You are not the owner of this project",
-      });
-    }
     if (dueDate !== undefined && dueDate !== null) {
       if (!isValidISODate(dueDate)) {
         return res.status(400).json({
@@ -111,36 +110,54 @@ async function create(
         });
       }
     }
-    const ALLOWED_STATUSES: string[] = [
-      "TODO",
-      "IN_PROGRESS",
-      "IN_REVIEW",
-      "DONE",
-    ];
-    const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
 
-    // TypeScript now allows status (string) inside .includes()
-    if (status && !ALLOWED_STATUSES.includes(status)) {
+    if (priority && !ALLOWED_PRIORITIES.includes(priority as TaskPriority)) {
       return res.status(400).json({
-        status: "ERROR",
+        status: "BadRequest",
+        message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
+      });
+    }
+    if (statusId && !ALLOWED_STATUSES.includes(statusId as MappedStatusType)) {
+      return res.status(400).json({
+        error: "BadRequest",
         message: `Invalid status value. Allowed values: ${ALLOWED_STATUSES.join(", ")}`,
       });
     }
+    let targetStatus;
+    if (statusId) {
+      targetStatus = await Status.findOne({
+        attributes: ["id"],
+        where: {
+          projectId,
+          id: statusId,
+        },
+      });
+    } else {
+      targetStatus = await Status.findOne({
+        attributes: ["id"],
+        where: {
+          projectId,
+          isDefault: true,
+        },
+        order: [["position", "ASC"]],
+      });
+      // take first def one which is "TODO"
+    }
 
-    if (priority && !ALLOWED_PRIORITIES.includes(priority)) {
+    if (!targetStatus) {
       return res.status(400).json({
-        status: "ERROR",
-        message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
+        error: "BadRequest",
+        message: "No valid column status found for this project",
       });
     }
     const newTask = await Task.create({
       name: name.trim(),
       description: description || null,
-      status: (status as TaskStatus) || "TODO",
       estimatedTime: estimatedTime ?? null,
       dueDate: dueDate ? new Date(dueDate) : null,
-      priority: priority as TaskPriority,
-      projectId: req.params.projectId,
+      priority: (priority as TaskPriority) || "MEDIUM",
+      projectId: projectId,
+      statusId: targetStatus.id,
     });
     const historyEntry = await recordTaskCreated(newTask.id, req.user.id);
     const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
@@ -178,6 +195,7 @@ async function getById(
 
     const task = await Task.findOne({
       where: { id: req.params.id, projectId: req.params.projectId },
+      include: [{ model: Status, as: "status" }],
     });
     if (!task) {
       return res
@@ -217,33 +235,44 @@ async function getAll(
       ];
     }
 
-    if (status) {
-      const statusList = Array.isArray(status) ? status : [status];
-      if (statusList.length > 0) {
-        whereClause.status = { [Op.in]: statusList };
-      }
-    }
-
     if (priority) {
       const priorityList = Array.isArray(priority) ? priority : [priority];
       if (priorityList.length > 0) {
         whereClause.priority = { [Op.in]: priorityList };
       }
     }
+    const statusConditions: any[] = [];
 
-    if (overdue === "true" || overdue === true) {
-      whereClause.dueDate = { [Op.lt]: new Date() };
-      if (whereClause.status) {
-        whereClause.status = {
-          [Op.and]: [whereClause.status, { [Op.ne]: "DONE" }],
-        };
-      } else {
-        whereClause.status = { [Op.ne]: "DONE" };
+    if (status) {
+      const statusList = Array.isArray(status) ? status : [status];
+      if (statusList.length > 0) {
+        statusConditions.push({
+          [Op.or]: [
+            { name: { [Op.in]: statusList } },
+            { mappedStatus: { [Op.in]: statusList } },
+          ],
+        });
       }
     }
 
+    if (overdue === "true" || overdue === true) {
+      whereClause.dueDate = {
+        [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: new Date() }],
+      };
+      statusConditions.push({ mappedStatus: { [Op.ne]: "DONE" } });
+    }
+    const hasStatusFilters = statusConditions.length > 0;
+    const includeOptions = [
+      {
+        model: Status,
+        as: "status",
+        where: hasStatusFilters ? { [Op.and]: statusConditions } : undefined,
+        required: statusConditions.length > 0,
+      },
+    ];
     const tasks = await Task.findAll({
       where: whereClause,
+      include: includeOptions,
       order: [["createdAt", "DESC"]],
     });
 
@@ -263,13 +292,10 @@ async function update(
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const { name, description, status, estimatedTime, dueDate, priority } =
+    const { projectId, id } = req.params;
+    const { name, description, statusId, estimatedTime, dueDate, priority } =
       req.body;
-
-    const projectOwned = await findOwnedProject(
-      req.user.id,
-      req.params.projectId,
-    );
+    const projectOwned = await findOwnedProject(req.user.id, projectId);
     if (!projectOwned) {
       return res.status(403).json({
         error: "Forbidden",
@@ -278,7 +304,7 @@ async function update(
     }
 
     const task = await Task.findOne({
-      where: { id: req.params.id, projectId: req.params.projectId },
+      where: { id, projectId },
     });
     if (!task) {
       return res
@@ -288,7 +314,7 @@ async function update(
     const before: UpdateTaskBody = {
       name: task.name,
       description: task.description ?? undefined,
-      status: task.status,
+      statusId: task.statusId ?? undefined,
       estimatedTime: task.estimatedTime ?? undefined,
       dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       priority: task.priority,
@@ -313,9 +339,18 @@ async function update(
       updatedFields.description = description;
       changedLabels.push("Description");
     }
-    if (status !== undefined && status !== task.status) {
-      task.status = status as TaskStatus;
-      updatedFields.status = status;
+    if (statusId !== undefined && statusId !== task.statusId) {
+      const statusExists = await Status.findOne({
+        where: { id: statusId, projectId },
+      });
+      if (!statusExists) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: "Invalid statusId for this project",
+        });
+      }
+      task.statusId = statusId;
+      updatedFields.statusId = statusId;
       changedLabels.push("Status");
     }
     if (estimatedTime !== undefined && estimatedTime !== task.estimatedTime) {
@@ -326,14 +361,12 @@ async function update(
         return res.status(400).json({
           error: "BadRequest",
           message:
-            "estmatiedTime must be a positive number of minutes (minimum 1)",
+            "Estimated time must be a positive number of minutes (minimum 1)",
         });
       }
-      if (task.estimatedTime !== estimatedTime) {
-        task.estimatedTime = estimatedTime;
-        updatedFields.estimatedTime = estimatedTime;
-        changedLabels.push("Estimated time");
-      }
+      task.estimatedTime = estimatedTime;
+      updatedFields.estimatedTime = estimatedTime;
+      changedLabels.push("Estimated time");
     }
     if (dueDate !== undefined && dueDate !== task.dueDate) {
       if (
@@ -360,8 +393,13 @@ async function update(
       }
     }
     if (priority !== undefined && priority !== task.priority) {
+      if (!ALLOWED_PRIORITIES.includes(priority as TaskPriority)) {
+        return res.status(400).json({
+          error: "BadRequest",
+          message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
+        });
+      }
       task.priority = priority as TaskPriority;
-      updatedFields.priority = priority;
       changedLabels.push("Priority");
     }
     if (changedLabels.length > 0) {
@@ -371,7 +409,7 @@ async function update(
     const after = {
       name: name ?? task.name,
       description: description ?? task.description ?? undefined,
-      status: status ?? task.status,
+      statusId: statusId ?? task.statusId ?? undefined,
       estimatedTime: estimatedTime ?? task.estimatedTime ?? undefined,
       dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       priority: priority ?? task.priority,

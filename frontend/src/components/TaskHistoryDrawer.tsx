@@ -50,7 +50,6 @@ const formatValue = (val?: string | null) => {
   const mappings: Record<string, string> = {
     TODO: "To Do",
     IN_PROGRESS: "In Progress",
-    IN_REVIEW: "In Review",
     DONE: "Done",
     LOW: "Low",
     MEDIUM: "Medium",

@@ -4,10 +4,6 @@ import {
   getAll,
   update,
   remove,
-  createColumn,
-  updateColumn,
-  removeColumn,
-  getColumns,
 } from "../controllers/projectController";
 import { authenticate } from "../middleware/auth";
 
@@ -204,44 +200,5 @@ router.patch("/update/:id", update as unknown as RequestHandler);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.delete("/delete/:id", remove as unknown as RequestHandler);
-
-/**
- * @openapi
- * /api/projects/columns/{projectId}:
- *   get:
- *     summary: Retrieve all columns for a specific project
- *     tags: [Columns]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Unique ID of the project
- *     responses:
- *       200:
- *         description: List of project columns ordered by position
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Column'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Project not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
 
 export default router;

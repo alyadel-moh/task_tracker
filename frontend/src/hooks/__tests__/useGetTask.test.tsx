@@ -27,10 +27,16 @@ describe("useGetTask", () => {
 
   it("fetches single task details when token is set", async () => {
     localStorage.setItem("token", "fake-token");
-    const mockTask = { id: "t1", title: "Implement Unit Tests", status: "IN_PROGRESS" };
+    const mockTask = {
+      id: "t1",
+      title: "Implement Unit Tests",
+      status: "IN_PROGRESS",
+    };
     vi.mocked(axiosInstance.get).mockResolvedValueOnce({ data: mockTask });
 
-    const { result } = renderHook(() => useGetTask("proj-1", "t1"), { wrapper });
+    const { result } = renderHook(() => useGetTask("proj-1", "t1"), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockTask);
