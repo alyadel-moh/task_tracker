@@ -4,7 +4,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,8 +14,9 @@
   "include": ["src/**/*", "migrations/**/*"],
   "exclude": [
     "node_modules",
+    "dist",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/tests/*"
+    "src/**/tests/**"
   ]
 }

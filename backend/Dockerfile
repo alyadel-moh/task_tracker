@@ -10,25 +10,18 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime Stage ----
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 
-# Copy compiled JavaScript output
+# Copy compiled JavaScript output (includes config, models, migrations)
 COPY --from=builder /app/dist ./dist
-
-# Symlink or mirror config to dist/config/config.js for sequelize-cli
-RUN mkdir -p ./dist/config && cp ./dist/src/config/config.js ./dist/config/config.js 2>/dev/null || true
-
-# Copy migrations and configuration files
-COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/.sequelizerc ./.sequelizerc
 
-EXPOSE 5000
+EXPOSE 3000
 
-CMD ["node", "dist/src/app.js"]
+CMD ["node", "dist/app.js"]

@@ -1,7 +1,8 @@
 import path from "path";
 import dotenv from "dotenv";
 
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+// Resolves .env relative to current working directory (project root)
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const dbConfig = {
   username: process.env.DB_USER || "postgres",
