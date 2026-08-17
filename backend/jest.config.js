@@ -1,23 +1,16 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
-export default {
-  preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        useESM: true,
-      },
-    ],
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: "node",
+    include: ["**/tests/**/*.test.ts", "**/src/__tests__/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      reportsDirectory: "./coverage",
+      include: ["src/controllers/**/*.ts", "src/services/**/*.ts"],
+      exclude: ["src/types/**"],
+    },
   },
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
-  testMatch: ['**/tests/**/*.test.ts', '**/src/__tests__/**/*.test.ts'],
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/controllers/**/*.ts',
-    'src/services/**/*.ts',
-    '!src/types/**',
-  ],
-};
+});
