@@ -2,6 +2,7 @@ import { createLogger, format, transports } from "winston";
 
 const SENSITIVE_KEYS = ["password", "token", "authorization", "secret", "jwt"];
 
+// Helper function to recursively mask sensitive keys in objects/JSON
 const sanitizeData = (data: any): any => {
   if (!data || typeof data !== "object") return data;
 

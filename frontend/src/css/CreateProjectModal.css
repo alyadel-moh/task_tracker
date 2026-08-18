@@ -480,6 +480,7 @@
   cursor: not-allowed;
 }
 
+<<<<<<< HEAD
 .modal-button-primary {
   background: #6366f1;
   color: #ffffff;
@@ -493,6 +494,8 @@
   transform: scale(0.98);
 }
 
+=======
+>>>>>>> origin/TT26-157-docker-and-countaineralization
 .spin {
   animation: spin 0.8s linear infinite;
 }
@@ -506,17 +509,45 @@
   }
 }
 
+<<<<<<< HEAD
 /* ==========================================================================
    6. Responsiveness
    ========================================================================== */
+=======
+.modal-button-secondary {
+  background: transparent;
+  color: rgba(242, 241, 237, 0.6);
+}
+
+.modal-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2f1ed;
+}
+
+.modal-button-primary {
+  background: #6366f1;
+  color: #ffffff;
+}
+
+.modal-button-primary:hover {
+  background: #4f46e5;
+}
+
+.modal-button-primary:active {
+  transform: scale(0.98);
+}
+>>>>>>> origin/TT26-157-docker-and-countaineralization
 
 @media (max-width: 380px) {
   .modal-card {
     padding: 1.25rem;
     border-radius: 14px;
   }
+<<<<<<< HEAD
 
   .field-row {
     grid-template-columns: 1fr;
   }
+=======
+>>>>>>> origin/TT26-157-docker-and-countaineralization
 }

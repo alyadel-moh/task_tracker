@@ -487,12 +487,9 @@ async function remove(
         .status(404)
         .json({ error: "Not Found", message: "Task not found" });
     }
-    const historyEntry = await recordTaskDeleted(task.id, req.user.id);
-    const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
     await task.destroy();
     return res.status(200).json({
       message: "Task deleted successfully",
-      historyEntry: taskHistoryEntry,
     });
   } catch (err) {
     next(err);

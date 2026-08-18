@@ -2,10 +2,10 @@
   "compilerOptions": {
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "outDir": "./dist",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "./",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,8 +14,9 @@
   "include": ["src/**/*", "migrations/**/*"],
   "exclude": [
     "node_modules",
+    "dist",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/tests/*"
+    "src/**/tests/**"
   ]
 }

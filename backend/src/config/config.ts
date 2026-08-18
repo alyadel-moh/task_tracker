@@ -1,6 +1,7 @@
 import path from "path";
 import dotenv from "dotenv";
 
+// Resolves .env relative to current working directory (project root)
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const dbConfig = {

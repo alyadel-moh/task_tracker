@@ -608,7 +608,6 @@ const TaskDetailsPage = () => {
               )}
             </div>
           </div>
-
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -841,5 +840,4 @@ const TaskDetailsPage = () => {
     </div>
   );
 };
-
 export default TaskDetailsPage;

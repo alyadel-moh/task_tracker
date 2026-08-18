@@ -110,17 +110,6 @@ export async function recordTaskUpdated(
   return historyEntries;
 }
 
-export async function recordTaskDeleted(
-  taskId: string,
-  actorId: string,
-): Promise<TaskHistory> {
-  return logTaskHistory({
-    taskId,
-    actorId,
-    eventType: "TASK_DELETED",
-  });
-}
-
 export async function recordTimeEntryCreated(
   taskId: string,
   actorId: string,
