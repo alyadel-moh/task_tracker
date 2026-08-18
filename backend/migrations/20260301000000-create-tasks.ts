@@ -25,7 +25,7 @@ export default {
           model: "statuses",
           key: "id",
         },
-        onDelete: "CASCADE",
+        onDelete: "RESTRICT", // Prevents deleting a status if tasks exist in it
         onUpdate: "CASCADE",
       },
       name: {

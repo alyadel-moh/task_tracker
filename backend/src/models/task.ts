@@ -62,7 +62,7 @@ export default (sequelize: Sequelize): typeof Task => {
           model: "statuses",
           key: "id",
         },
-        onDelete: "SET NULL",
+        onDelete: "RESTRICT", // Prevents deleting a status if tasks exist in it
         onUpdate: "CASCADE",
       },
       priority: {
