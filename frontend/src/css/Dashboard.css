@@ -1716,3 +1716,209 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.column-title-inline-wrapper {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: text;
+}
+
+.column-title-inline-wrapper .inline-field-display {
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.column-title-inline-wrapper .inline-field-display:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.column-title-inline-wrapper .inline-field-input {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 6px;
+  height: 26px;
+}
+/* Column Header Container */
+.column-header-desktop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  min-height: 28px;
+  cursor: grab;
+}
+
+/* Left Section: Dot + Name + Counter */
+.column-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Column Name (Static / Clickable Display) */
+.column-name-clickable,
+.column-title-inline-wrapper .inline-field-display {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.column-name-clickable:hover,
+.column-title-inline-wrapper .inline-field-display:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Column Title Inline Editor (Active Mode) */
+.column-inline-field-editor,
+.column-title-inline-wrapper .inline-field-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.column-inline-field-editor .inline-field-input,
+.column-title-inline-wrapper .inline-field-input {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 6px;
+  height: 26px;
+  max-width: 140px;
+  background: #1e1f23;
+  color: #fff;
+  border: 1px solid #3b3d44;
+  border-radius: 4px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.column-inline-field-editor .inline-field-input:focus,
+.column-title-inline-wrapper .inline-field-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+/* Actions inside the title editor */
+.column-inline-field-editor .inline-field-actions,
+.column-title-inline-wrapper .inline-field-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Check & Cancel Action Buttons */
+.column-title-inline-wrapper .inline-field-action,
+.column-inline-field-editor .inline-field-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.column-title-inline-wrapper .inline-field-action:active,
+.column-inline-field-editor .inline-field-action:active {
+  transform: scale(0.95);
+}
+
+/* Save (Check) Button - Dark Green Theme */
+.column-title-inline-wrapper .inline-field-save,
+.column-inline-field-editor .inline-field-save {
+  background: #14532d;
+  color: #4ade80;
+}
+
+.column-title-inline-wrapper .inline-field-save:hover,
+.column-inline-field-editor .inline-field-save:hover {
+  background: #166534;
+  color: #86efac;
+}
+
+/* Cancel (X) Button - Dark Neutral Theme */
+.column-title-inline-wrapper .inline-field-cancel,
+.column-inline-field-editor .inline-field-cancel {
+  background: #27272a;
+  color: #a1a1aa;
+}
+
+.column-title-inline-wrapper .inline-field-cancel:hover,
+.column-inline-field-editor .inline-field-cancel:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+/* Delete Button on the far right */
+.column-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  margin-left: auto;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* Reveal delete button only when hovering over the column header */
+.column-header-desktop:hover .column-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.column-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.column-delete-btn:active {
+  transform: scale(0.95);
+}
+
+.column-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.column-name-static {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  padding: 2px 6px;
+  user-select: none;
+  cursor: grab;
+}

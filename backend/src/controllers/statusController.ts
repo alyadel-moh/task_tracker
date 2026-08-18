@@ -59,9 +59,7 @@ async function update(
       updatedFields.name = trimmedName;
       updatedLabels.push("Name");
       status.name = trimmedName;
-    }
-
-    if (position !== undefined && position !== status.position) {
+    } else if (position !== undefined && position !== status.position) {
       const oldPosition = status.position;
       const newPosition = position;
       status.position = -1;

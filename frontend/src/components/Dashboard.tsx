@@ -27,6 +27,24 @@ import useDeleteProject from "../hooks/deleteProjectHook";
 import useGetStatuses from "../hooks/getAllStatusesHook";
 import useUpdateStatus from "../hooks/updateStatusHook";
 
+const DEFAULT_STATUS_MAP: Record<string, string> = {
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  DONE: "Done",
+  IN_REVIEW: "In Review",
+};
+
+export const formatStatusName = (rawName?: string): string => {
+  if (rawName && typeof rawName === "string" && rawName.trim()) {
+    const trimmed = rawName.trim();
+    if (DEFAULT_STATUS_MAP[trimmed.toUpperCase()]) {
+      return DEFAULT_STATUS_MAP[trimmed.toUpperCase()];
+    }
+    return trimmed;
+  }
+  return "Untitled Column";
+};
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<string>("");
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
@@ -72,9 +90,12 @@ const Dashboard = () => {
   useEffect(() => {
     if (Array.isArray(fetchedStatuses)) {
       setStatuses(
-        [...fetchedStatuses].sort(
-          (a: any, b: any) => (a.position ?? 0) - (b.position ?? 0),
-        ),
+        [...fetchedStatuses]
+          .map((status: Statuss) => ({
+            ...status,
+            name: formatStatusName(status.name),
+          }))
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0)),
       );
     }
   }, [fetchedStatuses]);
@@ -154,9 +175,13 @@ const Dashboard = () => {
         const newIndex = statuses.findIndex((c) => `col-${c.id}` === overId);
 
         if (oldIndex !== -1 && newIndex !== -1) {
+          const previousStatuses = [...statuses];
           const updated = arrayMove(statuses, oldIndex, newIndex);
           setStatuses(updated);
+
           const draggedColId = activeId.replace(/^col-/, "");
+          const draggedCol = statuses.find((c) => c.id === draggedColId);
+          const formattedName = formatStatusName(draggedCol?.name);
 
           updateStatusMutation.mutate(
             {
@@ -166,8 +191,11 @@ const Dashboard = () => {
               },
             },
             {
+              onSuccess: () => {
+                toast.success(`Column "${formattedName}" moved successfully!`);
+              },
               onError: () => {
-                setStatuses(statuses);
+                setStatuses(previousStatuses);
                 toast.error("Failed to update column position.");
               },
             },

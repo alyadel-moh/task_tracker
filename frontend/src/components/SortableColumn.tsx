@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
 import TaskCard from "./TaskCard";
+import InlineEditField from "./InlineEditField";
 import { Task, Statuss } from "./types";
 import useDeleteStatus from "../hooks/deleteStatusHook";
+import useUpdateStatus from "../hooks/updateStatusHook";
 
 interface SortableColumnProps {
   column: Statuss;
@@ -23,6 +25,8 @@ const SortableColumn = ({
   isFilteredActive,
   projectId,
 }: SortableColumnProps) => {
+  const [isEditingName, setIsEditingName] = useState(false);
+
   const {
     attributes,
     listeners,
@@ -36,6 +40,7 @@ const SortableColumn = ({
       type: "Column",
       column,
     },
+    disabled: isEditingName,
   });
 
   const style: React.CSSProperties = {
@@ -45,7 +50,35 @@ const SortableColumn = ({
   };
 
   const deleteStatusMutation = useDeleteStatus(projectId);
-  const isDefaultColumn = column.isDefault ?? false;
+  const updateStatusMutation = useUpdateStatus(projectId);
+  const isDefaultColumn =
+    column.isDefault ?? (column as any).is_default ?? false;
+
+  const handleRenameColumn = (newName: string) => {
+    const trimmed = newName.trim();
+    setIsEditingName(false);
+
+    if (!trimmed || trimmed === column.name) return;
+
+    updateStatusMutation.mutate(
+      {
+        status: {
+          id: column.id,
+          name: trimmed,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Column renamed to ${trimmed} successfully!`);
+        },
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to rename column",
+          );
+        },
+      },
+    );
+  };
 
   const handleDeleteColumn = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,17 +108,38 @@ const SortableColumn = ({
         activeTab === column.id ? "column-active" : ""
       }`}
       {...attributes}
-      {...listeners}
     >
-      <div className="column-header column-header-desktop">
+      <div className="column-header column-header-desktop" {...listeners}>
         <div className="column-header-left">
           <span className={`status-dot status-dot-${statusClassModifier}`} />
-          <span>{column.name}</span>
+
+          {/* Conditional: Static text for default columns, inline editor for custom columns */}
+          {isDefaultColumn ? (
+            <span className="column-name-static">{column.name}</span>
+          ) : (
+            <div
+              className="column-title-inline-wrapper"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={() => setIsEditingName(true)}
+            >
+              <InlineEditField
+                value={column.name}
+                type="text"
+                initialIsEditing={isEditingName}
+                placeholder="Column name..."
+                onSave={handleRenameColumn}
+                onCancel={() => setIsEditingName(false)}
+              />
+            </div>
+          )}
+
           <span className="column-count">{tasks.length}</span>
         </div>
 
-        {/* Hide trash icon completely if column is default */}
-        {!isDefaultColumn && (
+        {/* Hide trash icon completely if column is default or actively editing */}
+        {!isDefaultColumn && !isEditingName && (
           <button
             type="button"
             className="column-delete-btn"
