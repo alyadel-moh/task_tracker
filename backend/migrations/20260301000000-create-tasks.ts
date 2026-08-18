@@ -18,6 +18,16 @@ export default {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
+      status_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "statuses",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false,
