@@ -4,6 +4,7 @@ import {
   DragOverlay,
   type DragEndEvent,
   type DragStartEvent,
+  type DragOverEvent,
 } from "@dnd-kit/core";
 import {
   ChevronDown,
@@ -14,6 +15,7 @@ import {
   Search,
   X,
   AlertTriangle,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
@@ -29,7 +31,7 @@ import {
 import TaskCard from "./TaskCard";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
-import useGetTasks from "../hooks/getAlltasksHook";
+import useGetTasks from "../hooks/getAllTasksHook";
 
 interface DashboardBoardProps {
   activeProject: Project | null;
@@ -37,7 +39,9 @@ interface DashboardBoardProps {
   activeTab: Status;
   onSelectTab: (status: Status) => void;
   draggingTask: Task | null;
+  overColumnStatus?: Status | null;
   onDragStart: (event: DragStartEvent) => void;
+  onDragOver?: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
   isProjectMenuOpen: boolean;
   onToggleProjectMenu: () => void;
@@ -67,6 +71,13 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: "HIGH", label: "High" },
 ];
 
+const STATUS_LABELS: Record<Status, string> = {
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  IN_REVIEW: "In Review",
+  DONE: "Done",
+};
+
 const formatDate = (dateString?: string) => {
   if (!dateString) return null;
   const date = new Date(dateString);
@@ -86,7 +97,9 @@ const DashboardBoard = ({
   activeTab,
   onSelectTab,
   draggingTask,
+  overColumnStatus,
   onDragStart,
+  onDragOver,
   sensors,
   onDragEnd,
   isProjectMenuOpen,
@@ -102,7 +115,6 @@ const DashboardBoard = ({
   userEmail,
   onLogout,
 }: DashboardBoardProps) => {
-  const [savingField, setSavingField] = useState<string | null>(null);
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -124,7 +136,9 @@ const DashboardBoard = ({
   const updatedDateFormatted = formatDate(activeProject?.updatedAt);
 
   const getTaskCountForStatus = (statusKey: Status) => {
-    return tasks.filter((t: Task) => t.status === statusKey).length;
+    return (Array.isArray(tasks) ? tasks : []).filter(
+      (t: Task) => t.status === statusKey,
+    ).length;
   };
 
   const toggleStatusFilter = (status: Status) => {
@@ -161,21 +175,18 @@ const DashboardBoard = ({
     value: string,
   ) => {
     if (!activeProject) return;
-    setSavingField(field);
 
     const payload = { [field]: value };
 
     updateProjectMutation.mutate(payload, {
       onSuccess: () => {
         toast.success(`Project ${field} updated successfully!`);
-        setSavingField(null);
       },
       onError: (error: any) => {
         const apiError =
           error?.response?.data?.message ??
           "Failed to update project. Please try again.";
         toast.error(apiError);
-        setSavingField(null);
       },
     });
   };
@@ -184,6 +195,7 @@ const DashboardBoard = ({
     <DndContext
       sensors={sensors}
       onDragStart={onDragStart}
+      onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >
       <main className="board-panel">
@@ -196,7 +208,6 @@ const DashboardBoard = ({
                   <InlineEditField
                     label=""
                     value={activeProject.name}
-                    isSaving={savingField === "name"}
                     onSave={(val) => handleSaveProjectField("name", val)}
                   />
                   <span className="task-count-badge">
@@ -212,7 +223,6 @@ const DashboardBoard = ({
                     optional
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
-                    isSaving={savingField === "description"}
                     onSave={(val) => handleSaveProjectField("description", val)}
                   />
                 </div>
@@ -497,7 +507,26 @@ const DashboardBoard = ({
       </main>
 
       <DragOverlay>
-        {draggingTask ? <TaskOverlay task={draggingTask} /> : null}
+        {draggingTask ? (
+          <div className="task-card-overlay-wrapper">
+            {overColumnStatus && overColumnStatus !== draggingTask.status && (
+              <div
+                className={`jira-transition-badge jira-transition-badge-${overColumnStatus}`}
+              >
+                <span>{STATUS_LABELS[draggingTask.status]}</span>
+                <ArrowRight size={14} className="transition-arrow" />
+                <span>{STATUS_LABELS[overColumnStatus]}</span>
+              </div>
+            )}
+            <div
+              className={`task-card-overlay task-card-overlay-${
+                overColumnStatus || draggingTask.status
+              }`}
+            >
+              <TaskOverlay task={draggingTask} />
+            </div>
+          </div>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

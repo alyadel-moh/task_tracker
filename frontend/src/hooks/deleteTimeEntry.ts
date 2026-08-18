@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { TimeEntry } from "../components/types";
+import { HistoryEntry, TimeEntry } from "../components/types";
 
 interface DeleteTimeEntryResponse {
   status: string;
   message: string;
+  historyEntry?: HistoryEntry;
 }
 
 interface GetTimeEntriesCacheShape {
@@ -52,6 +53,16 @@ const useDeleteTimeEntry = (taskId: string) => {
               ? Math.max(0, oldData.totalMinutes - deletedEntry.durationMinutes)
               : oldData.totalMinutes,
           };
+        },
+      );
+      queryClient.setQueriesData<HistoryEntry[]>(
+        { queryKey: ["task_history", taskId] },
+        (oldHistory) => {
+          if (!oldHistory) return oldHistory;
+          if (data.historyEntry) {
+            return [data.historyEntry, ...oldHistory];
+          }
+          return oldHistory;
         },
       );
     },

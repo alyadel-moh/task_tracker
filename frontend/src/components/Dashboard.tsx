@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react";
 import {
   PointerSensor,
-  type DragEndEvent,
-  type DragStartEvent,
   useSensor,
   useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
 } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
-import { type Project, type Status, type Task } from "./types";
+import { Project, Status, Task } from "./types";
 import CreateProjectModal from "./CreateProjectModal";
 import useGetProjects from "../hooks/getProjectsHook";
-import useGetTasks from "../hooks/getAlltasksHook";
+import useGetTasks from "../hooks/getAllTasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import CreateTaskModal from "./CreateTaskModal";
+import CreateTaskModal from "./CreateTaskmodal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
+  const [overColumnStatus, setOverColumnStatus] = useState<Status | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
@@ -55,10 +57,7 @@ const Dashboard = () => {
   }, [tasksData]);
 
   useEffect(() => {
-    if (!projectsData) {
-      return;
-    }
-
+    if (!projectsData) return;
     if (!projectsData.length) {
       setActiveProjectId(null);
       return;
@@ -75,25 +74,39 @@ const Dashboard = () => {
   const activeProject =
     projects.find((project: Project) => project.id === activeProjectId) ?? null;
 
-  const visibleTasks = activeProject
-    ? tasks.filter((task) => task.projectId === activeProject.id)
-    : tasks;
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 150, tolerance: 6 },
+      activationConstraint: { distance: 5 },
     }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    const task = visibleTasks.find((item) => item.id === event.active.id);
+    const task = tasksData?.find((item) => item.id === event.active.id);
     setDraggingTask(task ?? null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (!over) {
+      setOverColumnStatus(null);
+      return;
+    }
+
+    const overId = String(over.id);
+    const targetStatus = (
+      overId.startsWith("tab-")
+        ? overId.replace("tab-", "")
+        : overId.replace("column-", "")
+    ) as Status;
+
+    setOverColumnStatus(targetStatus);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     const task = draggingTask;
     setDraggingTask(null);
+    setOverColumnStatus(null);
 
     if (!over || !task) return;
 
@@ -108,7 +121,6 @@ const Dashboard = () => {
 
     const previousStatus = task.status;
 
-    // Optimistic UI update
     setTasks((current) =>
       current.map((t) =>
         t.id === active.id ? { ...t, status: newStatus } : t,
@@ -118,13 +130,15 @@ const Dashboard = () => {
 
     updateTaskMutation.mutate(
       {
-        id: task.id,
-        status: newStatus,
-        name: task.name,
-        description: task.description,
-        priority: task.priority,
-        estimatedTime: task.estimatedTime ?? null,
-        dueDate: task.dueDate ?? null,
+        task: {
+          id: task.id,
+          status: newStatus,
+          name: task.name,
+          description: task.description,
+          priority: task.priority,
+          estimatedTime: task.estimatedTime ?? null,
+          dueDate: task.dueDate ?? undefined,
+        },
       },
       {
         onSuccess: () => {
@@ -215,11 +229,13 @@ const Dashboard = () => {
 
       <DashboardBoard
         activeProject={activeProject}
-        tasks={visibleTasks}
+        tasks={tasks}
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         draggingTask={draggingTask}
+        overColumnStatus={overColumnStatus}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         sensors={sensors}
         isProjectMenuOpen={isProjectMenuOpen}
@@ -251,7 +267,6 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Centered deletion confirmation modal overlay */}
       {isConfirmingDelete && activeProject?.id && (
         <div
           className="modal-overlay"
@@ -270,8 +285,8 @@ const Dashboard = () => {
 
             <h2 className="modal-title">Delete "{activeProject.name}"?</h2>
             <p className="modal-subtitle">
-              This permanently deletes the project and all {visibleTasks.length}{" "}
-              of its tasks. This cannot be undone.
+              This permanently deletes the project and all {tasks.length} of its
+              tasks. This cannot be undone.
             </p>
 
             <div className="modal-actions">

@@ -10,10 +10,7 @@ export interface TimeEntryAttributes {
   updatedAt?: Date;
 }
 
-export interface TimeEntryCreationAttributes extends Optional<
-  TimeEntryAttributes,
-  "id"
-> {}
+export type TimeEntryCreationAttributes = Optional<TimeEntryAttributes, "id">;
 
 export class TimeEntry
   extends Model<TimeEntryAttributes, TimeEntryCreationAttributes>

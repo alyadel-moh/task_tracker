@@ -13,7 +13,11 @@ interface UpdateProjectBody {
 }
 
 async function create(
-  req: AuthRequest<{}, {}, CreateProjectBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    CreateProjectBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -38,7 +42,7 @@ async function create(
 }
 
 async function getAll(
-  req: AuthRequest,
+  req: AuthRequest<Record<string, never>, Record<string, never>, Body>,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -54,7 +58,11 @@ async function getAll(
 }
 
 async function update(
-  req: AuthRequest<{ id: string }, {}, UpdateProjectBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    UpdateProjectBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -105,7 +113,11 @@ async function update(
 }
 
 async function remove(
-  req: AuthRequest<{ id: string }>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {

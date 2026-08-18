@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import "../css/CreateProjectModal.css";
 import "../css/TaskModal.css";
-import useCreateTask from "../hooks/createtaskHook";
+import useCreateTask from "../hooks/createTaskHook";
 
 interface CreateTaskModalProps {
   projectId: string;
@@ -19,17 +19,19 @@ const schema = z.object({
   status: z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]).default("TODO"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
   estimatedTime: z.preprocess(
-    (val) => (val === "" || Number.isNaN(val) ? undefined : Number(val)),
+    (val) =>
+      val === "" || val === null || Number.isNaN(val) ? undefined : Number(val),
     z.number().min(0).optional(),
   ),
   dueDate: z
     .string()
-    .datetime({ message: "dueDate must be a valid ISO date string" })
+    .transform((val) => (val === "" ? null : val))
     .optional()
     .nullable(),
 });
 
-type FormData = z.infer<typeof schema>;
+type SchemaInput = z.input<typeof schema>;
+type SchemaOutput = z.output<typeof schema>;
 
 const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
   const createtaskmutation = useCreateTask(projectId);
@@ -39,9 +41,19 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<SchemaInput, any, SchemaOutput>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      description: "",
+      status: "TODO",
+      priority: "MEDIUM",
+      estimatedTime: undefined,
+      dueDate: null,
+    },
+  });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: SchemaOutput) => {
     createtaskmutation.mutate(
       {
         name: data.name,
@@ -140,7 +152,7 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
           <div className="field-row">
             <label className="field">
               <span className="field-label">Status</span>
-              <select defaultValue="TODO" {...register("status")}>
+              <select {...register("status")}>
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="IN_REVIEW">In Review</option>
@@ -150,7 +162,7 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
 
             <label className="field">
               <span className="field-label">Priority</span>
-              <select defaultValue="MEDIUM" {...register("priority")}>
+              <select {...register("priority")}>
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>

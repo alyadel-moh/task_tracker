@@ -12,7 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { type Priority, type Task } from "./types";
-import useDeleteTask from "../hooks/deletetaskHook";
+import useDeleteTask from "../hooks/deleteTaskHook";
 
 const priorityLabel: Record<Priority, string> = {
   HIGH: "High",

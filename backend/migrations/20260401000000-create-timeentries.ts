@@ -44,6 +44,7 @@ export default {
         defaultValue: DataTypes.NOW,
       },
     });
+    await queryInterface.addIndex("time_entries", ["task_id"]);
   },
   async down(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.dropTable("time_entries");

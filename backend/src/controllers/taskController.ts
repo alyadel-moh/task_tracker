@@ -1,8 +1,9 @@
 import { Response, NextFunction } from "express";
 import { Op, WhereOptions } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
-import { Task, Project } from "../models";
+import { Task, Project, User, TaskHistory, TimeEntry } from "../models";
 import { TaskPriority, TaskStatus } from "../models/task";
+import { recordTaskCreated, recordTaskUpdated } from "../services/taskHistory";
 interface CreateTaskBody {
   name: string;
   description?: string;
@@ -17,7 +18,7 @@ interface UpdateTaskBody {
   description?: string;
   status?: string;
   estimatedTime?: number;
-  dueDate?: string;
+  dueDate?: Date | string | null;
   priority?: string;
 }
 
@@ -52,9 +53,22 @@ const isNumberInRange = (
 };
 const ALLOWED_STATUSES: string[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"];
 const ALLOWED_PRIORITIES: string[] = ["LOW", "MEDIUM", "HIGH"];
+async function fetchHistoryWithActor(historyId?: string) {
+  if (!historyId) return null;
+  return TaskHistory.findOne({
+    where: { id: historyId },
+    include: [
+      { model: User, as: "actor", attributes: ["id", "name", "email"] },
+    ],
+  });
+}
 
 async function create(
-  req: AuthRequest<{ projectId: string }, {}, CreateTaskBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    CreateTaskBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -118,17 +132,25 @@ async function create(
       priority: priority as TaskPriority,
       projectId: req.params.projectId,
     });
+    const historyEntry = await recordTaskCreated(newTask.id, req.user.id);
+    const taskHistoryEntry = await fetchHistoryWithActor(historyEntry?.id);
 
-    return res
-      .status(201)
-      .json({ message: "Task created successfully", task: newTask });
+    return res.status(201).json({
+      message: "Task created successfully",
+      task: newTask,
+      historyEntry: taskHistoryEntry,
+    });
   } catch (err) {
     next(err);
   }
 }
 
 async function getById(
-  req: AuthRequest<{ id: string; projectId: string }>,
+  req: AuthRequest<
+    { id: string; projectId: string },
+    Record<string, never>,
+    Record<string, never>
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -159,7 +181,7 @@ async function getById(
 }
 
 async function getAll(
-  req: AuthRequest<{ projectId: string }, {}, {}, TaskQuery>,
+  req: AuthRequest<Record<string, never>, Record<string, never>, TaskQuery>,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -222,7 +244,11 @@ async function getAll(
 }
 
 async function update(
-  req: AuthRequest<{ id: string; projectId: string }, {}, UpdateTaskBody>,
+  req: AuthRequest<
+    Record<string, never>,
+    Record<string, never>,
+    UpdateTaskBody
+  >,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
@@ -249,25 +275,32 @@ async function update(
         .status(404)
         .json({ error: "Not Found", message: "Task not found" });
     }
-
+    const before: UpdateTaskBody = {
+      name: task.name,
+      description: task.description ?? undefined,
+      status: task.status,
+      estimatedTime: task.estimatedTime ?? undefined,
+      dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      priority: task.priority,
+    };
     if (name !== undefined && (!name || !name.trim())) {
       return res
         .status(400)
         .json({ error: "BadRequest", message: "Task name cannot be empty" });
     }
 
-    const updatedField: Partial<UpdateTaskBody> = {};
+    const updatedFields: Partial<UpdateTaskBody> = {};
     const changedLabels: string[] = [];
 
-    if (name !== undefined) {
+    if (name !== undefined && name.trim() !== task.name) {
       const trimmedName = name.trim();
       task.name = trimmedName;
-      updatedField.name = trimmedName;
+      updatedFields.name = trimmedName;
       changedLabels.push("Task name");
     }
-    if (description !== undefined) {
-      task.description = description;
-      updatedField.description = description;
+    if (description !== task.description && description !== undefined) {
+      task.description = description || null;
+      updatedFields.description = description;
       changedLabels.push("Description");
     }
     // 1. Validate status query/body parameter if provided
@@ -280,7 +313,7 @@ async function update(
       }
 
       task.status = status as TaskStatus;
-      updatedField.status = status;
+      updatedFields.status = status;
       changedLabels.push("Status");
     }
 
@@ -293,7 +326,7 @@ async function update(
       }
 
       task.priority = priority as TaskPriority;
-      updatedField.priority = priority;
+      updatedFields.priority = priority;
       changedLabels.push("Priority");
     }
     if (estimatedTime !== undefined && estimatedTime !== null) {
@@ -301,12 +334,21 @@ async function update(
         return res.status(400).json({
           error: "BadRequest",
           message:
-            "estimatedTime must be a positive number of minutes (minimum 1)",
+            "estmatiedTime must be a positive number of minutes (minimum 1)",
         });
+      }
+      if (task.estimatedTime !== estimatedTime) {
+        task.estimatedTime = estimatedTime;
+        updatedFields.estimatedTime = estimatedTime;
+        changedLabels.push("Estimated time");
       }
     }
     if (dueDate !== undefined) {
-      if (dueDate !== null && !isValidISODate(dueDate)) {
+      if (
+        dueDate !== null &&
+        typeof dueDate === "string" &&
+        !isValidISODate(dueDate)
+      ) {
         return res.status(400).json({
           error: "BadRequest",
           message: "dueDate must be a valid ISO 8601 date string",
@@ -314,26 +356,57 @@ async function update(
       }
 
       const parsedDueDate = dueDate ? new Date(dueDate) : null;
-      if (task.dueDate?.getTime() !== parsedDueDate?.getTime()) {
+      const currentMs = task.dueDate ? new Date(task.dueDate).getTime() : null;
+      const parsedMs = parsedDueDate ? parsedDueDate.getTime() : null;
+
+      if (currentMs !== parsedMs) {
         task.dueDate = parsedDueDate;
+        updatedFields.dueDate = parsedDueDate
+          ? parsedDueDate.toISOString()
+          : null;
         changedLabels.push("Due date");
       }
     }
-    if (priority !== undefined) {
+    if (priority !== undefined && priority !== task.priority) {
       task.priority = priority as TaskPriority;
-      updatedField.priority = priority;
+      updatedFields.priority = priority;
       changedLabels.push("Priority");
     }
 
     await task.save();
+
+    const after = {
+      name: name ?? task.name,
+      description: description ?? task.description ?? undefined,
+      status: status ?? task.status,
+      estimatedTime: estimatedTime ?? task.estimatedTime ?? undefined,
+      dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      priority: priority ?? task.priority,
+    };
+
+    const historyEntries = await recordTaskUpdated(
+      task.id,
+      req.user.id,
+      before,
+      after,
+    );
+    const detailedHistoryEntries = await Promise.all(
+      (historyEntries || []).map((entry) => fetchHistoryWithActor(entry?.id)),
+    );
 
     const message = changedLabels.length
       ? `${changedLabels.join(", ")} updated successfully!`
       : "No changes made";
 
     return res.status(200).json({
-      task: updatedField,
+      task: updatedFields,
       message,
+      overrun: changedLabels.includes("Estimated time")
+        ? (await TimeEntry.sum("durationMinutes", {
+            where: { taskId: req.params.id },
+          })) > (task.estimatedTime ?? 0)
+        : undefined,
+      historyEntries: detailedHistoryEntries,
     });
   } catch (err) {
     next(err);
@@ -366,7 +439,9 @@ async function remove(
         .json({ error: "Not Found", message: "Task not found" });
     }
     await task.destroy();
-    return res.status(200).json({ message: "Task deleted successfully" });
+    return res.status(200).json({
+      message: "Task deleted successfully",
+    });
   } catch (err) {
     next(err);
   }
