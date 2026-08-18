@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { Op } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
-import { Status, sequelize, Project } from "../models";
+import { Status, sequelize, Project, Task } from "../models";
 
 interface UpdateStatusBody {
   name?: string;
@@ -9,7 +9,7 @@ interface UpdateStatusBody {
 }
 async function update(
   req: AuthRequest<
-    { projectId: string; statusId: string },
+    { projectId: string; id: string },
     Record<string, never>,
     UpdateStatusBody
   >,
@@ -19,18 +19,22 @@ async function update(
   const transaction = await sequelize.transaction();
 
   try {
-    const { projectId, statusId } = req.params;
+    const { projectId, id } = req.params;
     const { name, position } = req.body;
+    const project = await Project.findOne({
+      where: { id: projectId, userId: req.user.id },
+      transaction,
+    });
+
+    if (!project) {
+      await transaction.rollback();
+      return res
+        .status(404)
+        .json({ error: "Not Found", message: "Project not found" });
+    }
 
     const status = await Status.findOne({
-      where: { id: statusId, projectId },
-      include: [
-        {
-          model: Project,
-          as: "project",
-          where: { userId: req.user.id },
-        },
-      ],
+      where: { id, projectId },
       transaction,
     });
 
@@ -40,6 +44,7 @@ async function update(
         .status(404)
         .json({ error: "Not Found", message: "Status not found" });
     }
+
     const updatedFields: UpdateStatusBody = {};
     const updatedLabels: string[] = [];
     if (name !== undefined) {
@@ -59,6 +64,8 @@ async function update(
     if (position !== undefined && position !== status.position) {
       const oldPosition = status.position;
       const newPosition = position;
+      status.position = -1;
+      await status.save({ transaction });
 
       if (newPosition < oldPosition) {
         await Status.increment("position", {
@@ -96,7 +103,7 @@ async function update(
     return res.status(200).json({
       status: "success",
       message: "Status updated successfully",
-      updatedFields: updatedFields,
+      newStatus: updatedFields,
     });
   } catch (err) {
     await transaction.rollback();
@@ -194,6 +201,7 @@ async function remove(
         .status(404)
         .json({ error: "Not Found", message: "Status not found" });
     }
+
     if (status.isDefault) {
       await transaction.rollback();
       return res.status(400).json({
@@ -201,8 +209,23 @@ async function remove(
         message: "Default statuses cannot be deleted",
       });
     }
+
+    const taskCount = await Task.count({
+      where: { statusId: status.id },
+      transaction,
+    });
+
+    if (taskCount > 0) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: "BadRequest",
+        message: "Cannot delete status with assigned tasks",
+      });
+    }
+
     const deletedposition = status.position;
     await status.destroy({ transaction });
+
     await Status.decrement("position", {
       by: 1,
       where: {
@@ -211,6 +234,7 @@ async function remove(
       },
       transaction,
     });
+
     await transaction.commit();
     return res.status(200).json({ message: "Status deleted successfully" });
   } catch (err) {

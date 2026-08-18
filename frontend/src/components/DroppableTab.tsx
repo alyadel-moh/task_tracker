@@ -1,8 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
-import { type Status } from "./types";
 
 interface DroppableTabProps {
-  status: Status;
+  status: string;
   label: string;
   count: number;
   isActive: boolean;

@@ -10,22 +10,22 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import "../css/Dashboard.css";
 import DashboardBoard from "./DashboardBoard";
 import DashboardSidebar from "./DashboardSidebar";
 import { Project, Task, Statuss } from "./types";
 import CreateProjectModal from "./CreateProjectModal";
+import CreateTaskModal from "./CreateTaskModal";
+import UserProfileModal from "./UserProfileModal";
 import useGetProjects from "../hooks/getProjectsHook";
 import useGetTasks from "../hooks/getAllTasksHook";
 import useGetUser from "../hooks/meHook";
 import useLogout from "../hooks/logoutHook";
-import CreateTaskModal from "./CreateTaskModal";
 import useUpdateTask from "../hooks/updateTaskHook";
 import useDeleteProject from "../hooks/deleteProjectHook";
 import useGetStatuses from "../hooks/getAllStatusesHook";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import UserProfileModal from "./UserProfileModal";
-import CreateStatusModal from "./CreateStatusModal";
+import useUpdateStatus from "../hooks/updateStatusHook";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<string>("");
@@ -34,7 +34,6 @@ const Dashboard = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
-  const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
@@ -54,14 +53,15 @@ const Dashboard = () => {
   const tasksQuery = useGetTasks({ projectId: activeProjectId ?? undefined });
   const { data: tasksData } = tasksQuery;
 
+  const updateStatusMutation = useUpdateStatus(activeProjectId ?? "");
+  const updateTaskMutation = useUpdateTask(activeProjectId ?? "");
+  const deleteProjectMutation = useDeleteProject();
+
   const userQuery = useGetUser();
   const user = userQuery.data;
 
   const logoutMutation = useLogout();
   const navigate = useNavigate();
-
-  const updateTaskMutation = useUpdateTask(activeProjectId ?? "");
-  const deleteProjectMutation = useDeleteProject();
 
   useEffect(() => {
     if (tasksData) {
@@ -156,6 +156,22 @@ const Dashboard = () => {
         if (oldIndex !== -1 && newIndex !== -1) {
           const updated = arrayMove(statuses, oldIndex, newIndex);
           setStatuses(updated);
+          const draggedColId = activeId.replace(/^col-/, "");
+
+          updateStatusMutation.mutate(
+            {
+              status: {
+                id: draggedColId,
+                position: newIndex,
+              },
+            },
+            {
+              onError: () => {
+                setStatuses(statuses);
+                toast.error("Failed to update column position.");
+              },
+            },
+          );
         }
       }
       return;
@@ -191,9 +207,8 @@ const Dashboard = () => {
 
     updateTaskMutation.mutate(
       {
-        task: {
-          statusId: newStatusId,
-        },
+        id: task.id,
+        statusId: newStatusId,
       },
       {
         onSuccess: () => {
@@ -308,7 +323,6 @@ const Dashboard = () => {
         onSelectProject={handleSelectProject}
         onCreateTask={handleOpenCreateTask}
         onCreateProject={handleOpenCreateProject}
-        onToggleAddColumnModal={() => setIsAddColumnModalOpen((open) => !open)}
         user={user ?? null}
         onLogout={handleLogout}
       />
@@ -383,13 +397,6 @@ const Dashboard = () => {
         <UserProfileModal
           user={user ?? null}
           onClose={() => setIsUserProfileModalOpen(false)}
-        />
-      )}
-
-      {isAddColumnModalOpen && (
-        <CreateStatusModal
-          onClose={() => setIsAddColumnModalOpen(false)}
-          projectId={activeProjectId ?? ""}
         />
       )}
     </div>

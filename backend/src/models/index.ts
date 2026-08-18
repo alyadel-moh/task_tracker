@@ -55,12 +55,27 @@ User.hasMany(TaskHistory, {
   as: "historyRecords",
 });
 
+Project.hasMany(Status, {
+  foreignKey: "projectId",
+  as: "statuses",
+  onDelete: "CASCADE",
+});
+
+Status.belongsTo(Project, {
+  foreignKey: "projectId",
+  as: "project",
+  onDelete: "CASCADE",
+});
+
+Task.belongsTo(Status, {
+  foreignKey: "statusId",
+  as: "status",
+});
 Status.hasMany(Task, {
   foreignKey: "statusId",
   as: "tasks",
   onDelete: "RESTRICT",
 });
-Task.belongsTo(Status, { foreignKey: "statusId", as: "status" });
 
 TaskHistory.belongsTo(Task, { foreignKey: "taskId", as: "task" });
 TaskHistory.belongsTo(User, { foreignKey: "actorId", as: "actor" });

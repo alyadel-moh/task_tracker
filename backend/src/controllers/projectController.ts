@@ -44,21 +44,18 @@ async function create(
         name: "TODO",
         position: 0,
         isDefault: true,
-        mappedStatus: "TODO",
         projectId: project.id,
       },
       {
         name: "IN_PROGRESS",
         position: 1,
         isDefault: true,
-        mappedStatus: "IN_PROGRESS",
         projectId: project.id,
       },
       {
         name: "DONE",
         position: 3,
         isDefault: true,
-        mappedStatus: "DONE",
         projectId: project.id,
       },
     ];

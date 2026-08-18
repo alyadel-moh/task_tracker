@@ -24,6 +24,7 @@ interface UpdateTaskBody {
   estimatedTime?: number;
   dueDate?: Date | string | null;
   priority?: string;
+  statusName?: string;
 }
 
 interface TaskQuery {
@@ -66,8 +67,6 @@ async function fetchHistoryWithActor(historyId?: string) {
   });
 }
 const ALLOWED_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
-const ALLOWED_STATUSES = ["TODO", "IN_PROGRESS", "DONE"] as const;
-type MappedStatusType = (typeof ALLOWED_STATUSES)[number];
 async function create(
   req: AuthRequest<
     Record<string, never>,
@@ -86,6 +85,16 @@ async function create(
       return res.status(403).json({
         error: "Forbidden",
         message: "You are not the owner of this project",
+      });
+    }
+    const statusExists = await Status.findOne({
+      where: { id: statusId, projectId },
+    });
+
+    if (!statusExists) {
+      return res.status(404).json({
+        error: "NotFound",
+        message: "Status not found for this project",
       });
     }
     if (!name || !name.trim()) {
@@ -115,12 +124,6 @@ async function create(
       return res.status(400).json({
         status: "BadRequest",
         message: `Invalid priority value. Allowed values: ${ALLOWED_PRIORITIES.join(", ")}`,
-      });
-    }
-    if (statusId && !ALLOWED_STATUSES.includes(statusId as MappedStatusType)) {
-      return res.status(400).json({
-        error: "BadRequest",
-        message: `Invalid status value. Allowed values: ${ALLOWED_STATUSES.join(", ")}`,
       });
     }
     let targetStatus;
@@ -192,17 +195,22 @@ async function getById(
         message: "You are not the owner of this project",
       });
     }
-
     const task = await Task.findOne({
       where: { id: req.params.id, projectId: req.params.projectId },
-      include: [{ model: Status, as: "status" }],
+      include: [{ model: Status, as: "status", attributes: ["name"] }],
     });
+
     if (!task) {
       return res
         .status(404)
         .json({ error: "Not Found", message: "Task not found" });
     }
-    return res.status(200).json(task);
+    const { status, ...taskData } = task.toJSON() as any;
+
+    return res.status(200).json({
+      ...taskData,
+      statusName: status?.name ?? null,
+    });
   } catch (err) {
     next(err);
   }
@@ -215,7 +223,7 @@ async function getAll(
 ): Promise<Response | void> {
   try {
     const { projectId } = req.params;
-    const { search, status, priority, overdue } = req.query;
+    const { search, statusId, priority, overdue } = req.query;
 
     const projectOwned = await findOwnedProject(req.user.id, projectId);
     if (!projectOwned) {
@@ -243,14 +251,11 @@ async function getAll(
     }
     const statusConditions: any[] = [];
 
-    if (status) {
-      const statusList = Array.isArray(status) ? status : [status];
+    if (statusId) {
+      const statusList = Array.isArray(statusId) ? statusId : [statusId];
       if (statusList.length > 0) {
         statusConditions.push({
-          [Op.or]: [
-            { name: { [Op.in]: statusList } },
-            { mappedStatus: { [Op.in]: statusList } },
-          ],
+          [Op.or]: [{ id: { [Op.in]: statusList } }],
         });
       }
     }
@@ -334,23 +339,35 @@ async function update(
       updatedFields.name = trimmedName;
       changedLabels.push("Task name");
     }
-    if (description !== task.description) {
+    if (description !== task.description && description != undefined) {
       task.description = description || null;
       updatedFields.description = description;
       changedLabels.push("Description");
     }
     if (statusId !== undefined && statusId !== task.statusId) {
-      const statusExists = await Status.findOne({
-        where: { id: statusId, projectId },
+      const idsToFetch = [statusId];
+      if (task.statusId) idsToFetch.push(task.statusId);
+
+      const foundStatuses = await Status.findAll({
+        where: { id: { [Op.in]: idsToFetch }, projectId },
+        attributes: ["id", "name"],
       });
-      if (!statusExists) {
+
+      const newStatus = foundStatuses.find((s) => s.id === statusId);
+      const oldStatus = foundStatuses.find((s) => s.id === task.statusId);
+
+      if (!newStatus) {
         return res.status(400).json({
           error: "BadRequest",
           message: "Invalid statusId for this project",
         });
       }
-      task.statusId = statusId;
-      updatedFields.statusId = statusId;
+
+      before.statusName = oldStatus?.name;
+      updatedFields.statusName = newStatus.name;
+
+      task.statusId = newStatus.id;
+      updatedFields.statusId = newStatus.id;
       changedLabels.push("Status");
     }
     if (estimatedTime !== undefined && estimatedTime !== task.estimatedTime) {
@@ -413,6 +430,7 @@ async function update(
       estimatedTime: estimatedTime ?? task.estimatedTime ?? undefined,
       dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       priority: priority ?? task.priority,
+      statusName: updatedFields.statusName ?? before.statusName,
     };
 
     const historyEntries = await recordTaskUpdated(

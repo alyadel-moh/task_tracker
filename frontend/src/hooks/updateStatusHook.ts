@@ -13,43 +13,36 @@ interface UpdateStatusResponse {
   message: string;
 }
 
-const useUpdateStatus = (projectId: string, columnId: string) => {
+const useUpdateStatus = (projectId: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation<UpdateStatusData, AxiosError, UpdateStatusResponse>({
-    mutationFn: (statusdata: UpdateStatusData) => {
+  return useMutation<UpdateStatusResponse, AxiosError, UpdateStatusData>({
+    mutationFn: (statusData: UpdateStatusData) => {
+      const { id, ...rest } = statusData.status;
       return axiosInstance
         .patch<UpdateStatusResponse>(
-          `projects/statuses/update/${projectId}/${columnId}`,
-          statusdata,
+          `projects/statuses/${projectId}/${id}`,
+          rest,
         )
         .then((response) => response.data);
     },
-    onMutate: async (newStatusData: UpdateStatusData) => {
-      console.log("Updating project:", newStatusData);
-    },
-    onSuccess: (data) => {
-      const updatedFields = data.newStatus;
-      console.log("Status updated successfully:", data);
+    onSuccess: (data, variables) => {
+      const updatedStatus = data.newStatus;
 
       queryClient.setQueryData<Statuss[]>(
-        ["status", projectId],
-        (oldProjects) => {
-          if (!oldProjects) return oldProjects;
-          return oldProjects.map((project) =>
-            project.id === id
-              ? {
-                  ...project,
-                  ...updatedFields,
-                  updatedAt: new Date().toISOString(),
-                }
-              : project,
+        ["statuses", projectId],
+        (oldStatuses) => {
+          if (!oldStatuses) return [];
+          return oldStatuses.map((status) =>
+            status.id === variables.status.id
+              ? { ...status, ...updatedStatus }
+              : status,
           );
         },
       );
     },
     onError: (error: AxiosError) => {
-      console.error("Error updating project:", error);
+      console.error("Error updating status:", error);
     },
   });
 };

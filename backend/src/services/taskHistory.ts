@@ -31,7 +31,8 @@ interface TaskBody {
   priority?: string;
   estimatedMinutes?: number | null;
   dueDate?: Date | string | null;
-  status?: string;
+  statusId?: string;
+  statusName?: string;
 }
 
 interface TimeEntryBody {
@@ -94,15 +95,15 @@ export async function recordTaskUpdated(
       );
     }
   }
-  if (toComparable(before.status) !== toComparable(after.status)) {
+  if (toComparable(before.statusId) !== toComparable(after.statusId)) {
     historyEntries.push(
       await logTaskHistory({
         taskId,
         actorId,
         eventType: "STATUS_CHANGED",
         fieldChanged: "status",
-        oldValue: before.status,
-        newValue: after.status,
+        oldValue: before?.statusName,
+        newValue: after?.statusName,
       }),
     );
   }

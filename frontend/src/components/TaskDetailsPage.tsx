@@ -24,8 +24,9 @@ import useGetTimeEntries from "../hooks/getAlltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimeEntry";
 import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
+import useGetStatuses from "../hooks/getAllStatusesHook";
 import "../css/TaskDetailsPage.css";
-import { Priority, Status } from "./types";
+import { Priority } from "./types";
 
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
@@ -33,11 +34,20 @@ const PRIORITY_OPTIONS = [
   { value: "HIGH", label: "High" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "TODO", label: "To Do" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "DONE", label: "Done" },
-];
+const formatStatusLabel = (name?: string | null): string => {
+  if (!name) return "Unknown";
+  const normalized = name.trim().toUpperCase();
+  if (normalized === "TODO" || normalized === "TO_DO") return "To Do";
+  if (normalized === "IN_PROGRESS" || normalized === "INPROGRESS")
+    return "In Progress";
+  if (normalized === "DONE") return "Done";
+
+  return name
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
@@ -63,7 +73,9 @@ const formatDateOnly = (value: string | Date | null): string => {
   });
 };
 
-const formatForDateTimeInput = (value: string | Date | null): string => {
+const formatForDateTimeInput = (
+  value: string | Date | null | undefined,
+): string => {
   if (!value) return "";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "";
@@ -106,16 +118,16 @@ const TaskDetailsPage = () => {
   );
   const [newNote, setNewNote] = useState("");
   const [overrun, setoverrun] = useState(false);
-
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const [taskDraft, setTaskDraft] = useState({
     name: "",
     description: "",
-    status: "TODO",
-    priority: "LOW",
+    statusId: "",
+    priority: "LOW" as Priority,
     dueDate: "",
     estimatedTime: "",
+    statusName: "",
   });
 
   const [entryDrafts, setEntryDrafts] = useState<
@@ -129,30 +141,69 @@ const TaskDetailsPage = () => {
   const { data: task, isLoading: taskLoading } = useGetTask(projectId, taskId);
   const { data: timeEntriesData, isLoading: entriesLoading } =
     useGetTimeEntries(taskId);
+  const { data: statusesData = [], isLoading: statusesLoading } =
+    useGetStatuses(projectId);
 
   const updateTaskMutation = useUpdateTask(projectId);
   const createEntryMutation = useCreateTimeEntry(taskId);
   const updateEntryMutation = useUpdateTimeEntry(taskId);
   const deleteEntryMutation = useDeleteTimeEntry(taskId);
+
   const entries = timeEntriesData?.timeEntries || [];
   const totalMinutes = timeEntriesData?.totalMinutes || 0;
 
-  // Sync server task into local draft state
+  const statusOptions = useMemo(() => {
+    return statusesData.map((s: any) => ({
+      value: s.id,
+      label: formatStatusLabel(s.name),
+      name: s.name,
+    }));
+  }, [statusesData]);
+
+  const isTaskDirty = useMemo(() => {
+    if (!task) return false;
+    return (
+      taskDraft.name.trim() !== (task.name || "").trim() ||
+      taskDraft.description.trim() !== (task.description || "").trim() ||
+      taskDraft.statusId !== (task.statusId || "") ||
+      taskDraft.priority !== (task.priority || "LOW") ||
+      taskDraft.dueDate !== formatForDateTimeInput(task.dueDate) ||
+      taskDraft.estimatedTime !==
+        (task.estimatedTime != null ? String(task.estimatedTime) : "")
+    );
+  }, [taskDraft, task]);
+
+  const currentStatusLabel = useMemo(() => {
+    const matched = statusOptions.find(
+      (opt) => opt.value === taskDraft.statusId,
+    );
+    return matched
+      ? matched.label
+      : formatStatusLabel(
+          taskDraft.statusName || task?.statusName || "Unknown",
+        );
+  }, [
+    statusOptions,
+    taskDraft.statusId,
+    taskDraft.statusName,
+    task?.statusName,
+  ]);
+
   useEffect(() => {
     if (task) {
       setTaskDraft({
         name: task.name || "",
         description: task.description || "",
-        status: task.status || "TODO",
+        statusId: task.statusId || "",
         priority: task.priority || "LOW",
-        dueDate: formatForDateTimeInput(task.dueDate || null),
+        dueDate: formatForDateTimeInput(task.dueDate),
         estimatedTime:
           task.estimatedTime != null ? String(task.estimatedTime) : "",
+        statusName: task.statusName || "",
       });
     }
   }, [task]);
 
-  // Sync server time entries into local draft states
   useEffect(() => {
     if (timeEntriesData?.timeEntries?.length) {
       const initialDrafts: Record<string, EntryFormState> = {};
@@ -167,20 +218,7 @@ const TaskDetailsPage = () => {
     }
   }, [timeEntriesData]);
 
-  const isTaskDirty = useMemo(() => {
-    if (!task) return false;
-    return (
-      taskDraft.name.trim() !== (task.name || "").trim() ||
-      taskDraft.description.trim() !== (task.description || "").trim() ||
-      taskDraft.status !== (task.status || "TODO") ||
-      taskDraft.priority !== (task.priority || "LOW") ||
-      taskDraft.dueDate !== formatForDateTimeInput(task.dueDate || null) ||
-      taskDraft.estimatedTime !==
-        (task.estimatedTime != null ? String(task.estimatedTime) : "")
-    );
-  }, [taskDraft, task]);
-
-  if (!task && (taskLoading || entriesLoading)) {
+  if (!task && (taskLoading || entriesLoading || statusesLoading)) {
     return (
       <div className="task-page-loading">
         <Loader2 size={24} className="spin" />
@@ -192,11 +230,17 @@ const TaskDetailsPage = () => {
 
   const isOverdue =
     task.dueDate &&
-    task.status !== "DONE" &&
+    task.statusName !== "Done" &&
+    task.statusName !== "DONE" &&
     new Date(task.dueDate) < new Date();
 
   const getDueLabel = (): string | null => {
-    if (!task.dueDate || task.status === "DONE") return null;
+    if (
+      !task.dueDate ||
+      task.statusName === "Done" ||
+      task.statusName === "DONE"
+    )
+      return null;
 
     const today = new Date(new Date().toDateString());
     const due = new Date(task.dueDate);
@@ -223,6 +267,17 @@ const TaskDetailsPage = () => {
     setTaskDraft((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleStatusChange = (selectedStatusId: string) => {
+    const matchedStatus = statusOptions.find(
+      (opt) => opt.value === selectedStatusId,
+    );
+    setTaskDraft((prev) => ({
+      ...prev,
+      statusId: selectedStatusId,
+      statusName: matchedStatus ? matchedStatus.name : prev.statusName,
+    }));
+  };
+
   const handleSaveAllTaskChanges = () => {
     if (!taskDraft.name.trim()) {
       toast.error("Task name cannot be empty");
@@ -233,20 +288,17 @@ const TaskDetailsPage = () => {
 
     updateTaskMutation.mutate(
       {
-        task: {
-          id: taskId,
-          name: taskDraft.name.trim(),
-          description: taskDraft.description.trim()
-            ? taskDraft.description.trim()
-            : null,
-          status: taskDraft.status as Status,
-          priority: taskDraft.priority as Priority,
-          dueDate: taskDraft.dueDate ? new Date(taskDraft.dueDate) : null,
-          estimatedTime: taskDraft.estimatedTime
-            ? Number(taskDraft.estimatedTime)
-            : null,
-          createdAt: task.createdAt,
-        },
+        id: taskId,
+        name: taskDraft.name.trim(),
+        description: taskDraft.description.trim()
+          ? taskDraft.description.trim()
+          : null,
+        statusId: taskDraft.statusId,
+        priority: taskDraft.priority,
+        dueDate: taskDraft.dueDate ? new Date(taskDraft.dueDate) : null,
+        estimatedTime: taskDraft.estimatedTime
+          ? Number(taskDraft.estimatedTime)
+          : null,
       },
       {
         onSuccess: (res: any) => {
@@ -440,20 +492,16 @@ const TaskDetailsPage = () => {
                   <InlineEditField
                     label=""
                     type="select"
-                    options={STATUS_OPTIONS}
-                    value={taskDraft.status}
+                    options={statusOptions}
+                    value={taskDraft.statusId}
                     displayValue={
                       <span
-                        className={`task-badge badge-status badge-status-${taskDraft.status}`}
+                        className={`task-badge badge-status badge-status-${taskDraft.statusName}`}
                       >
-                        {
-                          STATUS_OPTIONS.find(
-                            (o) => o.value === taskDraft.status,
-                          )?.label
-                        }
+                        {currentStatusLabel}
                       </span>
                     }
-                    onSave={(v) => updateTaskDraft("status", v)}
+                    onSave={handleStatusChange}
                   />
                 </div>
 
@@ -560,6 +608,7 @@ const TaskDetailsPage = () => {
               )}
             </div>
           </div>
+
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -591,7 +640,6 @@ const TaskDetailsPage = () => {
               </button>
             </div>
 
-            {/* Optional Create Entry Form */}
             {showAddEntry && (
               <form className="add-entry-form" onSubmit={handleCreateEntry}>
                 <div className="add-entry-row">
@@ -649,7 +697,6 @@ const TaskDetailsPage = () => {
               </form>
             )}
 
-            {/* List of Time Entries */}
             <div className="entries-list">
               {entries.length === 0 ? (
                 <div className="entries-empty">
@@ -751,7 +798,6 @@ const TaskDetailsPage = () => {
                           />
                         </div>
 
-                        {/* SAVE ENTRY CHANGES BUTTON */}
                         {isDirty && (
                           <div className="save-entry-container">
                             <button
@@ -795,4 +841,5 @@ const TaskDetailsPage = () => {
     </div>
   );
 };
+
 export default TaskDetailsPage;

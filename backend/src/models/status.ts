@@ -6,14 +6,13 @@ export interface StatusAttributes {
   name: string;
   position: number;
   isDefault: boolean;
-  mappedStatus?: "TODO" | "IN_PROGRESS" | "DONE" | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export type StatusCreationAttributes = Optional<
   StatusAttributes,
-  "id" | "isDefault" | "mappedStatus"
+  "id" | "isDefault"
 >;
 export class Status
   extends Model<StatusAttributes, StatusCreationAttributes>
@@ -24,7 +23,6 @@ export class Status
   declare public name: string;
   declare public position: number;
   declare public isDefault: boolean;
-  declare public mappedStatus?: "TODO" | "IN_PROGRESS" | "DONE" | null;
 
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
@@ -63,17 +61,6 @@ export default (sequelize: Sequelize): typeof Status => {
         allowNull: false,
         defaultValue: false,
         field: "is_default",
-      },
-      mappedStatus: {
-        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "DONE"),
-        allowNull: true,
-        field: "mapped_status",
-        validate: {
-          isIn: {
-            args: [["TODO", "IN_PROGRESS", "DONE", null]],
-            msg: "Invalid mapped status",
-          },
-        },
       },
     },
     {

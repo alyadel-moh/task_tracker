@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Calendar,
-  Check,
   Clock,
   AlertTriangle,
   Trash2,
@@ -32,7 +31,6 @@ const TaskCard = ({ task }: TaskCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: task.id,
-      data: { status: task.status },
     });
 
   const style = transform
@@ -41,11 +39,11 @@ const TaskCard = ({ task }: TaskCardProps) => {
 
   const isOverdue =
     task.dueDate &&
-    task.status !== "DONE" &&
+    task.statusName !== "DONE" &&
     new Date(task.dueDate) < new Date(new Date().toDateString());
 
   const getDueLabel = (): string | null => {
-    if (!task.dueDate || task.status === "DONE") return null;
+    if (!task.dueDate || task.statusName === "DONE") return null;
 
     const today = new Date(new Date().toDateString());
     const due = new Date(task.dueDate);
@@ -98,7 +96,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
       <div
         ref={setNodeRef}
         style={style}
-        className={`task-card ${task.status === "DONE" ? "task-card-done" : ""} ${
+        className={`task-card ${task.statusName === "DONE" ? "task-card-done" : ""} ${
           isDragging ? "task-card-dragging" : ""
         }`}
         {...attributes}
@@ -140,12 +138,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
         )}
 
         <div className="task-meta">
-          {task.status === "DONE" ? (
-            <span className="badge badge-done">
-              <Check size={11} aria-hidden="true" />
-              Done
-            </span>
-          ) : (
+          {task.priority && (
             <span className={`badge badge-${task.priority}`}>
               {priorityLabel[task.priority]}
             </span>

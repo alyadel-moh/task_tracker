@@ -1,9 +1,8 @@
 import { useDroppable } from "@dnd-kit/core";
 import { type ReactNode } from "react";
-import { type Status } from "./types";
 
 interface ColumnDropZoneProps {
-  status: Status;
+  status: string;
   children: ReactNode;
 }
 

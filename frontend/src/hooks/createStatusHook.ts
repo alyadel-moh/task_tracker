@@ -1,10 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { Statuss, Status } from "../components/types";
+import { Statuss } from "../components/types";
 interface CreateStatusData {
   name: string;
-  mappedStatus: Status | null;
 }
 interface CreateStatusResponse {
   newStatus: Statuss;

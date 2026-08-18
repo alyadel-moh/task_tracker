@@ -26,6 +26,7 @@ import { toast } from "react-hot-toast";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
 import SortableColumn from "./SortableColumn";
+import AddColumnInline from "./AddColumnInline";
 import {
   type Project,
   type Task,
@@ -62,7 +63,6 @@ interface DashboardBoardProps {
   onLogout: () => void;
   sensors: any;
   user: User | null;
-  onToggleAddColumnModal: () => void;
 }
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -77,19 +77,13 @@ const DEFAULT_STATUS_MAP: Record<string, string> = {
   DONE: "Done",
 };
 
-const formatStatusName = (
-  rawName?: string,
-  mappedStatus?: string | null,
-): string => {
+const formatStatusName = (rawName?: string): string => {
   if (rawName && typeof rawName === "string" && rawName.trim()) {
     const trimmed = rawName.trim();
     if (DEFAULT_STATUS_MAP[trimmed]) {
       return DEFAULT_STATUS_MAP[trimmed];
     }
     return trimmed;
-  }
-  if (mappedStatus && DEFAULT_STATUS_MAP[mappedStatus]) {
-    return DEFAULT_STATUS_MAP[mappedStatus];
   }
   return "Untitled Column";
 };
@@ -126,7 +120,6 @@ const DashboardBoard = ({
   onToggleUserMenu,
   onOpenUserProfileModal,
   onCreateTask,
-  onToggleAddColumnModal,
   projects,
   activeProjectId,
   onSelectProject,
@@ -146,7 +139,7 @@ const DashboardBoard = ({
       )
       .map((col) => ({
         ...col,
-        name: formatStatusName(col.name, col.mappedStatus),
+        name: formatStatusName(col.name),
       }));
   }, [statuses]);
 
@@ -167,7 +160,7 @@ const DashboardBoard = ({
   const { data: fetchedTasks } = useGetTasks({
     projectId: activeProject?.id,
     search: searchQuery,
-    status: selectedStatuses,
+    statusId: selectedStatuses,
     priority: selectedPriorities,
     overdue: overdueOnly,
   });
@@ -195,11 +188,11 @@ const DashboardBoard = ({
     }).length;
   };
 
-  const toggleStatusFilter = (statusValue: string) => {
+  const toggleStatusFilter = (statusId: string) => {
     setSelectedStatuses((prev) =>
-      prev.includes(statusValue)
-        ? prev.filter((s) => s !== statusValue)
-        : [...prev, statusValue],
+      prev.includes(statusId)
+        ? prev.filter((id) => id !== statusId)
+        : [...prev, statusId],
     );
   };
 
@@ -252,11 +245,6 @@ const DashboardBoard = ({
 
   const draggingTaskStatusId =
     draggingTask?.statusId ?? (draggingTask as any)?.status_id;
-
-  const targetColumn = columns.find((c) => c.id === overColumnStatus);
-  const targetMappedStatusClass = (
-    targetColumn?.mappedStatus || "DEFAULT"
-  ).toLowerCase();
 
   return (
     <DndContext
@@ -408,14 +396,13 @@ const DashboardBoard = ({
                 <div className="filter-pills-group">
                   <span className="filter-label">Status:</span>
                   {columns.map((col) => {
-                    const filterKey = col.name;
-                    const active = selectedStatuses.includes(filterKey);
+                    const active = selectedStatuses.includes(col.id);
                     return (
                       <button
                         key={col.id}
                         type="button"
                         className={`filter-pill ${active ? "active" : ""}`}
-                        onClick={() => toggleStatusFilter(filterKey)}
+                        onClick={() => toggleStatusFilter(col.id)}
                       >
                         {col.name}
                       </button>
@@ -602,30 +589,14 @@ const DashboardBoard = ({
                   tasks={colTasks}
                   activeTab={activeTab}
                   isFilteredActive={isFilteredActive}
+                  projectId={activeProject?.id ?? ""}
                 />
               );
             })}
           </SortableContext>
 
-          {/* Add Column Button */}
-          {activeProject && (
-            <div className="column add-column-wrapper">
-              <div className="column-header column-header-desktop add-column-header-spacer">
-                <span className="status-dot" style={{ opacity: 0 }} />
-                <span style={{ opacity: 0 }}>Add Column</span>
-              </div>
-              <div className="column-drop-zone add-column-drop-zone">
-                <button
-                  type="button"
-                  className="add-column-button"
-                  onClick={onToggleAddColumnModal}
-                >
-                  <Plus size={14} />
-                  <span>Add column</span>
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Modular Add Column Component */}
+          {activeProject && <AddColumnInline projectId={activeProject.id} />}
         </div>
 
         <button
@@ -642,9 +613,7 @@ const DashboardBoard = ({
         {draggingTask ? (
           <div className="task-card-overlay-wrapper">
             {overColumnStatus && overColumnStatus !== draggingTaskStatusId && (
-              <div
-                className={`jira-transition-badge jira-transition-badge-${targetMappedStatusClass}`}
-              >
+              <div className="jira-transition-badge">
                 <span>
                   {statusIdToNameMap[draggingTaskStatusId ?? ""] ||
                     "Current Column"}
@@ -660,17 +629,9 @@ const DashboardBoard = ({
             </div>
           </div>
         ) : draggingColumn ? (
-          <div
-            className={`column column-${(
-              draggingColumn.mappedStatus || "DEFAULT"
-            ).toLowerCase()} dragging-column-overlay`}
-          >
+          <div className="column dragging-column-overlay">
             <div className="column-header column-header-desktop">
-              <span
-                className={`status-dot status-dot-${(
-                  draggingColumn.mappedStatus || "DEFAULT"
-                ).toLowerCase()}`}
-              />
+              <span className="status-dot" />
               <span>{draggingColumn.name}</span>
             </div>
           </div>

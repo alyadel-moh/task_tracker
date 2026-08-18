@@ -1,16 +1,19 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Trash2, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import ColumnDropZone from "./ColumnDropZone";
 import TaskCard from "./TaskCard";
-import { Task } from "./types";
-import { ColumnStatus } from "./DashboardBoard";
+import { Task, Statuss } from "./types";
+import useDeleteStatus from "../hooks/deleteStatusHook";
 
 interface SortableColumnProps {
-  column: ColumnStatus;
+  column: Statuss;
   tasks: Task[];
   activeTab: string;
   isFilteredActive: boolean;
+  projectId: string;
 }
 
 const SortableColumn = ({
@@ -18,6 +21,7 @@ const SortableColumn = ({
   tasks,
   activeTab,
   isFilteredActive,
+  projectId,
 }: SortableColumnProps) => {
   const {
     attributes,
@@ -40,7 +44,28 @@ const SortableColumn = ({
     opacity: isDragging ? 0.35 : 1,
   };
 
-  const statusClassModifier = (column.mappedStatus || "DEFAULT").toLowerCase();
+  const deleteStatusMutation = useDeleteStatus(projectId);
+  const isDefaultColumn = column.isDefault ?? false;
+
+  const handleDeleteColumn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (tasks.length > 0) {
+      toast.error("Cannot delete a column that contains tasks.");
+      return;
+    }
+
+    deleteStatusMutation.mutate(column.id, {
+      onSuccess: () => {
+        toast.success(`Column "${column.name}" deleted successfully!`);
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || "Failed to delete column");
+      },
+    });
+  };
+
+  const statusClassModifier = (column.name || "DEFAULT").toLowerCase();
 
   return (
     <div
@@ -53,9 +78,31 @@ const SortableColumn = ({
       {...listeners}
     >
       <div className="column-header column-header-desktop">
-        <span className={`status-dot status-dot-${statusClassModifier}`} />
-        <span>{column.name}</span>
-        <span className="column-count">{tasks.length}</span>
+        <div className="column-header-left">
+          <span className={`status-dot status-dot-${statusClassModifier}`} />
+          <span>{column.name}</span>
+          <span className="column-count">{tasks.length}</span>
+        </div>
+
+        {/* Hide trash icon completely if column is default */}
+        {!isDefaultColumn && (
+          <button
+            type="button"
+            className="column-delete-btn"
+            title={`Delete ${column.name}`}
+            disabled={deleteStatusMutation.isPending}
+            onClick={handleDeleteColumn}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            {deleteStatusMutation.isPending ? (
+              <Loader2 size={13} className="spin" />
+            ) : (
+              <Trash2 size={13} />
+            )}
+          </button>
+        )}
       </div>
 
       <ColumnDropZone status={column.id as any}>

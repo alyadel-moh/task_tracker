@@ -1010,28 +1010,14 @@
   transition: border-color 0.12s ease;
 }
 
-.task-card-overlay-TODO {
+.task-card-overlay-TODO .task-card-overlay-todo {
   border-color: rgba(255, 255, 255, 0.45) !important;
   box-shadow: 0 12px 32px rgba(255, 255, 255, 0.08);
 }
 
-.task-card-overlay-IN_PROGRESS {
+.task-card-overlay-IN_PROGRESS .task-card-overlay-in_progress {
   border-color: #6366f1 !important;
   box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
-}
-
-.task-card-overlay-DONE {
-  border-color: #4caf6f !important;
-  box-shadow: 0 12px 32px rgba(76, 175, 111, 0.25);
-}
-
-.task-card-done {
-  opacity: 0.6;
-}
-
-.task-card-done .task-title {
-  text-decoration: line-through;
-  color: rgba(242, 241, 237, 0.55);
 }
 
 /* Badges & Due Date Pills */
@@ -1061,7 +1047,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-.badge-DONE {
+.badge-DONE .badge-done {
   background: rgba(76, 175, 111, 0.16);
   color: #7fd99a;
 }
@@ -1665,7 +1651,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   font-weight: 600 !important;
   margin-left: 2px !important;
 }
-
 /* Invisible Placeholder for Add Column Alignment */
 .add-column-header-spacer {
   visibility: hidden !important;
@@ -1673,4 +1658,61 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   user-select: none !important;
   height: 20px !important;
   margin-bottom: 12px !important;
+}
+
+/* Column Header Container */
+.column-header-desktop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+/* Left Section: Dot + Name + Counter */
+.column-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Column Delete Button */
+.column-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  margin-left: auto;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* Reveal ONLY when hovering directly on the header line */
+.column-header-desktop:hover .column-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.column-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.column-delete-btn:active {
+  transform: scale(0.95);
+}
+
+.column-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

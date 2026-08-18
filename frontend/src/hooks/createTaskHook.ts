@@ -6,7 +6,7 @@ import { HistoryEntry, Task } from "../components/types";
 interface CreateTaskData {
   name: string;
   description: string;
-  status: string;
+  statusId: string;
   priority: string;
   estimatedTime: number | null;
   dueDate: string | null;

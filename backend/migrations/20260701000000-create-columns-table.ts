@@ -36,10 +36,6 @@ export default {
             allowNull: false,
             defaultValue: false,
           },
-          mapped_status: {
-            type: DataTypes.ENUM("TODO", "IN_PROGRESS", "DONE"),
-            allowNull: true,
-          },
           created_at: {
             type: DataTypes.DATE,
             allowNull: false,
@@ -58,6 +54,12 @@ export default {
         fields: ["project_id", "position"],
         type: "unique",
         name: "unique_project_position",
+        transaction,
+      });
+      await queryInterface.addConstraint("statuses", {
+        fields: ["project_id", "name"],
+        type: "unique",
+        name: "unique_project_status_name",
         transaction,
       });
 

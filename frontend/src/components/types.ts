@@ -1,5 +1,4 @@
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
-export type Status = "TODO" | "IN_PROGRESS" | "DONE";
 
 export interface Task {
   id: string;
@@ -9,7 +8,8 @@ export interface Task {
   priority: Priority;
   dueDate?: Date | string | null;
   estimatedTime?: number | null;
-  statusId: string;
+  statusId: string | null;
+  statusName: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +36,6 @@ export interface Statuss {
   name: string;
   position: number;
   isDefault: boolean | undefined;
-  mappedStatus?: Status | null;
 }
 
 export interface TimeEntry {
@@ -61,9 +60,3 @@ export interface HistoryEntry {
     email: string;
   };
 }
-
-export const columns: { key: Status; label: string }[] = [
-  { key: "TODO", label: "To do" },
-  { key: "IN_PROGRESS", label: "In progress" },
-  { key: "DONE", label: "Done" },
-];

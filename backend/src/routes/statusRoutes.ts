@@ -187,7 +187,7 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch("/:projectId/:statusId", update as unknown as RequestHandler);
+router.patch("/:projectId/:id", update as unknown as RequestHandler);
 
 /**
  * @openapi
