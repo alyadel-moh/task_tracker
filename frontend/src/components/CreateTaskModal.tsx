@@ -61,7 +61,7 @@ const formatStatusName = (name: string): string => {
 
 interface CustomDropdownProps {
   options: { id: string; name: string }[];
-  value: string;
+  value: string | string[] | undefined;
   onChange: (value: string) => void;
   icon?: React.ReactNode;
   placeholder?: string;

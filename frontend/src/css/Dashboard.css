@@ -701,7 +701,7 @@
 
 .column-header {
   display: flex;
-  align-items: center;
+  align-items: center !important;
   gap: 7px;
   margin-bottom: 12px;
   padding: 0 2px;
@@ -711,10 +711,20 @@
 }
 
 .column-count {
-  font-size: 12px;
-  font-weight: 400;
-  color: rgba(242, 241, 237, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(242, 241, 237, 0.6);
   margin-left: 2px;
+  box-sizing: border-box;
 }
 
 .status-dot {
@@ -746,7 +756,7 @@
   user-select: none;
   pointer-events: none;
 }
-. .add-column-drop-zone {
+.add-column-drop-zone {
   border: none !important;
   background: transparent !important;
   padding: 0 !important;
@@ -1591,22 +1601,46 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .board::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
-/* ---------- COLUMN HEADERS (PILL BADGES & ALIGNMENT) ---------- */
+/* ==========================================================================
+   Column Header & Layout Alignment
+   ========================================================================== */
 
-.column-header {
+.column-header,
+.column-header-desktop {
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 8px !important;
+  justify-content: space-between !important;
+  width: 100%;
+  position: relative;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
   margin-bottom: 12px !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: #f2f1ed !important;
-  letter-spacing: -0.01em;
+  padding: 0 2px;
+  cursor: grab;
   user-select: none;
+  box-sizing: border-box;
 }
 
-/* Status Indicator Dot */
+.column-header:active,
+.column-header-desktop:active {
+  cursor: grabbing;
+}
+
+/* Left Section: Dot + Name + Counter */
+.column-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+}
+
+/* ==========================================================================
+   Status Indicator Dots
+   ========================================================================== */
+
 .status-dot {
   width: 7px;
   height: 7px;
@@ -1614,28 +1648,90 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   flex-shrink: 0;
 }
 
-.status-dot-todo {
+.status-dot-todo,
+.status-dot-TODO {
   background-color: #94a3b8;
   box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
 }
 
-.status-dot-in_progress {
+.status-dot-in_progress,
+.status-dot-in-progress,
+.status-dot-IN_PROGRESS {
   background-color: #a78bfa;
-
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
 }
 
-.status-dot-done {
+.status-dot-done,
+.status-dot-DONE {
   background-color: #34d399;
   box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
 }
 
-.status-dot-default {
+.status-dot-default,
+.status-dot-DEFAULT {
   background-color: #38bdf8;
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
 }
 
-/* Modern Pill Count Badge */
+/* ==========================================================================
+   Column Name & Inline Editable Display (Precise Height & Grey Shade)
+   ========================================================================== */
+
+.column-title-inline-wrapper {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center !important;
+}
+
+.column-name-clickable,
+.column-name-static,
+.column-title-inline-wrapper .inline-field-display,
+.column-title-inline-wrapper .inline-field-trigger,
+.column-title-inline-wrapper button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  line-height: 1 !important;
+  padding: 0 6px !important;
+  margin: 0 !important;
+  border-radius: 4px;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #f3f4f6 !important;
+  background: transparent !important;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  box-sizing: border-box !important;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.column-name-static {
+  cursor: grab !important;
+}
+
+/* Subtle bounded grey hover shade */
+.column-name-clickable:hover,
+.column-title-inline-wrapper .inline-field-display:hover,
+.column-title-inline-wrapper .inline-field-trigger:hover,
+.column-title-inline-wrapper button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   Modern Pill Count Badge
+   ========================================================================== */
+
 .column-count {
   display: inline-flex !important;
   align-items: center !important;
@@ -1649,148 +1745,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   color: rgba(242, 241, 237, 0.65) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
+  line-height: 1 !important;
   margin-left: 2px !important;
-}
-/* Invisible Placeholder for Add Column Alignment */
-.add-column-header-spacer {
-  visibility: hidden !important;
-  pointer-events: none !important;
-  user-select: none !important;
-  height: 20px !important;
-  margin-bottom: 12px !important;
+  box-sizing: border-box !important;
 }
 
-/* Column Header Container */
-.column-header-desktop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  position: relative;
-}
+/* ==========================================================================
+   Column Title Inline Editor (Active Input Mode)
+   ========================================================================== */
 
-/* Left Section: Dot + Name + Counter */
-.column-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Column Delete Button */
-.column-delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  opacity: 0;
-  pointer-events: none;
-  margin-left: auto;
-  transition:
-    opacity 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease,
-    transform 0.1s ease;
-}
-
-/* Reveal ONLY when hovering directly on the header line */
-.column-header-desktop:hover .column-delete-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.column-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-}
-
-.column-delete-btn:active {
-  transform: scale(0.95);
-}
-
-.column-delete-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.column-title-inline-wrapper {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: text;
-}
-
-.column-title-inline-wrapper .inline-field-display {
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background-color 0.15s ease;
-}
-
-.column-title-inline-wrapper .inline-field-display:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-.column-title-inline-wrapper .inline-field-input {
-  font-size: 13px;
-  font-weight: 600;
-  padding: 2px 6px;
-  height: 26px;
-}
-/* Column Header Container */
-.column-header-desktop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  position: relative;
-  min-height: 28px;
-  cursor: grab;
-}
-
-/* Left Section: Dot + Name + Counter */
-.column-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
-
-/* Column Name (Static / Clickable Display) */
-.column-name-clickable,
-.column-title-inline-wrapper .inline-field-display {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.column-name-clickable:hover,
-.column-title-inline-wrapper .inline-field-display:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-/* Column Title Inline Editor (Active Mode) */
 .column-inline-field-editor,
 .column-title-inline-wrapper .inline-field-editor {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex !important;
+  align-items: center !important;
   gap: 4px;
 }
 
@@ -1798,8 +1765,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .column-title-inline-wrapper .inline-field-input {
   font-size: 13px;
   font-weight: 600;
-  padding: 2px 6px;
-  height: 26px;
+  padding: 0 6px;
+  height: 24px;
   max-width: 140px;
   background: #1e1f23;
   color: #fff;
@@ -1817,7 +1784,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
 }
 
-/* Actions inside the title editor */
+/* ==========================================================================
+   Editor Actions: Save (Check) & Cancel (X)
+   ========================================================================== */
+
 .column-inline-field-editor .inline-field-actions,
 .column-title-inline-wrapper .inline-field-actions {
   display: inline-flex;
@@ -1825,7 +1795,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   gap: 4px;
 }
 
-/* Check & Cancel Action Buttons */
 .column-title-inline-wrapper .inline-field-action,
 .column-inline-field-editor .inline-field-action {
   display: inline-flex;
@@ -1847,7 +1816,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   transform: scale(0.95);
 }
 
-/* Save (Check) Button - Dark Green Theme */
 .column-title-inline-wrapper .inline-field-save,
 .column-inline-field-editor .inline-field-save {
   background: #14532d;
@@ -1860,7 +1828,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   color: #86efac;
 }
 
-/* Cancel (X) Button - Dark Neutral Theme */
 .column-title-inline-wrapper .inline-field-cancel,
 .column-inline-field-editor .inline-field-cancel {
   background: #27272a;
@@ -1873,7 +1840,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   color: #ffffff;
 }
 
-/* Delete Button on the far right */
+/* ==========================================================================
+   Column Delete Button
+   ========================================================================== */
+
 .column-delete-btn {
   display: flex;
   align-items: center;
@@ -1894,7 +1864,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     transform 0.1s ease;
 }
 
-/* Reveal delete button only when hovering over the column header */
+.column-header:hover .column-delete-btn,
 .column-header-desktop:hover .column-delete-btn {
   opacity: 1;
   pointer-events: auto;
@@ -1914,6 +1884,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   cursor: not-allowed;
 }
 
+/* ==========================================================================
+   Add Column Spacer (Matches 28px header height & 12px margin exactly)
+   ========================================================================== */
+
+.add-column-header-spacer {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+}
 .column-name-static {
   font-weight: 600;
   font-size: 14px;
@@ -1921,4 +1904,73 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   padding: 2px 6px;
   user-select: none;
   cursor: grab;
+}
+/* Scoped Check & Cancel Buttons for Column Header Inline Editor */
+.column-title-inline-wrapper .inline-field-editor button,
+.column-header-desktop .inline-field-editor button,
+.column-header-desktop .inline-field-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #9ca3af !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Save / Check button inside column header */
+.column-title-inline-wrapper .inline-field-editor button:first-of-type,
+.column-header-desktop .inline-field-editor button:first-of-type,
+.column-header-desktop .inline-field-save {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.column-title-inline-wrapper .inline-field-editor button:first-of-type:hover,
+.column-header-desktop .inline-field-editor button:first-of-type:hover,
+.column-header-desktop .inline-field-save:hover {
+  background: rgba(34, 197, 94, 0.28) !important;
+  color: #4ade80 !important;
+  border-color: #22c55e !important;
+}
+
+/* Cancel / X button inside column header */
+.column-title-inline-wrapper .inline-field-editor button:last-of-type:hover,
+.column-header-desktop .inline-field-editor button:last-of-type:hover,
+.column-header-desktop .inline-field-cancel:hover {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Ensure SVG strokes inherit the green/red colors */
+.column-title-inline-wrapper .inline-field-editor button svg,
+.column-header-desktop .inline-field-editor button svg {
+  stroke: currentColor !important;
+  width: 13px !important;
+  height: 13px !important;
+}
+/* Ensure column title is completely transparent by default */
+.column-title-inline-wrapper,
+.column-title-inline-wrapper .inline-field-display,
+.column-title-inline-wrapper .inline-field-trigger,
+.column-title-inline-wrapper button,
+.column-name-clickable {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Show the subtle grey background ONLY when hovered */
+.column-title-inline-wrapper .inline-field-display:hover,
+.column-title-inline-wrapper .inline-field-trigger:hover,
+.column-title-inline-wrapper button:hover,
+.column-name-clickable:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }

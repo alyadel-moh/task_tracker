@@ -3,11 +3,7 @@ import { Op, WhereOptions } from "sequelize";
 import { AuthRequest } from "../types/AuthRequest";
 import { Task, Project, User, TaskHistory, TimeEntry, Status } from "../models";
 import { TaskPriority } from "../models/task";
-import {
-  recordTaskCreated,
-  recordTaskUpdated,
-  recordTaskDeleted,
-} from "../services/taskHistory";
+import { recordTaskCreated, recordTaskUpdated } from "../services/taskHistory";
 interface CreateTaskBody {
   name: string;
   description?: string;
@@ -264,7 +260,7 @@ async function getAll(
       whereClause.dueDate = {
         [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: new Date() }],
       };
-      statusConditions.push({ mappedStatus: { [Op.ne]: "DONE" } });
+      statusConditions.push({ name: { [Op.ne]: "DONE" } });
     }
     const hasStatusFilters = statusConditions.length > 0;
     const includeOptions = [
