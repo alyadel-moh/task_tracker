@@ -63,62 +63,29 @@ export default {
         transaction,
       });
 
-      await queryInterface.addColumn(
-        "tasks",
-        "status_id",
-        {
-          type: DataTypes.UUID,
-          allowNull: true,
-          references: {
-            model: "statuses",
-            key: "id",
-          },
-          onDelete: "RESTRICT",
-          onUpdate: "CASCADE",
-        },
-        { transaction },
-      );
-
       const [projects] = (await queryInterface.sequelize.query(
         `SELECT id FROM "projects";`,
         { transaction },
       )) as [Array<{ id: string }>, unknown];
 
       const defaultStatuses = [
-        { name: "TODO", position: 0, isDefault: true, mappedStatus: "TODO" },
-        {
-          name: "IN_PROGRESS",
-          position: 1,
-          isDefault: true,
-          mappedStatus: "IN_PROGRESS",
-        },
-        { name: "DONE", position: 2, isDefault: true, mappedStatus: "DONE" },
+        { name: "TODO", position: 0, isDefault: true },
+        { name: "IN_PROGRESS", position: 1, isDefault: true },
+        { name: "DONE", position: 2, isDefault: true },
       ];
 
       for (const project of projects) {
         for (const status of defaultStatuses) {
-          const [inserted] = (await queryInterface.sequelize.query(
-            `INSERT INTO "statuses" ("id", "project_id", "name", "position", "isDefault", "mappedStatus", "created_at", "updated_at")
-             VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, NOW(), NOW())
-             RETURNING "id";`,
+          await queryInterface.sequelize.query(
+            `INSERT INTO "statuses" ("id", "project_id", "name", "position", "is_default", "created_at", "updated_at")
+             VALUES (gen_random_uuid(), ?, ?, ?, ?, NOW(), NOW());`,
             {
               replacements: [
                 project.id,
                 status.name,
                 status.position,
                 status.isDefault,
-                status.mappedStatus,
               ],
-              transaction,
-            },
-          )) as [Array<{ id: string }>, unknown];
-
-          const statusId = inserted[0].id;
-
-          await queryInterface.sequelize.query(
-            `UPDATE "tasks" SET "status_id" = ? WHERE "project_id" = ? AND "status" = ?;`,
-            {
-              replacements: [statusId, project.id, status.mappedStatus],
               transaction,
             },
           );
@@ -135,14 +102,7 @@ export default {
   async down(queryInterface: QueryInterface): Promise<void> {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.removeColumn("tasks", "status_id", { transaction });
       await queryInterface.dropTable("statuses", { transaction });
-      if (queryInterface.sequelize.getDialect() === "postgres") {
-        await queryInterface.sequelize.query(
-          'DROP TYPE IF EXISTS "enum_statuses_mappedStatus";',
-          { transaction },
-        );
-      }
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();

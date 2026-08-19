@@ -62,7 +62,7 @@ services:
         # "backend:3000". The browser running this JS has no idea what
         # Docker's internal network even is; it only knows about ports
         # actually published to your machine.
-        VITE_API_URL: http://localhost:3000
+        VITE_API_BASE_URL: http://localhost:3000/api/
     restart: unless-stopped
     ports:
       - "5173:80"
