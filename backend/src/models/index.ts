@@ -1,7 +1,9 @@
 import { Sequelize } from "sequelize";
 import configObject from "../config/config";
 
-const config = configObject.development;
+const env = (process.env.NODE_ENV ||
+  "development") as keyof typeof configObject;
+const config = configObject[env] || configObject.development;
 
 export const sequelize = new Sequelize(
   config.database || "",

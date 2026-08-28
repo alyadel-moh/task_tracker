@@ -23,7 +23,15 @@ const config = {
     ...dbConfig,
     database: process.env.DB_NAME || "task_tracker_test",
   },
-  production: dbConfig,
+  production: {
+    ...dbConfig,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  },
 };
 
 export = config;
