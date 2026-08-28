@@ -5,7 +5,9 @@ import {
   type DragEndEvent,
   type DragStartEvent,
   type DragOverEvent,
+  closestCorners,
 } from "@dnd-kit/core";
+
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -37,7 +39,6 @@ import useGetAssignedProjects from "../hooks/getProjectsHook";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
 import useLogout from "../hooks/logoutHook";
-
 interface DashboardBoardProps {
   draggingTask: Task | null;
   draggingColumn?: Statuss | null;
@@ -53,23 +54,6 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: "MEDIUM", label: "Medium" },
   { value: "HIGH", label: "High" },
 ];
-
-const DEFAULT_STATUS_MAP: Record<string, string> = {
-  TODO: "To Do",
-  IN_PROGRESS: "In Progress",
-  DONE: "Done",
-};
-
-const formatStatusName = (rawName?: string): string => {
-  if (rawName && typeof rawName === "string" && rawName.trim()) {
-    const trimmed = rawName.trim();
-    if (DEFAULT_STATUS_MAP[trimmed.toUpperCase()]) {
-      return DEFAULT_STATUS_MAP[trimmed.toUpperCase()];
-    }
-    return trimmed;
-  }
-  return "Untitled Column";
-};
 
 // Unified Status Color System
 export const getStatusColorKey = (
@@ -175,17 +159,10 @@ const DashboardBoard = ({
   }, [rawProjects, activeProject?.id]);
 
   const columns: Statuss[] = useMemo(() => {
-    if (!Array.isArray(statuses) || statuses.length === 0) {
-      return [];
-    }
-    return statuses
-      .filter((col): col is Statuss =>
-        Boolean(col && typeof col === "object" && col.id),
-      )
-      .map((col) => ({
-        ...col,
-        name: formatStatusName(col.name),
-      }));
+    if (!Array.isArray(statuses) || statuses.length === 0) return [];
+    return statuses.filter((col): col is Statuss =>
+      Boolean(col && typeof col === "object" && col.id),
+    );
   }, [statuses]);
 
   useEffect(() => {
@@ -265,7 +242,7 @@ const DashboardBoard = ({
     value: string,
   ) => {
     if (!activeProject) return;
-
+    setActiveProject({ ...activeProject, [field]: value });
     updateProjectMutation.mutate(
       { [field]: value },
       {
@@ -315,6 +292,7 @@ const DashboardBoard = ({
     <DndContext
       sensors={sensors}
       onDragStart={onDragStart}
+      collisionDetection={closestCorners}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
     >

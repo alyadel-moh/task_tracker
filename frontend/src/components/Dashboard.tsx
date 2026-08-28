@@ -103,18 +103,22 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!fetchedStatuses || !Array.isArray(fetchedStatuses)) {
-      setStatuses([]);
+      if (!projectId) setStatuses([]);
       return;
     }
-    setStatuses(
-      [...fetchedStatuses]
-        .map((status: Statuss) => ({
-          ...status,
-          name: formatStatusName(status.name),
-        }))
-        .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0)),
-    );
-  }, [fetchedStatuses, setStatuses]);
+
+    // Only seed the store if it hasn't been loaded yet for this project
+    if (statuses?.length === 0) {
+      setStatuses(
+        [...fetchedStatuses]
+          .map((status: Statuss) => ({
+            ...status,
+            name: formatStatusName(status.name),
+          }))
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0)),
+      );
+    }
+  }, [fetchedStatuses, projectId, setStatuses, statuses?.length]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -169,22 +173,35 @@ const Dashboard = () => {
       const overId = String(over.id);
 
       if (activeId !== overId && overId.startsWith("col-")) {
-        const oldIndex = statuses?.findIndex((c) => `col-${c.id}` === activeId);
-        const newIndex = statuses?.findIndex((c) => `col-${c.id}` === overId);
+        const rawActiveId = activeId.replace(/^col-/, "");
+        const rawOverId = overId.replace(/^col-/, "");
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const previousStatuses = [...statuses!];
-          const updated = arrayMove(statuses!, oldIndex!, newIndex!);
-          setStatuses(updated);
+        const oldIndex =
+          statuses?.findIndex((c) => String(c.id) === rawActiveId) ?? -1;
+        const newIndex =
+          statuses?.findIndex((c) => String(c.id) === rawOverId) ?? -1;
 
-          const draggedColId = activeId.replace(/^col-/, "");
-          const draggedCol = statuses?.find((c) => c.id === draggedColId);
+        if (oldIndex !== -1 && newIndex !== -1 && statuses) {
+          const previousStatuses = [...statuses];
+
+          // Move item in array and recalculate position for each item
+          const reordered = arrayMove(statuses, oldIndex, newIndex).map(
+            (col, index) => ({
+              ...col,
+              position: index,
+            }),
+          );
+
+          // Immediately update local store to reflect visual position
+          setStatuses(reordered);
+
+          const draggedCol = statuses[oldIndex];
           const formattedName = formatStatusName(draggedCol?.name);
 
           updateStatusMutation.mutate(
             {
               status: {
-                id: draggedColId,
+                id: rawActiveId,
                 position: newIndex,
               },
             },
@@ -202,7 +219,6 @@ const Dashboard = () => {
       }
       return;
     }
-
     // 2. Task Card Drag & Drop
     const task = draggingTask;
     setDraggingTask(null);
