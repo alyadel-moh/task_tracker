@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,10 @@ import {
   Plus,
   History,
   Save,
+  User as UserIcon,
+  Users,
+  Check,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "../components/InlineEditField";
@@ -24,10 +28,10 @@ import useGetTimeEntries from "../hooks/getAlltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimeEntry";
 import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
-import useGetStatuses from "../hooks/getAllStatusesHook";
+import useGetProjectMembers from "../hooks/getAllprojectMembers";
 import "../css/TaskDetailsPage.css";
-import { Priority } from "./types";
-
+import { Priority, ProjectMember } from "./types";
+import { useAppStore } from "../store/useAppStore";
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
@@ -101,6 +105,16 @@ const formatForDateInput = (value: string | Date | null): string => {
   return `${year}-${month}-${day}`;
 };
 
+const getInitials = (name?: string | null): string => {
+  if (!name) return "U";
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
 interface EntryFormState {
   durationMinutes: string;
   entryDate: string;
@@ -110,6 +124,7 @@ interface EntryFormState {
 const TaskDetailsPage = () => {
   const navigate = useNavigate();
   const [savingTask, setSavingTask] = useState(false);
+  const { user, statuses } = useAppStore();
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [newDuration, setNewDuration] = useState("");
@@ -117,8 +132,11 @@ const TaskDetailsPage = () => {
     new Date().toISOString().split("T")[0],
   );
   const [newNote, setNewNote] = useState("");
-  const [overrun, setoverrun] = useState(false);
+  const [overrun, setOverrun] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
 
   const [taskDraft, setTaskDraft] = useState({
     name: "",
@@ -141,8 +159,8 @@ const TaskDetailsPage = () => {
   const { data: task, isLoading: taskLoading } = useGetTask(projectId, taskId);
   const { data: timeEntriesData, isLoading: entriesLoading } =
     useGetTimeEntries(taskId);
-  const { data: statusesData = [], isLoading: statusesLoading } =
-    useGetStatuses(projectId);
+
+  const { data: projectMembers = [] } = useGetProjectMembers(projectId);
 
   const updateTaskMutation = useUpdateTask(projectId);
   const createEntryMutation = useCreateTimeEntry(taskId);
@@ -151,14 +169,36 @@ const TaskDetailsPage = () => {
 
   const entries = timeEntriesData?.timeEntries || [];
   const totalMinutes = timeEntriesData?.totalMinutes || 0;
+  const isTaskCreator = Boolean(task?.creator?.id === user?.id);
+  const isTaskAssignee = (task?.assignees || []).some(
+    (a: any) => (a.id || a.userId) === user?.id,
+  );
+  const canManageAssignees = isTaskCreator || isTaskAssignee;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        assigneeDropdownRef.current &&
+        !assigneeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowAssigneeDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  useEffect(() => {
+    if (task?.estimatedTime && totalMinutes > task.estimatedTime) {
+      setOverrun(true);
+    }
+  }, [task?.estimatedTime, totalMinutes]);
 
   const statusOptions = useMemo(() => {
-    return statusesData.map((s: any) => ({
+    return statuses?.map((s: any) => ({
       value: s.id,
       label: formatStatusLabel(s.name),
       name: s.name,
     }));
-  }, [statusesData]);
+  }, [statuses]);
 
   const isTaskDirty = useMemo(() => {
     if (!task) return false;
@@ -174,7 +214,7 @@ const TaskDetailsPage = () => {
   }, [taskDraft, task]);
 
   const currentStatusLabel = useMemo(() => {
-    const matched = statusOptions.find(
+    const matched = statusOptions?.find(
       (opt) => opt.value === taskDraft.statusId,
     );
     return matched
@@ -188,6 +228,10 @@ const TaskDetailsPage = () => {
     taskDraft.statusName,
     task?.statusName,
   ]);
+
+  const assignableMembers = useMemo(() => {
+    return projectMembers.filter((m: any) => m.user?.id !== task?.creator?.id);
+  }, [projectMembers, task?.creator?.id]);
 
   useEffect(() => {
     if (task) {
@@ -218,7 +262,7 @@ const TaskDetailsPage = () => {
     }
   }, [timeEntriesData]);
 
-  if (!task && (taskLoading || entriesLoading || statusesLoading)) {
+  if (!task && (taskLoading || entriesLoading)) {
     return (
       <div className="task-page-loading">
         <Loader2 size={24} className="spin" />
@@ -268,7 +312,7 @@ const TaskDetailsPage = () => {
   };
 
   const handleStatusChange = (selectedStatusId: string) => {
-    const matchedStatus = statusOptions.find(
+    const matchedStatus = statusOptions?.find(
       (opt) => opt.value === selectedStatusId,
     );
     setTaskDraft((prev) => ({
@@ -303,7 +347,7 @@ const TaskDetailsPage = () => {
       {
         onSuccess: (res: any) => {
           const backendMessage = res?.message || res?.data?.message;
-          setoverrun(res?.overrun || false);
+          setOverrun(res?.overrun || false);
           toast.success(backendMessage || "Task changes saved successfully", {
             id: "task-save",
           });
@@ -315,6 +359,39 @@ const TaskDetailsPage = () => {
             { id: "task-save" },
           );
           setSavingTask(false);
+        },
+      },
+    );
+  };
+
+  const handleToggleAssignee = (member: ProjectMember) => {
+    const currentAssigneeIds = (task.assignees || []).map((a: any) => a.id);
+    const isAlreadyAssigned = currentAssigneeIds.includes(member.user.id);
+
+    const updatedAssigneeIds = isAlreadyAssigned
+      ? currentAssigneeIds.filter((id: string) => id !== member.user.id)
+      : [...currentAssigneeIds, member.user.id];
+
+    updateTaskMutation.mutate(
+      {
+        id: task.id,
+        assigneeIds: updatedAssigneeIds,
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            isAlreadyAssigned
+              ? `Removed ${member.user.name}`
+              : `Assigned ${member.user.name}`,
+            { id: "assignee-toggle" },
+          );
+          setShowAssigneeDropdown(false);
+        },
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to update assignee",
+            { id: "assignee-toggle" },
+          );
         },
       },
     );
@@ -338,7 +415,7 @@ const TaskDetailsPage = () => {
         onSuccess: (res) => {
           const backendMessage = res?.message || null;
           toast.success(backendMessage);
-          setoverrun(res.overrun || false);
+          setOverrun(res.overrun || false);
           setNewDuration("");
           setNewNote("");
           setShowAddEntry(false);
@@ -380,8 +457,8 @@ const TaskDetailsPage = () => {
     updateEntryMutation.mutate(payload, {
       onSuccess: (res: any) => {
         const backendMessage = res?.message || res?.data?.message;
-        const overrun = res?.overrun ?? false;
-        setoverrun(overrun);
+        const overrunResult = res?.overrun ?? false;
+        setOverrun(overrunResult);
         toast.success(backendMessage || "Entry updated successfully", {
           id: "entry-save",
         });
@@ -403,7 +480,6 @@ const TaskDetailsPage = () => {
         toast.error(err?.response?.data?.message || "Failed to delete entry"),
     });
   };
-
   return (
     <div className="task-page">
       <div className="task-page-container">
@@ -426,6 +502,153 @@ const TaskDetailsPage = () => {
             <History size={16} />
             <span>View history</span>
           </button>
+        </div>
+
+        {/* Top Section: Compact Creator & Assignees */}
+        <div className="task-people-section">
+          {/* Creator Card */}
+          <div className="task-creator-card">
+            <div className="task-people-header">
+              <UserIcon size={13} className="people-header-icon" />
+              <span>Created by</span>
+            </div>
+            <div className="task-user-chip">
+              <div className="task-avatar-wrapper">
+                {task.creator?.photoUrl ? (
+                  <img
+                    src={task.creator.photoUrl}
+                    alt={task.creator.name || "Creator"}
+                    className="task-avatar-img"
+                  />
+                ) : (
+                  <div className="task-avatar-fallback">
+                    {getInitials(task.creator?.name)}
+                  </div>
+                )}
+              </div>
+              <div className="task-user-info">
+                <span className="task-user-name">
+                  {task.creator?.name || "Anonymous User"}
+                </span>
+                <span className="task-user-email">
+                  {task.creator?.email || "No email available"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignees Card with Add Dropdown */}
+          <div className="task-assignees-container">
+            <div className="task-people-header">
+              <div className="task-people-header-left">
+                <Users size={13} className="people-header-icon" />
+                <span>Assignees</span>
+                <span className="task-count-badge">
+                  {task.assignees?.length || 0}
+                </span>
+              </div>
+
+              <div
+                className="add-assignee-menu-wrapper"
+                ref={assigneeDropdownRef}
+              >
+                {canManageAssignees && (
+                  <button
+                    type="button"
+                    className="add-assignee-trigger-btn"
+                    onClick={() => setShowAssigneeDropdown((prev) => !prev)}
+                    aria-label="Manage assignees"
+                  >
+                    <UserCheck size={14} />
+                    <span>Manage Assignees</span>
+                  </button>
+                )}
+                {showAssigneeDropdown && (
+                  <div className="assignee-dropdown-menu">
+                    <div className="assignee-dropdown-list">
+                      {assignableMembers.length === 0 ? (
+                        <div className="assignee-dropdown-empty">
+                          No members found
+                        </div>
+                      ) : (
+                        assignableMembers.map((member: any) => {
+                          const isAssigned = task.assignees?.some(
+                            (a: any) => a.id === member.user?.id,
+                          );
+
+                          return (
+                            <button
+                              key={member.id}
+                              type="button"
+                              className={`assignee-dropdown-item ${
+                                isAssigned ? "is-assigned" : ""
+                              }`}
+                              onClick={() => handleToggleAssignee(member)}
+                            >
+                              <div className="task-avatar-wrapper small">
+                                {member.user?.photoUrl ? (
+                                  <img
+                                    src={member.user.photoUrl}
+                                    alt={member.user.name}
+                                    className="task-avatar-img"
+                                  />
+                                ) : (
+                                  <div className="task-avatar-fallback">
+                                    {getInitials(member.user?.name)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="assignee-dropdown-user-info">
+                                <span className="assignee-dropdown-name">
+                                  {member.user?.name}
+                                </span>
+                                <span className="assignee-dropdown-email">
+                                  {member.user?.email}
+                                </span>
+                              </div>
+                              {isAssigned && (
+                                <Check size={14} className="assigned-check" />
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="task-assignees-scroll">
+              {!task.assignees || task.assignees.length === 0 ? (
+                <div className="task-assignees-empty">
+                  No assignees assigned
+                </div>
+              ) : (
+                task.assignees.map((assignee: any) => (
+                  <div className="task-assignee-card" key={assignee.id}>
+                    <div className="task-avatar-wrapper">
+                      {assignee.photoUrl ? (
+                        <img
+                          src={assignee.photoUrl}
+                          alt={assignee.name}
+                          className="task-avatar-img"
+                        />
+                      ) : (
+                        <div className="task-avatar-fallback">
+                          {getInitials(assignee.name)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="task-user-info">
+                      <span className="task-user-name">{assignee.name}</span>
+                      <span className="task-user-email">{assignee.email}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 2-Column Split Wrapper */}
@@ -496,7 +719,8 @@ const TaskDetailsPage = () => {
                     value={taskDraft.statusId}
                     displayValue={
                       <span
-                        className={`task-badge badge-status badge-status-${taskDraft.statusName}`}
+                        className="task-badge badge-status"
+                        data-status={taskDraft.statusName || task?.statusName}
                       >
                         {currentStatusLabel}
                       </span>
@@ -608,6 +832,8 @@ const TaskDetailsPage = () => {
               )}
             </div>
           </div>
+
+          {/* Right Column: Time Entries */}
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -819,7 +1045,8 @@ const TaskDetailsPage = () => {
                       <button
                         type="button"
                         className="entry-delete-btn"
-                        title="Delete time entry"
+                        data-tooltip="delete time entry"
+                        data-tooltip-pos="left"
                         onClick={() => handleDeleteEntry(entry.id)}
                       >
                         <Trash2 size={16} />
@@ -840,4 +1067,5 @@ const TaskDetailsPage = () => {
     </div>
   );
 };
+
 export default TaskDetailsPage;

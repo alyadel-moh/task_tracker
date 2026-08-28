@@ -6,8 +6,6 @@ export interface StatusAttributes {
   name: string;
   position: number;
   isDefault: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export type StatusCreationAttributes = Optional<
@@ -23,9 +21,6 @@ export class Status
   declare public name: string;
   declare public position: number;
   declare public isDefault: boolean;
-
-  declare public readonly createdAt: Date;
-  declare public readonly updatedAt: Date;
 }
 
 export default (sequelize: Sequelize): typeof Status => {

@@ -17,6 +17,8 @@ interface InlineEditFieldProps {
   onSave: (newValue: string) => void;
   onCancel?: () => void;
   initialIsEditing?: boolean;
+  readOnly?: boolean;
+  disabled?: boolean;
 }
 
 interface CustomInlineSelectProps {
@@ -117,14 +119,25 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   onSave,
   onCancel,
   initialIsEditing,
+  readOnly = false,
+  disabled = false,
 }) => {
-  const [isEditing, setIsEditing] = useState(initialIsEditing);
+  const isLocked = readOnly || disabled;
+  const [isEditing, setIsEditing] = useState(
+    isLocked ? false : initialIsEditing,
+  );
   const [draftValue, setDraftValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setDraftValue(value);
   }, [value]);
+
+  useEffect(() => {
+    if (isLocked) {
+      setIsEditing(false);
+    }
+  }, [isLocked]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -143,7 +156,7 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
     onCancel?.();
   };
 
-  if (isEditing) {
+  if (isEditing && !isLocked) {
     return (
       <div className="inline-field-editor" style={{ overflow: "visible" }}>
         {type === "textarea" ? (
@@ -200,14 +213,25 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
 
   return (
     <div
-      className="inline-field-display"
-      onClick={() => setIsEditing(true)}
-      role="button"
-      tabIndex={0}
+      className={`inline-field-display ${isLocked ? "inline-field-disabled" : ""}`}
+      onClick={() => {
+        if (!isLocked) setIsEditing(true);
+      }}
+      role={isLocked ? "text" : "button"}
+      tabIndex={isLocked ? -1 : 0}
+      style={{ cursor: isLocked ? "default" : "pointer" }}
     >
       <div className="inline-field-value">
         {displayValue ||
-          (value ? value : <span className="placeholder">{placeholder}</span>)}
+          (value ? (
+            value
+          ) : isLocked ? (
+            <span className="inline-field-empty-readonly">
+              No description provided
+            </span>
+          ) : (
+            <span className="placeholder">{placeholder}</span>
+          ))}
       </div>
     </div>
   );

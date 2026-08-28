@@ -8,11 +8,13 @@ export interface GetTasksRequestParams {
   search?: string | null;
   statusId?: string[] | string | null;
   priority?: string[] | string | null;
+  assigneeId?: string | null;
   overdue?: boolean | null;
 }
 
 const useGetTasks = (params?: GetTasksRequestParams) => {
-  const { projectId, search, statusId, priority, overdue } = params ?? {};
+  const { projectId, search, statusId, priority, assigneeId, overdue } =
+    params ?? {};
 
   return useQuery<Task[], AxiosError>({
     queryKey: [
@@ -21,6 +23,7 @@ const useGetTasks = (params?: GetTasksRequestParams) => {
       search ?? "",
       statusId ?? [],
       priority ?? [],
+      assigneeId,
       overdue ?? false,
     ],
     queryFn: async () => {
@@ -30,6 +33,7 @@ const useGetTasks = (params?: GetTasksRequestParams) => {
           statusId,
           priority,
           overdue,
+          assigneeId,
         },
         paramsSerializer: (paramsToSerialize) => {
           const searchParams = new URLSearchParams();

@@ -65,8 +65,8 @@ const Signup = () => {
       signupMutation.mutate(
         { ...data, photoUrl },
         {
-          onSuccess: () => {
-            toast.success("Account created successfully!");
+          onSuccess: (data: any) => {
+            toast.success(data?.message || "Account created successfully!");
             reset();
             setPreviewUrl(null);
             setSelectedFile(null);
@@ -111,32 +111,72 @@ const Signup = () => {
         >
           {/* Profile Photo Field */}
           <div className="field photo-field">
-            <span className="field-label">Profile Photo (Optional)</span>
-            <div className="photo-upload-wrapper">
-              <div className="photo-preview">
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Avatar preview" />
-                ) : (
-                  <Camera size={24} className="camera-placeholder" />
+            <span className="field-label">
+              Profile Photo{" "}
+              <span className="field-label-optional">(optional)</span>
+            </span>
+
+            <div className="photo-upload-container">
+              <div className="photo-upload-wrapper">
+                <label
+                  htmlFor="photo-input"
+                  className="photo-preview-label"
+                  tabIndex={0}
+                >
+                  <div
+                    className={`photo-preview ${previewUrl ? "has-image" : ""}`}
+                  >
+                    {previewUrl ? (
+                      <img src={previewUrl} alt="Avatar preview" />
+                    ) : (
+                      <div className="photo-placeholder-content">
+                        <Camera size={26} className="camera-placeholder" />
+                      </div>
+                    )}
+
+                    <div className="photo-preview-overlay">
+                      <UploadCloud size={20} />
+                      <span>{previewUrl ? "Change" : "Upload"}</span>
+                    </div>
+                  </div>
+                </label>
+
+                {previewUrl && (
+                  <button
+                    type="button"
+                    className="photo-remove-btn"
+                    aria-label="Remove photo"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreviewUrl(null);
+                    }}
+                  >
+                    &times;
+                  </button>
                 )}
+
+                <input
+                  id="photo-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                  disabled={isPending}
+                />
               </div>
 
-              <label htmlFor="photo-input" className="photo-upload-btn">
-                <UploadCloud size={16} />
-                <span>{selectedFile ? "Change Photo" : "Upload Photo"}</span>
-              </label>
-
-              <input
-                id="photo-input"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-                disabled={isPending}
-              />
+              <div className="photo-upload-text">
+                <span className="photo-upload-title">
+                  {selectedFile
+                    ? selectedFile.name
+                    : "Click to upload an image"}
+                </span>
+                <span className="photo-upload-hint">
+                  PNG, JPG, or WEBP up to 5MB
+                </span>
+              </div>
             </div>
           </div>
-
           <label className="field">
             <span className="field-label">Name</span>
             <div className="input-with-icon">

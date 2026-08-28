@@ -1,10 +1,5 @@
 import { Router, RequestHandler } from "express";
-import {
-  create,
-  getAll,
-  update,
-  remove,
-} from "../controllers/projectController";
+import { create, update, remove } from "../controllers/projectController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -61,32 +56,6 @@ router.use(authenticate);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post("/create", create as unknown as RequestHandler);
-
-/**
- * @openapi
- * /api/projects:
- *   get:
- *     summary: Retrieve all projects owned by the authenticated user
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: A list of projects
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Project'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get("/", getAll as unknown as RequestHandler);
 
 /**
  * @openapi

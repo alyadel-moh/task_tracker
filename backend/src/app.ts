@@ -9,6 +9,7 @@ import taskRoutes from "./routes/taskRoutes";
 import timeEntryRoutes from "./routes/timeEntryRoutes";
 import historyRoutes from "./routes/historyRoutes";
 import statusRoutes from "./routes/statusRoutes";
+import projectMembersRoutes from "./routes/projectMembersRoutes";
 import errorHandler from "./middleware/errorHandler";
 import { sequelize } from "./models";
 import swaggerUi from "swagger-ui-express";
@@ -28,6 +29,7 @@ app.use("/api/tasks", taskRoutes); // use task routes
 app.use("/api/time-entries", timeEntryRoutes); // use time entry routes
 app.use("/api/task_history", historyRoutes); // use history routes
 app.use("/api/projects/statuses", statusRoutes); // use status routes
+app.use("/api/projects", projectMembersRoutes); // use project members routes
 
 app.use(errorHandler);
 

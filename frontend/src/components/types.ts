@@ -1,5 +1,6 @@
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
-
+export type MembershipStatus = "ACTIVE" | "PENDING";
+export type Role = "OWNER" | "MEMBER";
 export interface Task {
   id: string;
   name: string;
@@ -10,8 +11,10 @@ export interface Task {
   estimatedTime?: number | null;
   statusId: string | null;
   statusName: string;
+  creator: User;
   createdAt: string;
   updatedAt: string;
+  assignees: User[];
 }
 
 export interface Project {
@@ -59,4 +62,26 @@ export interface HistoryEntry {
     name: string;
     email: string;
   };
+}
+export interface AssignedProjectMembership {
+  id: string;
+  role: Role;
+  project: Project;
+}
+export interface pendingProjectMembership {
+  id: string;
+  role: Role;
+  project: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  role: Role;
+  membershipStatus: MembershipStatus;
+  createdAt: string;
+  user: User;
 }

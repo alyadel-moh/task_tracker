@@ -27,42 +27,25 @@ import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
 import SortableColumn from "./SortableColumn";
 import AddColumnInline from "./AddColumnInline";
-import {
-  type Project,
-  type Task,
-  type Priority,
-  type Statuss,
-  User,
-} from "./types";
+import MemberFilterGroup from "./MemberFilterGroup";
+import { type Task, type Priority, type Statuss } from "./types";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
 import useGetTasks from "../hooks/getAllTasksHook";
+import useGetProjectMembers from "../hooks/getAllprojectMembers";
+import useGetAssignedProjects from "../hooks/getProjectsHook";
+import { useAppStore } from "../store/useAppStore";
+import { useNavigate } from "react-router-dom";
+import useLogout from "../hooks/logoutHook";
 
 interface DashboardBoardProps {
-  activeProject: Project | null;
-  tasks: Task[];
-  statuses: Statuss[];
-  activeTab: string;
-  onSelectTab: (statusId: string) => void;
   draggingTask: Task | null;
   draggingColumn?: Statuss | null;
   overColumnStatus?: string | null;
   onDragStart: (event: DragStartEvent) => void;
   onDragOver?: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  isProjectMenuOpen: boolean;
-  onToggleProjectMenu: () => void;
-  isUserMenuOpen: boolean;
-  onToggleUserMenu: () => void;
-  onOpenUserProfileModal: () => void;
-  projects: Project[];
-  activeProjectId: string | null;
-  onSelectProject: (projectId: string) => void;
-  onCreateProject: () => void;
-  onCreateTask: () => void;
-  onLogout: () => void;
   sensors: any;
-  user: User | null;
 }
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
@@ -80,12 +63,28 @@ const DEFAULT_STATUS_MAP: Record<string, string> = {
 const formatStatusName = (rawName?: string): string => {
   if (rawName && typeof rawName === "string" && rawName.trim()) {
     const trimmed = rawName.trim();
-    if (DEFAULT_STATUS_MAP[trimmed]) {
-      return DEFAULT_STATUS_MAP[trimmed];
+    if (DEFAULT_STATUS_MAP[trimmed.toUpperCase()]) {
+      return DEFAULT_STATUS_MAP[trimmed.toUpperCase()];
     }
     return trimmed;
   }
   return "Untitled Column";
+};
+
+// Unified Status Color System
+export const getStatusColorKey = (
+  name?: string,
+): "todo" | "in-progress" | "done" | "custom" => {
+  if (!name) return "custom";
+  const normalized = name
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
+  if (normalized === "todo" || normalized === "to-do") return "todo";
+  if (normalized === "inprogress" || normalized === "in-progress")
+    return "in-progress";
+  if (normalized === "done") return "done";
+  return "custom";
 };
 
 const formatDate = (dateString?: string) => {
@@ -102,11 +101,6 @@ const formatDate = (dateString?: string) => {
 };
 
 const DashboardBoard = ({
-  activeProject,
-  tasks: initialTasks,
-  statuses,
-  activeTab,
-  onSelectTab,
   draggingTask,
   draggingColumn,
   overColumnStatus,
@@ -114,20 +108,71 @@ const DashboardBoard = ({
   onDragOver,
   sensors,
   onDragEnd,
-  isProjectMenuOpen,
-  onToggleProjectMenu,
-  isUserMenuOpen,
-  onToggleUserMenu,
-  onOpenUserProfileModal,
-  onCreateTask,
-  projects,
-  activeProjectId,
-  onSelectProject,
-  onCreateProject,
-  user,
-  onLogout,
 }: DashboardBoardProps) => {
+  const {
+    user,
+    setUser,
+    setActiveTab,
+    activeTab,
+    activeProject,
+    setActiveProject,
+    setCreateTaskOpen,
+    setCreateProjectOpen,
+    setUserProfileModalOpen,
+    tasks,
+    setTasks,
+    statuses,
+  } = useAppStore();
+  const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Filters State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
+  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(
+    null,
+  );
+
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
+  const { data: rawProjects = [] } = useGetAssignedProjects();
+  const { data: projectMembersData = [] } = useGetProjectMembers(
+    activeProject?.id ?? "",
+  );
+  const logoutMutation = useLogout();
+
+  // Tasks Query with dynamic filtering
+  const { data: fetchedTasks } = useGetTasks({
+    projectId: activeProject?.id,
+    search: searchQuery,
+    statusId: selectedStatuses,
+    priority: selectedPriorities,
+    overdue: overdueOnly,
+    assigneeId: selectedAssigneeId ?? undefined,
+  });
+
+  useEffect(() => {
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks, setTasks]);
+
+  const projects = useMemo(
+    () => (Array.isArray(rawProjects) ? rawProjects : []),
+    [rawProjects],
+  );
+
+  const isCurrentUserOwner = useMemo(() => {
+    if (!activeProject?.id) return false;
+    const projectList = Array.isArray(rawProjects) ? rawProjects : [];
+    const match = projectList.find((p: any) => {
+      const projId = p?.project?.id || p?.id;
+      return projId === activeProject.id;
+    });
+    return match?.role === "OWNER";
+  }, [rawProjects, activeProject?.id]);
 
   const columns: Statuss[] = useMemo(() => {
     if (!Array.isArray(statuses) || statuses.length === 0) {
@@ -148,24 +193,20 @@ const DashboardBoard = ({
       columns.length > 0 &&
       (!activeTab || !columns.some((c) => c.id === activeTab))
     ) {
-      onSelectTab(columns[0].id);
+      setActiveTab(columns[0].id);
     }
-  }, [columns, activeTab, onSelectTab]);
+  }, [columns, activeTab, setActiveTab]);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
-  const [overdueOnly, setOverdueOnly] = useState(false);
-
-  const { data: fetchedTasks } = useGetTasks({
-    projectId: activeProject?.id,
-    search: searchQuery,
-    statusId: selectedStatuses,
-    priority: selectedPriorities,
-    overdue: overdueOnly,
-  });
-
-  const tasks = fetchedTasks ?? initialTasks;
+  const memberList = useMemo(() => {
+    return (Array.isArray(projectMembersData) ? projectMembersData : []).map(
+      (m: any) => ({
+        id: m.user?.id,
+        name: m.user?.name,
+        email: m.user?.email,
+        photoUrl: m.user?.photoUrl,
+      }),
+    );
+  }, [projectMembersData]);
 
   const createdDateFormatted = formatDate(activeProject?.createdAt);
   const updatedDateFormatted = formatDate(activeProject?.updatedAt);
@@ -209,13 +250,15 @@ const DashboardBoard = ({
     setSelectedStatuses([]);
     setSelectedPriorities([]);
     setOverdueOnly(false);
+    setSelectedAssigneeId(null);
   };
 
   const isFilteredActive =
     searchQuery !== "" ||
     selectedStatuses.length > 0 ||
     selectedPriorities.length > 0 ||
-    overdueOnly;
+    overdueOnly ||
+    selectedAssigneeId !== null;
 
   const handleSaveProjectField = (
     field: "name" | "description",
@@ -223,19 +266,22 @@ const DashboardBoard = ({
   ) => {
     if (!activeProject) return;
 
-    const payload = { [field]: value };
-
-    updateProjectMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success(`Project ${field} updated successfully!`);
+    updateProjectMutation.mutate(
+      { [field]: value },
+      {
+        onSuccess: (data: any) => {
+          toast.success(
+            data?.message || `Project ${field} updated successfully!`,
+          );
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to update project. Please try again.";
+          toast.error(apiError);
+        },
       },
-      onError: (error: any) => {
-        const apiError =
-          error?.response?.data?.message ??
-          "Failed to update project. Please try again.";
-        toast.error(apiError);
-      },
-    });
+    );
   };
 
   const columnSortableIds = useMemo(
@@ -243,8 +289,27 @@ const DashboardBoard = ({
     [columns],
   );
 
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        setUser(null);
+        toast.success("Logged out successfully");
+        navigate("/login", { replace: true });
+      },
+      onError: () => {
+        setUser(null);
+        navigate("/login", { replace: true });
+      },
+    });
+  };
+
   const draggingTaskStatusId =
     draggingTask?.statusId ?? (draggingTask as any)?.status_id;
+
+  const targetStatusName = overColumnStatus
+    ? statusIdToNameMap[overColumnStatus]
+    : "";
+  const targetColorKey = getStatusColorKey(targetStatusName);
 
   return (
     <DndContext
@@ -264,9 +329,10 @@ const DashboardBoard = ({
                     label=""
                     value={activeProject.name}
                     onSave={(val) => handleSaveProjectField("name", val)}
+                    readOnly={!isCurrentUserOwner}
                   />
                   <span className="task-count-badge">
-                    {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+                    {tasks?.length} {tasks?.length === 1 ? "task" : "tasks"}
                     {isFilteredActive && " (filtered)"}
                   </span>
                 </div>
@@ -279,6 +345,7 @@ const DashboardBoard = ({
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
                     onSave={(val) => handleSaveProjectField("description", val)}
+                    readOnly={!isCurrentUserOwner}
                   />
                 </div>
               </>
@@ -311,7 +378,7 @@ const DashboardBoard = ({
             <button
               type="button"
               className="new-task-button"
-              onClick={onCreateTask}
+              onClick={() => setCreateTaskOpen(true)}
               disabled={!activeProject}
             >
               <Plus size={16} aria-hidden="true" />
@@ -326,7 +393,7 @@ const DashboardBoard = ({
             <button
               type="button"
               className="mobile-project-select"
-              onClick={onToggleProjectMenu}
+              onClick={() => setIsProjectMenuOpen((prev) => !prev)}
               aria-expanded={isProjectMenuOpen}
             >
               <span>{activeProject?.name ?? "Select a project"}</span>
@@ -339,7 +406,7 @@ const DashboardBoard = ({
             <button
               type="button"
               className="mobile-user-button"
-              onClick={onToggleUserMenu}
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
               aria-expanded={isUserMenuOpen}
               aria-label="Account menu"
             >
@@ -368,7 +435,7 @@ const DashboardBoard = ({
           )}
         </div>
 
-        {/* Toolbar */}
+        {/* Filter Toolbar */}
         {activeProject && (
           <div className="task-filter-bar">
             <div className="filter-search-wrapper">
@@ -392,15 +459,30 @@ const DashboardBoard = ({
             </div>
 
             <div className="filter-group-options">
+              {/* Member Avatar Filter */}
+              {memberList.length > 0 && (
+                <div className="filter-pills-group">
+                  <span className="filter-label">Assignee:</span>
+                  <MemberFilterGroup
+                    members={memberList}
+                    selectedMemberId={selectedAssigneeId}
+                    onSelectMember={(id) => setSelectedAssigneeId(id)}
+                  />
+                </div>
+              )}
+
+              {/* Status Filters */}
               {columns.length > 0 && (
                 <div className="filter-pills-group">
                   <span className="filter-label">Status:</span>
                   {columns.map((col) => {
                     const active = selectedStatuses.includes(col.id);
+                    const colorKey = getStatusColorKey(col.name);
                     return (
                       <button
                         key={col.id}
                         type="button"
+                        data-status-color={colorKey}
                         className={`filter-pill ${active ? "active" : ""}`}
                         onClick={() => toggleStatusFilter(col.id)}
                       >
@@ -411,6 +493,7 @@ const DashboardBoard = ({
                 </div>
               )}
 
+              {/* Priority Filters */}
               <div className="filter-pills-group">
                 <span className="filter-label">Priority:</span>
                 {PRIORITY_OPTIONS.map((opt) => {
@@ -419,6 +502,7 @@ const DashboardBoard = ({
                     <button
                       key={opt.value}
                       type="button"
+                      data-priority={opt.value}
                       className={`filter-pill ${active ? "active" : ""}`}
                       onClick={() => togglePriorityFilter(opt.value)}
                     >
@@ -428,6 +512,7 @@ const DashboardBoard = ({
                 })}
               </div>
 
+              {/* Overdue Filter */}
               <button
                 type="button"
                 className={`filter-pill filter-pill-overdue ${
@@ -439,13 +524,14 @@ const DashboardBoard = ({
                 <span>Overdue</span>
               </button>
 
+              {/* Reset Filters */}
               {isFilteredActive && (
                 <button
                   type="button"
-                  className="filter-reset-btn"
+                  className="filter-pill filter-pill-clear"
                   onClick={handleResetFilters}
                 >
-                  <X size={14} />
+                  <X size={13} aria-hidden="true" />
                   <span>Clear filters</span>
                 </button>
               )}
@@ -458,7 +544,7 @@ const DashboardBoard = ({
           <>
             <div
               className="mobile-project-overlay"
-              onClick={onToggleUserMenu}
+              onClick={() => setIsUserMenuOpen(false)}
             />
             <div className="mobile-user-menu">
               <div className="mobile-user-menu-header">
@@ -474,8 +560,8 @@ const DashboardBoard = ({
                 type="button"
                 className="mobile-project-menu-item"
                 onClick={() => {
-                  onToggleUserMenu();
-                  onOpenUserProfileModal();
+                  setIsUserMenuOpen(false);
+                  setUserProfileModalOpen(true);
                 }}
               >
                 <UserCog size={16} aria-hidden="true" />
@@ -485,7 +571,10 @@ const DashboardBoard = ({
               <button
                 type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-danger"
-                onClick={onLogout}
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  handleLogout();
+                }}
               >
                 <LogOut size={16} aria-hidden="true" />
                 <span>Log out</span>
@@ -494,50 +583,55 @@ const DashboardBoard = ({
           </>
         )}
 
-        {/* Project Menu */}
         {isProjectMenuOpen && (
           <>
             <div
               className="mobile-project-overlay"
-              onClick={onToggleProjectMenu}
+              onClick={() => setIsProjectMenuOpen(false)}
             />
             <div className="mobile-project-menu">
-              {projects.map((project) => (
-                <div key={project.id} className="project-item-row">
-                  <button
-                    type="button"
-                    className={`mobile-project-menu-item ${
-                      project.id === activeProjectId
-                        ? "mobile-project-menu-item-active"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      onSelectProject(project.id);
-                      onToggleProjectMenu();
-                    }}
-                  >
-                    <Folder size={16} aria-hidden="true" />
-                    <span>{project.name}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="project-item-edit"
-                    aria-label={`Edit ${project.name}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
-                    <Pencil size={13} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
+              {projects.map((item: any) => {
+                const project = item?.project || item;
+                if (!project?.id) return null;
+
+                return (
+                  <div key={project.id} className="project-item-row">
+                    <button
+                      type="button"
+                      className={`mobile-project-menu-item ${
+                        project.id === activeProject?.id
+                          ? "mobile-project-menu-item-active"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setActiveProject(project);
+                        setIsProjectMenuOpen(false);
+                      }}
+                    >
+                      <Folder size={16} aria-hidden="true" />
+                      <span>{project.name}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="project-item-edit"
+                      aria-label={`Edit ${project.name}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setIsProjectMenuOpen(false);
+                      }}
+                    >
+                      <Pencil size={13} aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
 
               <button
                 type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-new"
                 onClick={() => {
-                  onToggleProjectMenu();
-                  onCreateProject();
+                  setIsProjectMenuOpen(false);
+                  setCreateProjectOpen(true);
                 }}
               >
                 <Plus size={16} aria-hidden="true" />
@@ -557,7 +651,7 @@ const DashboardBoard = ({
                 label={col.name}
                 count={getTaskCountForStatus(col.id)}
                 isActive={activeTab === col.id}
-                onSelect={() => onSelectTab(col.id)}
+                onSelect={() => setActiveTab(col.id)}
               />
             ))}
           </div>
@@ -576,7 +670,7 @@ const DashboardBoard = ({
             strategy={horizontalListSortingStrategy}
           >
             {columns.map((col) => {
-              const colTasks = tasks.filter((task: Task) => {
+              const colTasks = tasks?.filter((task: Task) => {
                 if (!task) return false;
                 const taskStatusId = task.statusId ?? (task as any).status_id;
                 return taskStatusId === col.id;
@@ -586,52 +680,56 @@ const DashboardBoard = ({
                 <SortableColumn
                   key={col.id}
                   column={col}
-                  tasks={colTasks}
-                  activeTab={activeTab}
+                  tasks={colTasks ?? []}
                   isFilteredActive={isFilteredActive}
-                  projectId={activeProject?.id ?? ""}
                 />
               );
             })}
           </SortableContext>
 
-          {/* Modular Add Column Component */}
-          {activeProject && <AddColumnInline projectId={activeProject.id} />}
+          {activeProject && <AddColumnInline />}
         </div>
 
         <button
           type="button"
           className="fab"
           aria-label="New task"
-          onClick={onCreateTask}
+          onClick={() => setCreateTaskOpen(true)}
         >
           <Plus size={20} />
         </button>
       </main>
 
-      <DragOverlay>
+      {/* Drag Overlay */}
+      <DragOverlay dropAnimation={null}>
         {draggingTask ? (
           <div className="task-card-overlay-wrapper">
             {overColumnStatus && overColumnStatus !== draggingTaskStatusId && (
-              <div className="jira-transition-badge">
+              <div
+                className={`jira-transition-badge jira-transition-badge-${targetColorKey}`}
+              >
                 <span>
                   {statusIdToNameMap[draggingTaskStatusId ?? ""] ||
                     "Current Column"}
                 </span>
                 <ArrowRight size={14} className="transition-arrow" />
-                <span>
-                  {statusIdToNameMap[overColumnStatus] || "Target Column"}
-                </span>
+                <span>{targetStatusName || "Target Column"}</span>
               </div>
             )}
-            <div className="task-card-overlay">
+            <div
+              className={`task-card-overlay task-card-overlay-${targetColorKey}`}
+            >
               <TaskOverlay task={draggingTask} />
             </div>
           </div>
         ) : draggingColumn ? (
           <div className="column dragging-column-overlay">
             <div className="column-header column-header-desktop">
-              <span className="status-dot" />
+              <span
+                className={`status-dot status-dot-${getStatusColorKey(
+                  draggingColumn.name,
+                )}`}
+              />
               <span>{draggingColumn.name}</span>
             </div>
           </div>

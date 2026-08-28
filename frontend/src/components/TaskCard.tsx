@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { createPortal } from "react-dom";
 import {
   Calendar,
   Clock,
@@ -37,10 +38,12 @@ const TaskCard = ({ task }: TaskCardProps) => {
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
     : undefined;
 
-  const isOverdue =
-    task.dueDate &&
-    task.statusName !== "DONE" &&
-    new Date(task.dueDate) < new Date(new Date().toDateString());
+  const isOverdue = (() => {
+    if (!task.dueDate || task.statusName === "DONE") return false;
+    const due = new Date(task.dueDate).getTime();
+    const now = new Date().setHours(0, 0, 0, 0);
+    return due < now;
+  })();
 
   const getDueLabel = (): string | null => {
     if (!task.dueDate || task.statusName === "DONE") return null;
@@ -88,9 +91,9 @@ const TaskCard = ({ task }: TaskCardProps) => {
   };
 
   const handleCardClick = () => {
+    if (isDragging) return;
     navigate(`/projects/${task.projectId}/task/${task.id}`);
   };
-
   return (
     <>
       <div
@@ -110,6 +113,8 @@ const TaskCard = ({ task }: TaskCardProps) => {
             <button
               type="button"
               className="task-delete-button"
+              data-tooltip="delete task"
+              data-tooltip-pos="left"
               aria-label={`Delete ${task.name}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
@@ -168,68 +173,70 @@ const TaskCard = ({ task }: TaskCardProps) => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {isConfirmingDelete && (
-        <div
-          className="modal-overlay"
-          onClick={() => setIsConfirmingDelete(false)}
-        >
+      {isConfirmingDelete &&
+        createPortal(
           <div
-            className="modal-card"
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+            className="modal-overlay"
+            onClick={() => setIsConfirmingDelete(false)}
           >
-            <div className="modal-header">
-              <div className="modal-header-icon modal-header-icon-danger">
-                <AlertTriangle size={18} aria-hidden="true" />
+            <div
+              className="modal-card"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div className="modal-header-icon modal-header-icon-danger">
+                  <AlertTriangle size={18} aria-hidden="true" />
+                </div>
+                <button
+                  type="button"
+                  className="modal-close"
+                  aria-label="Close"
+                  onClick={() => setIsConfirmingDelete(false)}
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                type="button"
-                className="modal-close"
-                aria-label="Close"
-                onClick={() => setIsConfirmingDelete(false)}
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <h2 className="modal-title">Delete "{task.name}"?</h2>
-            <p className="modal-subtitle">
-              This permanently deletes the task, including its time entries and
-              history. This can't be undone.
-            </p>
+              <h2 className="modal-title">Delete "{task.name}"?</h2>
+              <p className="modal-subtitle">
+                This permanently deletes the task, including its time entries
+                and history. This can't be undone.
+              </p>
 
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="modal-button modal-button-secondary"
-                onClick={() => setIsConfirmingDelete(false)}
-                disabled={deleteTaskMutation.isPending}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="modal-button modal-button-danger"
-                onClick={handleDelete}
-                disabled={deleteTaskMutation.isPending}
-              >
-                {deleteTaskMutation.isPending ? (
-                  <>
-                    <Loader2 size={14} className="spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={14} aria-hidden="true" />
-                    Delete permanently
-                  </>
-                )}
-              </button>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="modal-button modal-button-secondary"
+                  onClick={() => setIsConfirmingDelete(false)}
+                  disabled={deleteTaskMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="modal-button modal-button-danger"
+                  onClick={handleDelete}
+                  disabled={deleteTaskMutation.isPending}
+                >
+                  {deleteTaskMutation.isPending ? (
+                    <>
+                      <Loader2 size={14} className="spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={14} aria-hidden="true" />
+                      Delete permanently
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 };

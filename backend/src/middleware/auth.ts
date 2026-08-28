@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt";
 import { User } from "../models";
+import { AuthRequest } from "../types/AuthRequest";
 
 export async function authenticate(
   req: Request,
@@ -18,16 +19,20 @@ export async function authenticate(
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = verifyToken(token) as unknown as { id: number | string };
+    const decoded = verifyToken(token) as { id: string; email?: string };
 
-    const user = await User.findByPk(decoded.id);
+    // Fetch only the necessary user attributes
+    const user = await User.findByPk(decoded.id, {
+      attributes: ["id", "name", "email"],
+    });
+
     if (!user) {
       return res
         .status(401)
         .json({ error: "Unauthorized", message: "User not found" });
     }
 
-    req.user = user;
+    (req as AuthRequest).user = user;
     next();
   } catch {
     return res

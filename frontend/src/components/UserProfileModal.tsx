@@ -178,7 +178,8 @@ const UserProfileModal = ({ user, onClose }: UserProfileModalProps) => {
               onClick={() => {
                 fileInputRef.current?.click();
               }}
-              title="Change Photo"
+              data-tooltip="Change Photo"
+              data-tooltip-pos="right"
               aria-label="Change Photo"
             >
               <Pencil size={13} className="avatar-icon" />
@@ -190,8 +191,9 @@ const UserProfileModal = ({ user, onClose }: UserProfileModalProps) => {
                 type="button"
                 className="avatar-action-btn avatar-delete-btn"
                 onClick={handleDeletePhoto}
-                title="Delete Photo"
                 aria-label="Delete Photo"
+                data-tooltip="Delete Photo"
+                data-tooltip-pos="left"
               >
                 <Trash2 size={13} className="avatar-icon" />
               </button>

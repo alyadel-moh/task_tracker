@@ -363,20 +363,28 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-left: 15px;
 }
 
-/* STRICTLY NO GREY BACKGROUND FOR PROJECT TITLE ONLY */
 .board-title-row .inline-field-display {
   background: transparent !important;
   border: 1px solid transparent !important;
-  padding: 0 !important;
+  /* Generous padding matching description box proportions */
+  padding: 8px 14px !important;
+  /* Negative margin so text remains optically aligned with the rest of the board */
+  margin-left: -14px !important;
+  border-radius: 8px !important;
   min-height: auto !important;
   box-shadow: none !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease !important;
 }
 
+/* Much more prominent grey hover state */
 .board-title-row .inline-field-display:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* Title Sizing */
@@ -416,9 +424,9 @@
 .project-task-count-badge {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(242, 241, 237, 0.6);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
   padding: 2px 8px;
   border-radius: 12px;
   white-space: nowrap;
@@ -608,54 +616,6 @@
   font-weight: 600 !important;
 }
 
-/* 1. STATUS: To Do */
-.filter-pill.active[data-status="TODO"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(1) {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(255, 255, 255, 0.28) !important;
-  color: #f2f1ed !important;
-}
-
-/* 2. STATUS: In Progress */
-.filter-pill.active[data-status="IN_PROGRESS"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(2) {
-  background: rgba(75, 74, 224, 0.25) !important;
-  border-color: rgba(75, 74, 224, 0.6) !important;
-  color: #9fa3f5 !important;
-}
-
-/* 4. STATUS: Done */
-.filter-pill.active[data-status="DONE"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(4) {
-  background: rgba(76, 175, 111, 0.22) !important;
-  border-color: rgba(76, 175, 111, 0.55) !important;
-  color: #7fd99a !important;
-}
-
-/* 5. PRIORITY: Low */
-.filter-pill.active[data-priority="LOW"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(1) {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: rgba(242, 241, 237, 0.9) !important;
-}
-
-/* 6. PRIORITY: Medium */
-.filter-pill.active[data-priority="MEDIUM"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(2) {
-  background: rgba(224, 160, 74, 0.22) !important;
-  border-color: rgba(224, 160, 74, 0.5) !important;
-  color: #ffbf72 !important;
-}
-
-/* 7. PRIORITY: High */
-.filter-pill.active[data-priority="HIGH"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(3) {
-  background: rgba(224, 90, 90, 0.22) !important;
-  border-color: rgba(224, 90, 90, 0.5) !important;
-  color: #ff9b9b !important;
-}
-
 /* 8. OVERDUE BADGE */
 .filter-pill-overdue.active,
 .filter-pill.active.filter-pill-overdue {
@@ -727,25 +687,6 @@
   box-sizing: border-box;
 }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.status-dot-TODO {
-  background: rgba(242, 241, 237, 0.4);
-}
-
-.status-dot-IN_PROGRESS {
-  background: #4b4ae0;
-}
-
-.status-dot-DONE {
-  background: #4caf6f;
-}
-
 .add-column-wrapper {
   background: transparent !important;
   border-color: transparent !important;
@@ -791,7 +732,7 @@
   transform: scale(0.99);
 }
 /* ---------- DRAG DROP ZONE & STATUS-MATCHING COLUMN HIGHLIGHTS ---------- */
-
+/* Reset Base Drop Zone */
 .column-drop-zone {
   min-height: 80px;
   border-radius: 14px;
@@ -802,30 +743,36 @@
   border: 2px solid transparent;
 }
 
-.column-drop-zone-over {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-}
-
+/* 1. To Do -> Grey */
 .column-todo .column-drop-zone-over,
-.column-TODO .column-drop-zone-over {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+.column-drop-zone-todo.column-drop-zone-over {
+  background: rgba(148, 163, 184, 0.08) !important;
+  border-color: #94a3b8 !important;
 }
 
-.column-in_progress .column-drop-zone-over,
+/* 2. In Progress -> Yellow */
 .column-in-progress .column-drop-zone-over,
-.column-IN_PROGRESS .column-drop-zone-over {
-  background: rgba(99, 102, 241, 0.15) !important;
-  border-color: #6366f1 !important;
+.column-in_progress .column-drop-zone-over,
+.column-IN_PROGRESS .column-drop-zone-over,
+.column-drop-zone-in-progress.column-drop-zone-over {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: #f59e0b !important;
 }
 
+/* 3. Done -> Green */
 .column-done .column-drop-zone-over,
-.column-DONE .column-drop-zone-over {
-  background: rgba(76, 175, 111, 0.15) !important;
-  border-color: #4caf6f !important;
+.column-DONE .column-drop-zone-over,
+.column-drop-zone-done.column-drop-zone-over {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #10b981 !important;
 }
 
+/* 4. Custom (In review, etc.) -> Purple */
+.column-custom .column-drop-zone-over,
+.column-drop-zone-custom.column-drop-zone-over {
+  background: rgba(168, 85, 247, 0.08) !important;
+  border-color: #a855f7 !important;
+}
 /* ---------- TASK DRAG OVERLAY & TRANSITION BADGE ---------- */
 
 .task-card-overlay-wrapper {
@@ -839,61 +786,70 @@
 }
 
 .jira-transition-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  transition: all 0.15s ease;
-  background: #252528;
-  border: 1.5px solid rgba(255, 255, 255, 0.28);
-  color: #f2f1ed;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
 }
 
 .jira-transition-badge .transition-arrow {
-  display: inline-block;
-  opacity: 0.9;
-  color: inherit;
-  flex-shrink: 0;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
 }
 
-.jira-transition-badge-todo,
-.jira-transition-badge-TODO {
-  background: #252528;
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #f2f1ed;
+/* 1. To Do (Target) -> Grey */
+.jira-transition-badge-todo {
+  background: #1e2024 !important;
+  border-color: #64748b !important;
+  color: #cbd5e1 !important;
 }
-.jira-transition-badge-todo .transition-arrow,
-.jira-transition-badge-TODO .transition-arrow {
-  color: #d1d5db;
+.jira-transition-badge-todo .transition-arrow {
+  color: #94a3b8 !important;
 }
 
-.jira-transition-badge-in_progress,
+/* 2. In Progress (Target) -> Yellow */
 .jira-transition-badge-in-progress,
+.jira-transition-badge-in_progress,
 .jira-transition-badge-IN_PROGRESS {
-  background: #1e1e38;
-  border-color: #6366f1;
-  color: #a5b4fc;
+  background: #2a2012 !important;
+  border-color: #f59e0b !important;
+  color: #fbbf24 !important;
 }
-.jira-transition-badge-in_progress .transition-arrow,
 .jira-transition-badge-in-progress .transition-arrow,
+.jira-transition-badge-in_progress .transition-arrow,
 .jira-transition-badge-IN_PROGRESS .transition-arrow {
-  color: #818cf8;
+  color: #f59e0b !important;
 }
 
+/* 3. Done (Target) -> Green */
 .jira-transition-badge-done,
 .jira-transition-badge-DONE {
-  background: #14281f;
-  border-color: #4caf6f;
-  color: #7fd99a;
+  background: #11261d !important;
+  border-color: #10b981 !important;
+  color: #34d399 !important;
 }
 .jira-transition-badge-done .transition-arrow,
 .jira-transition-badge-DONE .transition-arrow {
-  color: #34d399;
+  color: #10b981 !important;
+}
+
+/* 4. Custom / In review (Target) -> Purple */
+.jira-transition-badge-custom {
+  background: #231633 !important;
+  border-color: #a855f7 !important;
+  color: #c084fc !important;
+}
+.jira-transition-badge-custom .transition-arrow {
+  color: #a855f7 !important;
 }
 
 .column-empty {
@@ -1019,15 +975,32 @@
   border-style: solid;
   transition: border-color 0.12s ease;
 }
-
-.task-card-overlay-TODO .task-card-overlay-todo {
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.08);
+.task-card-overlay-todo {
+  border-color: #94a3b8 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(148, 163, 184, 0.2) !important;
 }
 
-.task-card-overlay-IN_PROGRESS .task-card-overlay-in_progress {
-  border-color: #6366f1 !important;
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
+.task-card-overlay-in-progress {
+  border-color: #f59e0b !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(245, 158, 11, 0.25) !important;
+}
+
+.task-card-overlay-done {
+  border-color: #10b981 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(16, 185, 129, 0.25) !important;
+}
+
+.task-card-overlay-custom {
+  border-color: #a855f7 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(168, 85, 247, 0.25) !important;
 }
 
 /* Badges & Due Date Pills */
@@ -1640,37 +1613,40 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 /* ==========================================================================
    Status Indicator Dots
    ========================================================================== */
-
 .status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 7px !important;
+  height: 7px !important;
+  min-width: 7px !important;
+  min-height: 7px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
   flex-shrink: 0;
+  margin-right: 0 !important;
+  margin-left: 13px !important;
 }
 
-.status-dot-todo,
-.status-dot-TODO {
-  background-color: #94a3b8;
-  box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
+/* To Do -> Grey */
+.status-dot-todo {
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.5) !important;
 }
 
-.status-dot-in_progress,
-.status-dot-in-progress,
-.status-dot-IN_PROGRESS {
-  background-color: #a78bfa;
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.4);
+/* In Progress -> Yellow */
+.status-dot-in-progress {
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5) !important;
 }
 
-.status-dot-done,
-.status-dot-DONE {
-  background-color: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
+/* Done -> Green */
+.status-dot-done {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5) !important;
 }
 
-.status-dot-default,
-.status-dot-DEFAULT {
-  background-color: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+/* Custom (In Review, etc.) -> Purple */
+.status-dot-custom {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5) !important;
 }
 
 /* ==========================================================================
@@ -1973,4 +1949,230 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .column-title-inline-wrapper button:hover,
 .column-name-clickable:hover {
   background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.sidebar-bottom-section {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar-members-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: rgba(242, 241, 237, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sidebar-members-btn:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #818cf8;
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2e2842;
+  color: #a78bfa;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Strict row layout */
+.user-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Exact distance between the icon bounding box and the text start */
+  min-width: 0;
+  height: 18px; /* Fixed equal vertical line height */
+}
+
+/* Fixed 16x16 icon box to force all icons into an identical footprint */
+.icon-box {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(242, 241, 237, 0.45);
+}
+
+.icon-box svg {
+  display: block;
+}
+
+/* Text styles */
+.user-name-text,
+.user-email-text,
+.user-role-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+.user-name-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f2f1ed;
+}
+
+.user-email-text {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.6);
+}
+
+.user-role-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #a78bfa;
+}
+/* When disabled / readOnly */
+.inline-field-display.inline-field-disabled {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding-left: 0;
+}
+
+.inline-field-empty-readonly {
+  color: rgba(242, 241, 237, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  margin-left: 10px;
+  user-select: none;
+}
+/* Red Pill Style for Clear Filters */
+.filter-pill.filter-pill-clear {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  font-weight: 500;
+  margin-left: auto; /* Pushes it neatly to the far right */
+}
+
+.filter-pill.filter-pill-clear:hover {
+  color: #ffffff;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.filter-pill.filter-pill-clear:active {
+  background: rgba(239, 68, 68, 0.3);
+  transform: translateY(0);
+}
+
+.status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.status-dot-todo {
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.6) !important;
+}
+
+.status-dot-in-progress {
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6) !important;
+}
+
+.status-dot-done {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+}
+
+.status-dot-custom {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6) !important;
+}
+
+/* ==========================================================================
+   2. STATUS PILLS (Active States)
+   ========================================================================== */
+
+.filter-pill[data-status-color="todo"].active {
+  background: rgba(148, 163, 184, 0.18) !important;
+  border-color: rgba(148, 163, 184, 0.5) !important;
+  color: #e2e8f0 !important;
+}
+
+.filter-pill[data-status-color="in-progress"].active {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.filter-pill[data-status-color="done"].active {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: #34d399 !important;
+}
+
+.filter-pill[data-status-color="custom"].active {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  color: #c084fc !important;
+}
+
+/* ==========================================================================
+   3. PRIORITY PILLS (Active States)
+   ========================================================================== */
+
+.filter-pill[data-priority="LOW"].active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #f1f5f9 !important;
+}
+
+.filter-pill[data-priority="MEDIUM"].active {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fcd34d !important;
+}
+
+.filter-pill[data-priority="HIGH"].active {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
 }

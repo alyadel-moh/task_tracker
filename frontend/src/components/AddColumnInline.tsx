@@ -3,9 +3,9 @@ import { Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "./InlineEditField";
 import useCreateStatus from "../hooks/createStatusHook";
+import { useAppStore } from "../store/useAppStore";
 
 interface AddColumnInlineProps {
-  projectId: string;
   placeholder?: string;
   buttonLabel?: string;
   onSuccess?: () => void;
@@ -13,14 +13,14 @@ interface AddColumnInlineProps {
 }
 
 const AddColumnInline: React.FC<AddColumnInlineProps> = ({
-  projectId,
   placeholder = "Column name...",
   buttonLabel = "Add column",
   onSuccess,
   className = "",
 }) => {
+  const { activeProject } = useAppStore();
   const [isAdding, setIsAdding] = useState(false);
-  const createStatusMutation = useCreateStatus(projectId);
+  const createStatusMutation = useCreateStatus(activeProject?.id ?? "");
 
   const handleCreate = (newName: string) => {
     const trimmed = newName.trim();
@@ -32,8 +32,8 @@ const AddColumnInline: React.FC<AddColumnInlineProps> = ({
     createStatusMutation.mutate(
       { name: trimmed },
       {
-        onSuccess: () => {
-          toast.success("Column added successfully!");
+        onSuccess: (data: any) => {
+          toast.success(data?.message || "Column added successfully!");
           setIsAdding(false);
           onSuccess?.();
         },

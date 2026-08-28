@@ -60,7 +60,6 @@ export default (sequelize: Sequelize): typeof User => {
       photoUrl: {
         type: DataTypes.STRING,
         allowNull: true,
-        field: "photo_url",
       },
       password: {
         type: DataTypes.STRING,

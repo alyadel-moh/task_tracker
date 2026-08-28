@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { Project } from "../components/types";
+import { AssignedProjectMembership, Project } from "../components/types";
 
 interface UpdateProjectData {
   name?: string;
@@ -27,21 +27,24 @@ const useUpdateProject = (id: string) => {
       console.log("Updating project:", newProjectData);
     },
     onSuccess: (data) => {
-      const updatedFields = data.project;
       console.log("Project updated successfully:", data);
-
-      queryClient.setQueryData<Project[]>(["projects"], (oldProjects) => {
-        if (!oldProjects) return oldProjects;
-        return oldProjects.map((project) =>
-          project.id === id
-            ? {
-                ...project,
-                ...updatedFields,
-                updatedAt: new Date().toISOString(),
-              }
-            : project,
-        );
-      });
+      queryClient.setQueryData<AssignedProjectMembership[]>(
+        ["assigned-projects"],
+        (old) => {
+          if (!old) return old;
+          return old.map((membership) =>
+            membership.project.id === id
+              ? {
+                  ...membership,
+                  project: {
+                    ...membership.project,
+                    ...data.project,
+                  },
+                }
+              : membership,
+          );
+        },
+      );
     },
     onError: (error: AxiosError) => {
       console.error("Error updating project:", error);

@@ -10,7 +10,8 @@ interface UpdateTaskPayload {
   priority?: Priority;
   dueDate?: Date | string | null;
   estimatedTime?: number | null;
-  statusId: string;
+  statusId?: string;
+  assigneeIds?: string[] | null;
 }
 
 interface UpdateTaskResponse {

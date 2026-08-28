@@ -42,7 +42,6 @@ export default (sequelize: Sequelize): typeof TimeEntry => {
       durationMinutes: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        field: "duration_minutes",
         validate: {
           min: {
             args: [1],
@@ -53,7 +52,6 @@ export default (sequelize: Sequelize): typeof TimeEntry => {
       entryDate: {
         type: DataTypes.DATE,
         allowNull: false,
-        field: "entry_date",
       },
       taskId: {
         type: DataTypes.UUID,

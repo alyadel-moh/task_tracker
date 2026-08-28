@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Dashboard from "../components/Dashboard";
 import PublicOnlyRoute from "../components/PublicOnlyRoute";
+import { ProjectManagementPage } from "../components/ProjectManagementPage";
 const ProtectedRoute = lazy(() => import("../components/ProtectedRoute"));
 const TaskDetailsPage = lazy(() => import("../components/TaskDetailsPage"));
 const Signup = lazy(() => import("../components/Signup"));
@@ -45,6 +46,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <TaskDetailsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/projects/:projectId/memberships",
+    element: (
+      <ProtectedRoute>
+        <ProjectManagementPage />
       </ProtectedRoute>
     ),
   },

@@ -242,6 +242,6 @@ router.patch("/:projectId/:id", update as unknown as RequestHandler);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete("/:projectId/:statusId", remove as unknown as RequestHandler);
+router.delete("/:projectId/:id", remove as unknown as RequestHandler);
 
 export default router;

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { HistoryEntry, Task } from "../components/types";
+import { Task } from "../components/types";
 
 interface CreateTaskData {
   name: string;
@@ -10,13 +10,13 @@ interface CreateTaskData {
   priority: string;
   estimatedTime: number | null;
   dueDate: string | null;
+  assignees: string[];
 }
 
 interface CreateTaskResponse {
-  task: Task;
+  newTask: Task;
   status: string;
   message: string;
-  historyEntry?: HistoryEntry;
 }
 
 const useCreateTask = (projectId: string) => {
@@ -29,7 +29,7 @@ const useCreateTask = (projectId: string) => {
         .then((response) => response.data);
     },
     onSuccess: (data: CreateTaskResponse) => {
-      const createdTask = data.task;
+      const createdTask = data.newTask;
       console.log("Task created successfully:", data);
 
       queryClient.setQueriesData<Task[]>(
@@ -42,16 +42,6 @@ const useCreateTask = (projectId: string) => {
           }
 
           return oldTasks;
-        },
-      );
-      queryClient.setQueriesData<HistoryEntry[]>(
-        { queryKey: ["task_history", createdTask.id] },
-        (oldHistory) => {
-          if (!oldHistory) return oldHistory;
-          if (data.historyEntry) {
-            return [data.historyEntry, ...oldHistory];
-          }
-          return oldHistory;
         },
       );
     },

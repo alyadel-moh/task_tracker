@@ -34,8 +34,8 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
         description: data.description ?? "",
       },
       {
-        onSuccess: () => {
-          toast.success("Project created successfully!");
+        onSuccess: (data: any) => {
+          toast.success(data?.message || "Project created successfully!");
           onClose();
         },
         onError: (error: any) => {

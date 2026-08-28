@@ -1,0 +1,92 @@
+.member-filter-group {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  position: relative;
+}
+
+/* Base Avatar Button */
+.member-avatar-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  border: 2px solid #14161b; /* Outer border creates separation between overlapping items */
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -8px; /* Negative margin creates overlapping stacked effect */
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.member-avatar-btn:first-child {
+  margin-left: 0;
+}
+
+.member-avatar-btn:hover {
+  transform: translateY(-2px);
+  z-index: 10;
+}
+
+/* Active / Selected Ring Indicator (like the green AA selected circle in your screenshot) */
+.member-avatar-btn.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+  z-index: 15;
+  transform: scale(1.08);
+}
+
+/* "All Members" Icon Button */
+.member-avatar-btn.all-members-btn {
+  background: #2a2e3b;
+  color: #94a3b8;
+}
+
+.member-avatar-btn.all-members-btn.selected {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #14161b;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.all-icon {
+  pointer-events: none;
+}
+
+/* Avatar Content */
+.member-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Overflow Badge (+2) */
+.member-avatar-overflow {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-left: 6px;
+  user-select: none;
+}

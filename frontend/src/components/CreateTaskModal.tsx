@@ -10,6 +10,8 @@ import {
   Clock,
   ChevronDown,
   Check,
+  Users,
+  User,
 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -19,10 +21,12 @@ import "../css/CreateProjectModal.css";
 import "../css/TaskModal.css";
 import useCreateTask from "../hooks/createTaskHook";
 import useGetStatuses from "../hooks/getAllStatusesHook";
+import useGetProjectMembers from "../hooks/getAllprojectMembers";
 
 interface CreateTaskModalProps {
   projectId: string;
   onClose: () => void;
+  userId: string;
 }
 
 const schema = z.object({
@@ -30,6 +34,7 @@ const schema = z.object({
   description: z.string().optional(),
   statusId: z.string().min(1, { message: "Status is required" }),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  assignees: z.array(z.string()).default([]),
   estimatedTime: z.preprocess(
     (val) =>
       val === "" || val === null || Number.isNaN(val) ? undefined : Number(val),
@@ -61,7 +66,7 @@ const formatStatusName = (name: string): string => {
 
 interface CustomDropdownProps {
   options: { id: string; name: string }[];
-  value: string | string[] | undefined;
+  value: string | undefined;
   onChange: (value: string) => void;
   icon?: React.ReactNode;
   placeholder?: string;
@@ -139,9 +144,158 @@ const CustomDropdown = ({
   );
 };
 
-const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
+interface MemberOption {
+  id: string;
+  name: string;
+  email?: string;
+}
+
+interface MultiSelectAssigneeDropdownProps {
+  options: MemberOption[];
+  value: string[] | undefined;
+  onChange: (value: string[]) => void;
+  placeholder?: string;
+}
+
+const MultiSelectAssigneeDropdown = ({
+  options,
+  value = [],
+  onChange,
+  placeholder = "Assign members...",
+}: MultiSelectAssigneeDropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleMember = (memberId: string) => {
+    if (value.includes(memberId)) {
+      onChange(value.filter((id) => id !== memberId));
+    } else {
+      onChange([...value, memberId]);
+    }
+  };
+
+  const selectedMembers = options.filter((opt) => value.includes(opt.id));
+
+  return (
+    <div className="custom-select-container" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`custom-select-trigger ${isOpen ? "active" : ""}`}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <div className="custom-select-trigger-content">
+          <Users size={15} className="custom-select-icon" />
+          <span className="custom-select-value">
+            {selectedMembers.length === 0 ? (
+              placeholder
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  gap: "4px",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                {selectedMembers.map((m) => (
+                  <span
+                    key={m.id}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "3px",
+                      backgroundColor: "var(--bg-tertiary, #2a2a2a)",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <User size={11} />
+                    {m.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </span>
+        </div>
+        <ChevronDown
+          size={15}
+          className={`custom-select-chevron ${isOpen ? "rotated" : ""}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          className="custom-select-menu"
+          style={{ maxHeight: "180px", overflowY: "auto" }}
+        >
+          {options.length === 0 ? (
+            <div
+              className="custom-select-item"
+              style={{ color: "var(--text-muted, #888)" }}
+            >
+              No members found
+            </div>
+          ) : (
+            options.map((option) => {
+              const isSelected = value.includes(option.id);
+              return (
+                <div
+                  key={option.id}
+                  className={`custom-select-item ${isSelected ? "selected" : ""}`}
+                  onClick={() => toggleMember(option.id)}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <span>{option.name}</span>
+                    {option.email && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "var(--text-muted, #888)",
+                        }}
+                      >
+                        {option.email}
+                      </span>
+                    )}
+                  </div>
+                  {isSelected && <Check size={14} className="check-icon" />}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CreateTaskModal = ({
+  onClose,
+  projectId,
+  userId,
+}: CreateTaskModalProps) => {
   const createtaskmutation = useCreateTask(projectId);
   const { data: statuses = [] } = useGetStatuses(projectId);
+  const { data: members = [] } = useGetProjectMembers(projectId);
 
   const {
     register,
@@ -158,6 +312,7 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
       description: "",
       statusId: "",
       priority: "MEDIUM",
+      assignees: [],
       estimatedTime: undefined,
       dueDate: null,
     },
@@ -179,6 +334,14 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
     name: formatStatusName(col.name),
   }));
 
+  const formattedMembers: MemberOption[] = members
+    .map((m: any) => ({
+      id: m.userId || m.user?.id || m.id,
+      name: m.user?.name || m.name || "Member",
+      email: m.user?.email || m.email,
+    }))
+    .filter((m) => m.id !== userId);
+
   const priorityOptions = [
     { id: "LOW", name: "Low" },
     { id: "MEDIUM", name: "Medium" },
@@ -194,10 +357,11 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
         priority: data.priority,
         estimatedTime: data.estimatedTime ?? null,
         dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+        assignees: data.assignees,
       },
       {
-        onSuccess: () => {
-          toast.success("Task created successfully!");
+        onSuccess: (data: any) => {
+          toast.success(data?.message || "Task created successfully!");
           reset();
           onClose();
         },
@@ -276,7 +440,7 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
             )}
           </div>
 
-          {/* Description Field (Top-aligned icon & proper padding) */}
+          {/* Description Field */}
           <div className="field">
             <span className="field-label">
               Description{" "}
@@ -333,7 +497,26 @@ const CreateTaskModal = ({ onClose, projectId }: CreateTaskModalProps) => {
             </div>
           </div>
 
-          {/* Estimated Time & Due Date Row (Left icon removed from Due Date) */}
+          {/* Assignees Field (Multi-Select) */}
+          <div className="field">
+            <span className="field-label">
+              Assignees <span className="field-label-optional">(optional)</span>
+            </span>
+            <Controller
+              control={control}
+              name="assignees"
+              render={({ field }) => (
+                <MultiSelectAssigneeDropdown
+                  options={formattedMembers}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select project members..."
+                />
+              )}
+            />
+          </div>
+
+          {/* Estimated Time & Due Date Row */}
           <div className="field-row">
             <div className="field">
               <span className="field-label">

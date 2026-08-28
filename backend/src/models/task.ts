@@ -1,4 +1,5 @@
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
+import { User } from "./user";
 
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
 
@@ -11,6 +12,8 @@ export interface TaskAttributes {
   estimatedTime?: number | null;
   projectId: string;
   statusId?: string | null;
+  createdBy: string;
+  assignees?: User[] | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -32,7 +35,8 @@ export class Task
   declare public estimatedTime: number | null;
   declare public projectId: string;
   declare public statusId: string | null;
-
+  declare public createdBy: string;
+  declare public assignees?: User[] | null;
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
 }
@@ -57,7 +61,6 @@ export default (sequelize: Sequelize): typeof Task => {
       statusId: {
         type: DataTypes.UUID,
         allowNull: true,
-        field: "status_id",
         references: {
           model: "statuses",
           key: "id",
@@ -76,6 +79,16 @@ export default (sequelize: Sequelize): typeof Task => {
       estimatedTime: {
         type: DataTypes.INTEGER,
         allowNull: true,
+      },
+      createdBy: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
       },
       projectId: {
         type: DataTypes.UUID,

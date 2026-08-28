@@ -1,115 +1,22 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
-import { Task, Project, TimeEntry, User, TaskHistory } from "../models";
-import {
-  recordTimeEntryCreated,
-  recordTimeEntryUpdated,
-  recordTimeEntryDeleted,
-} from "../services/taskHistory";
-interface CreateTimeEntryBody {
-  durationMinutes: number;
-  entryDate: Date | string;
-  note?: string;
-}
-
-interface UpdateTimeEntryBody {
-  durationMinutes?: number;
-  entryDate?: Date | string;
-  note?: string;
-}
-
-async function findOwnedTask(taskId: string, userId: string) {
-  const task = await Task.findOne({
-    where: { id: taskId },
-    include: [
-      {
-        model: Project,
-        as: "project",
-        where: { userId },
-      },
-    ],
-  });
-  return task;
-}
-const isNumberInRange = (
-  val: any,
-  min: number = 0,
-  max: number = 525600, // e.g. 1 year in minutes max
-): boolean => {
-  if (typeof val !== "number" || !Number.isFinite(val)) return false;
-  return val >= min && val <= max;
-};
+import { TimeEntryService } from "../services/timeEntryService";
 
 async function create(
-  req: AuthRequest<
-    Record<string, never>,
-    Record<string, never>,
-    CreateTimeEntryBody
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
     const { durationMinutes, entryDate, note } = req.body;
-
-    if (
-      typeof durationMinutes !== "number" ||
-      durationMinutes <= 0 ||
-      !Number.isInteger(durationMinutes)
-    ) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Duration must be a positive integer",
-      });
-    }
-    if (!entryDate) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Entry date is required",
-      });
-    }
-
-    const task = await findOwnedTask(req.params.taskId, req.user.id);
-    if (!task) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Task not found or you do not have permission to access it",
-      });
-    }
-
-    const timeEntry = await TimeEntry.create({
-      taskId: req.params.taskId,
-      durationMinutes,
-      entryDate: new Date(entryDate),
-      note: note || null,
-    });
-
-    const historyEntry = await recordTimeEntryCreated(
-      req.params.taskId,
-      req.user.id,
-      {
+    const { timeEntry, taskHistoryEntry, overrun } =
+      await TimeEntryService.create(
         durationMinutes,
-        entryDate: new Date(entryDate) ?? undefined,
-        note: note ?? undefined,
-      },
-    );
-
-    const taskHistoryEntry = await TaskHistory.findOne({
-      where: { id: historyEntry.id },
-      include: [
-        {
-          model: User,
-          as: "actor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
-
-    const totalMinutes = await TimeEntry.sum("durationMinutes", {
-      where: { taskId: req.params.taskId },
-    });
-    const estimatedMinutes = task.estimatedTime ?? 0;
-    const overrun = totalMinutes > estimatedMinutes;
+        entryDate,
+        note,
+        req.params.taskId,
+        req.user.id,
+      );
 
     return res.status(201).json({
       message: "Time entry created successfully!",
@@ -117,228 +24,82 @@ async function create(
       historyEntry: taskHistoryEntry,
       overrun,
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }
 
 async function getAll(
-  req: AuthRequest<
-    { taskId: string },
-    Record<string, never>,
-    Record<string, never>
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const task = await findOwnedTask(req.params.taskId, req.user.id);
-    if (!task) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Task not found or you do not have permission to access it",
-      });
-    }
-
-    const timeEntries = await TimeEntry.findAll({
-      where: { taskId: req.params.taskId },
-      order: [
-        ["entryDate", "DESC"],
-        ["createdAt", "DESC"],
-      ],
-    });
-
-    const totalMinutes = timeEntries.reduce(
-      (sum: number, entry: { durationMinutes: number }) =>
-        sum + entry.durationMinutes,
-      0,
+    const { timeEntries, totalMinutes } = await TimeEntryService.getAll(
+      req.params.taskId,
+      req.user.id,
     );
-
     return res.status(200).json({ timeEntries, totalMinutes });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }
 
 async function update(
-  req: AuthRequest<
-    { id: string; taskId: string },
-    Record<string, never>,
-    UpdateTimeEntryBody
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
     const { durationMinutes, entryDate, note } = req.body;
-
-    if (durationMinutes !== undefined) {
-      if (!isNumberInRange(durationMinutes, 1, 1440)) {
-        // 1440 mins = 24 hours
-        return res.status(400).json({
-          error: "BadRequest",
-          message: "durationMinutes must be between 1 and 1440 minutes",
-        });
-      }
-    }
-
-    if (entryDate !== undefined && !entryDate) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Entry date cannot be empty",
-      });
-    }
-
-    const task = await findOwnedTask(req.params.taskId, req.user.id);
-    if (!task) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Task not found or you do not have permission to access it",
-      });
-    }
-
-    const timeEntry = await TimeEntry.findOne({
-      where: { id: req.params.id, taskId: req.params.taskId },
-    });
-
-    if (!timeEntry) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Time entry not found",
-      });
-    }
-    const before = {
-      durationMinutes: timeEntry.durationMinutes,
-      entryDate: timeEntry.entryDate,
-      note: timeEntry.note,
-    };
-
-    const updatedFields: Partial<UpdateTimeEntryBody> = {};
-    const changedLabels: string[] = [];
-
-    if (
-      durationMinutes !== undefined &&
-      durationMinutes !== timeEntry.durationMinutes
-    ) {
-      timeEntry.durationMinutes = durationMinutes;
-      updatedFields.durationMinutes = durationMinutes;
-      changedLabels.push("Duration");
-    }
-    if (
-      entryDate !== undefined &&
-      new Date(entryDate).getTime() !== timeEntry.entryDate.getTime()
-    ) {
-      timeEntry.entryDate = new Date(entryDate);
-      updatedFields.entryDate = entryDate;
-      changedLabels.push("Entry date");
-    }
-    if (note !== undefined && note !== timeEntry.note) {
-      timeEntry.note = note;
-      updatedFields.note = note;
-      changedLabels.push("Note");
-    }
-    if (changedLabels.length > 0) {
-      await timeEntry.save();
-    }
-    const historyEntries = await recordTimeEntryUpdated(
-      req.params.taskId,
-      req.user.id,
-      before,
-      {
-        durationMinutes:
-          updatedFields.durationMinutes ?? timeEntry.durationMinutes,
-        entryDate: updatedFields.entryDate
-          ? new Date(updatedFields.entryDate)
-          : timeEntry.entryDate,
-        note: updatedFields.note ?? timeEntry.note,
-      },
-    );
-    const detailedHistoryEntries = await Promise.all(
-      (historyEntries || []).map((entry) =>
-        TaskHistory.findOne({
-          where: { id: entry?.id },
-          include: [
-            {
-              model: User,
-              as: "actor",
-              attributes: ["id", "name", "email"],
-            },
-          ],
-        }),
-      ),
-    );
+    const { updatedFields, detailedHistoryEntries, changedLabels, overrun } =
+      await TimeEntryService.update(
+        durationMinutes,
+        entryDate,
+        note,
+        req.params.taskId,
+        req.user.id,
+        req.params.id,
+      );
     return res.status(200).json({
       timeEntry: updatedFields,
       historyEntries: detailedHistoryEntries,
-      overrun: changedLabels.includes("Duration")
-        ? (await TimeEntry.sum("durationMinutes", {
-            where: { taskId: req.params.taskId },
-          })) > (task.estimatedTime ?? 0)
-        : undefined,
-      message: changedLabels.length
-        ? `${changedLabels.join(", ")} updated successfully`
-        : "Time entry updated successfully",
+      overrun,
+      message: `${changedLabels.join(", ")} updated successfully`,
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }
 
 async function remove(
-  req: AuthRequest<
-    { id: string; taskId: string },
-    Record<string, never>,
-    Record<string, never>
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const task = await findOwnedTask(req.params.taskId, req.user.id);
-    if (!task) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Task not found or you do not have permission to access it",
-      });
-    }
-
-    const timeEntry = await TimeEntry.findOne({
-      where: { id: req.params.id, taskId: req.params.taskId },
-    });
-    if (!timeEntry) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Time entry not found",
-      });
-    }
-
-    await timeEntry.destroy();
-    const historyEntry = await recordTimeEntryDeleted(
+    const taskHistoryEntry = await TimeEntryService.remove(
       req.params.taskId,
       req.user.id,
-      {
-        durationMinutes: timeEntry.durationMinutes,
-        entryDate: timeEntry.entryDate
-          ? new Date(timeEntry.entryDate)
-          : undefined,
-        note: timeEntry.note,
-      },
+      req.params.id,
     );
-    const taskHistoryEntry = await TaskHistory.findOne({
-      where: { id: historyEntry.id },
-      include: [
-        {
-          model: User,
-          as: "actor",
-          attributes: ["id", "name", "email"],
-        },
-      ],
-    });
     return res.status(200).json({
       message: "Time entry deleted successfully",
       historyEntry: taskHistoryEntry,
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }

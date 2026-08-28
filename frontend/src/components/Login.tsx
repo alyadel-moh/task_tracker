@@ -28,8 +28,8 @@ const Login = () => {
 
   const onSubmit = (data: FormData) => {
     loginMutation.mutate(data, {
-      onSuccess: () => {
-        toast.success("Welcome back!");
+      onSuccess: (data: any) => {
+        toast.success(data?.message || "Welcome back!");
         navigate("/projects");
       },
       onError: (error: any) => {

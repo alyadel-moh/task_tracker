@@ -51,7 +51,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       taskId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "task_id",
         references: {
           model: "tasks",
           key: "id",
@@ -62,7 +61,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       actorId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "actor_id",
         references: {
           model: "users",
           key: "id",
@@ -72,7 +70,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       eventType: {
         type: DataTypes.STRING,
         allowNull: false,
-        field: "event_type",
       },
       fieldChanged: {
         type: DataTypes.STRING,
