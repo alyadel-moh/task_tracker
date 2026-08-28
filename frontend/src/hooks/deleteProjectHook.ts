@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { Project } from "../components/types";
+import { AssignedProjectMembership } from "../components/types";
 interface DeleteProjectResponse {
   status: string;
   message: string;
@@ -17,10 +17,15 @@ const useDeleteProject = () => {
         .then((response) => response.data);
     },
     onSuccess: (data, deletedProjectId) => {
-      queryClient.setQueryData<Project[]>(["projects"], (oldProjects) => {
-        if (!oldProjects) return [];
-        return oldProjects.filter((project) => project.id !== deletedProjectId);
-      });
+      queryClient.setQueryData<AssignedProjectMembership[]>(
+        ["assigned-projects"],
+        (oldMemberships) => {
+          if (!oldMemberships) return [];
+          return oldMemberships.filter(
+            (membership) => membership.project.id !== deletedProjectId,
+          );
+        },
+      );
       console.log("Project deleted successfully:", data);
     },
     onError: (error: AxiosError) => {

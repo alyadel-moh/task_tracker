@@ -1,9 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../api-client";
-import { HistoryEntry, Task } from "../components/types";
+import { HistoryEntry, Task, Priority } from "../components/types";
 
 interface UpdateTaskPayload {
-  task: Partial<Task>;
+  id: string;
+  name?: string;
+  description?: string | null;
+  projectId?: string;
+  priority?: Priority;
+  dueDate?: Date | string | null;
+  estimatedTime?: number | null;
+  statusId?: string;
+  assigneeIds?: string[] | null;
 }
 
 interface UpdateTaskResponse {
@@ -19,11 +27,9 @@ const useUpdateTask = (projectId: string) => {
 
   return useMutation({
     mutationFn: (taskData: UpdateTaskPayload) => {
+      const { id, ...rest } = taskData;
       return axiosInstance
-        .patch<UpdateTaskResponse>(
-          `tasks/update/${projectId}/${taskData.task.id}`,
-          taskData.task,
-        )
+        .patch<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, rest)
         .then((response) => response.data);
     },
     onSuccess: (data, variables) => {
@@ -36,7 +42,7 @@ const useUpdateTask = (projectId: string) => {
 
           if (Array.isArray(oldTasks)) {
             return oldTasks.map((task) =>
-              task.id === variables.task.id
+              task.id === variables.id
                 ? {
                     ...task,
                     ...updatedFields,
@@ -52,7 +58,7 @@ const useUpdateTask = (projectId: string) => {
       );
 
       queryClient.setQueryData<Task>(
-        ["task", projectId, variables.task.id],
+        ["task", projectId, variables.id],
         (oldTask) => {
           if (!oldTask) return oldTask;
           return {
@@ -64,7 +70,7 @@ const useUpdateTask = (projectId: string) => {
       );
 
       queryClient.setQueryData<HistoryEntry[]>(
-        ["task_history", variables.task.id],
+        ["task_history", variables.id],
         (oldHistory) => {
           if (!oldHistory) return oldHistory;
           if (data.historyEntries && data.historyEntries.length > 0) {

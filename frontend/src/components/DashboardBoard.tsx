@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -6,6 +6,10 @@ import {
   type DragStartEvent,
   type DragOverEvent,
 } from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import {
   ChevronDown,
   Folder,
@@ -16,54 +20,33 @@ import {
   X,
   AlertTriangle,
   ArrowRight,
+  UserCog,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import ColumnDropZone from "./ColumnDropZone";
 import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
-import {
-  columns,
-  type Project,
-  type Status,
-  type Task,
-  type Priority,
-} from "./types";
-import TaskCard from "./TaskCard";
+import SortableColumn from "./SortableColumn";
+import AddColumnInline from "./AddColumnInline";
+import MemberFilterGroup from "./MemberFilterGroup";
+import { type Task, type Priority, type Statuss } from "./types";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
 import useGetTasks from "../hooks/getAllTasksHook";
+import useGetProjectMembers from "../hooks/getAllprojectMembers";
+import useGetAssignedProjects from "../hooks/getProjectsHook";
+import { useAppStore } from "../store/useAppStore";
+import { useNavigate } from "react-router-dom";
+import useLogout from "../hooks/logoutHook";
 
 interface DashboardBoardProps {
-  activeProject: Project | null;
-  tasks: Task[];
-  activeTab: Status;
-  onSelectTab: (status: Status) => void;
   draggingTask: Task | null;
-  overColumnStatus?: Status | null;
+  draggingColumn?: Statuss | null;
+  overColumnStatus?: string | null;
   onDragStart: (event: DragStartEvent) => void;
   onDragOver?: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  isProjectMenuOpen: boolean;
-  onToggleProjectMenu: () => void;
-  isUserMenuOpen: boolean;
-  onToggleUserMenu: () => void;
-  projects: Project[];
-  activeProjectId: string | null;
-  onSelectProject: (projectId: string) => void;
-  onCreateProject: () => void;
-  userName: string;
-  userEmail: string;
-  onCreateTask: () => void;
-  onLogout: () => void;
   sensors: any;
 }
-
-const STATUS_OPTIONS: { value: Status; label: string }[] = [
-  { value: "TODO", label: "To Do" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "IN_REVIEW", label: "In Review" },
-  { value: "DONE", label: "Done" },
-];
 
 const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: "LOW", label: "Low" },
@@ -71,11 +54,37 @@ const PRIORITY_OPTIONS: { value: Priority; label: string }[] = [
   { value: "HIGH", label: "High" },
 ];
 
-const STATUS_LABELS: Record<Status, string> = {
+const DEFAULT_STATUS_MAP: Record<string, string> = {
   TODO: "To Do",
   IN_PROGRESS: "In Progress",
-  IN_REVIEW: "In Review",
   DONE: "Done",
+};
+
+const formatStatusName = (rawName?: string): string => {
+  if (rawName && typeof rawName === "string" && rawName.trim()) {
+    const trimmed = rawName.trim();
+    if (DEFAULT_STATUS_MAP[trimmed.toUpperCase()]) {
+      return DEFAULT_STATUS_MAP[trimmed.toUpperCase()];
+    }
+    return trimmed;
+  }
+  return "Untitled Column";
+};
+
+// Unified Status Color System
+export const getStatusColorKey = (
+  name?: string,
+): "todo" | "in-progress" | "done" | "custom" => {
+  if (!name) return "custom";
+  const normalized = name
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
+  if (normalized === "todo" || normalized === "to-do") return "todo";
+  if (normalized === "inprogress" || normalized === "in-progress")
+    return "in-progress";
+  if (normalized === "done") return "done";
+  return "custom";
 };
 
 const formatDate = (dateString?: string) => {
@@ -92,60 +101,139 @@ const formatDate = (dateString?: string) => {
 };
 
 const DashboardBoard = ({
-  activeProject,
-  tasks: initialTasks,
-  activeTab,
-  onSelectTab,
   draggingTask,
+  draggingColumn,
   overColumnStatus,
   onDragStart,
   onDragOver,
   sensors,
   onDragEnd,
-  isProjectMenuOpen,
-  onToggleProjectMenu,
-  isUserMenuOpen,
-  onToggleUserMenu,
-  onCreateTask,
-  projects,
-  activeProjectId,
-  onSelectProject,
-  onCreateProject,
-  userName,
-  userEmail,
-  onLogout,
 }: DashboardBoardProps) => {
-  const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
+  const {
+    user,
+    setUser,
+    setActiveTab,
+    activeTab,
+    activeProject,
+    setActiveProject,
+    setCreateTaskOpen,
+    setCreateProjectOpen,
+    setUserProfileModalOpen,
+    tasks,
+    setTasks,
+    statuses,
+  } = useAppStore();
+  const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
+  // Filters State
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatuses, setSelectedStatuses] = useState<Status[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(
+    null,
+  );
 
+  const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
+  const { data: rawProjects = [] } = useGetAssignedProjects();
+  const { data: projectMembersData = [] } = useGetProjectMembers(
+    activeProject?.id ?? "",
+  );
+  const logoutMutation = useLogout();
+
+  // Tasks Query with dynamic filtering
   const { data: fetchedTasks } = useGetTasks({
     projectId: activeProject?.id,
     search: searchQuery,
-    status: selectedStatuses,
+    statusId: selectedStatuses,
     priority: selectedPriorities,
     overdue: overdueOnly,
+    assigneeId: selectedAssigneeId ?? undefined,
   });
 
-  const tasks = fetchedTasks ?? initialTasks;
+  useEffect(() => {
+    if (fetchedTasks) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks, setTasks]);
+
+  const projects = useMemo(
+    () => (Array.isArray(rawProjects) ? rawProjects : []),
+    [rawProjects],
+  );
+
+  const isCurrentUserOwner = useMemo(() => {
+    if (!activeProject?.id) return false;
+    const projectList = Array.isArray(rawProjects) ? rawProjects : [];
+    const match = projectList.find((p: any) => {
+      const projId = p?.project?.id || p?.id;
+      return projId === activeProject.id;
+    });
+    return match?.role === "OWNER";
+  }, [rawProjects, activeProject?.id]);
+
+  const columns: Statuss[] = useMemo(() => {
+    if (!Array.isArray(statuses) || statuses.length === 0) {
+      return [];
+    }
+    return statuses
+      .filter((col): col is Statuss =>
+        Boolean(col && typeof col === "object" && col.id),
+      )
+      .map((col) => ({
+        ...col,
+        name: formatStatusName(col.name),
+      }));
+  }, [statuses]);
+
+  useEffect(() => {
+    if (
+      columns.length > 0 &&
+      (!activeTab || !columns.some((c) => c.id === activeTab))
+    ) {
+      setActiveTab(columns[0].id);
+    }
+  }, [columns, activeTab, setActiveTab]);
+
+  const memberList = useMemo(() => {
+    return (Array.isArray(projectMembersData) ? projectMembersData : []).map(
+      (m: any) => ({
+        id: m.user?.id,
+        name: m.user?.name,
+        email: m.user?.email,
+        photoUrl: m.user?.photoUrl,
+      }),
+    );
+  }, [projectMembersData]);
 
   const createdDateFormatted = formatDate(activeProject?.createdAt);
   const updatedDateFormatted = formatDate(activeProject?.updatedAt);
 
-  const getTaskCountForStatus = (statusKey: Status) => {
-    return (Array.isArray(tasks) ? tasks : []).filter(
-      (t: Task) => t.status === statusKey,
-    ).length;
+  const statusIdToNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    columns.forEach((col) => {
+      if (col && col.id) {
+        map[col.id] = col.name;
+      }
+    });
+    return map;
+  }, [columns]);
+
+  const getTaskCountForStatus = (statusId: string) => {
+    return (Array.isArray(tasks) ? tasks : []).filter((t: Task) => {
+      if (!t) return false;
+      const taskStatusId = t.statusId ?? (t as any).status_id;
+      return taskStatusId === statusId;
+    }).length;
   };
 
-  const toggleStatusFilter = (status: Status) => {
+  const toggleStatusFilter = (statusId: string) => {
     setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
+      prev.includes(statusId)
+        ? prev.filter((id) => id !== statusId)
+        : [...prev, statusId],
     );
   };
 
@@ -162,13 +250,15 @@ const DashboardBoard = ({
     setSelectedStatuses([]);
     setSelectedPriorities([]);
     setOverdueOnly(false);
+    setSelectedAssigneeId(null);
   };
 
   const isFilteredActive =
     searchQuery !== "" ||
     selectedStatuses.length > 0 ||
     selectedPriorities.length > 0 ||
-    overdueOnly;
+    overdueOnly ||
+    selectedAssigneeId !== null;
 
   const handleSaveProjectField = (
     field: "name" | "description",
@@ -176,20 +266,50 @@ const DashboardBoard = ({
   ) => {
     if (!activeProject) return;
 
-    const payload = { [field]: value };
-
-    updateProjectMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success(`Project ${field} updated successfully!`);
+    updateProjectMutation.mutate(
+      { [field]: value },
+      {
+        onSuccess: (data: any) => {
+          toast.success(
+            data?.message || `Project ${field} updated successfully!`,
+          );
+        },
+        onError: (error: any) => {
+          const apiError =
+            error?.response?.data?.message ??
+            "Failed to update project. Please try again.";
+          toast.error(apiError);
+        },
       },
-      onError: (error: any) => {
-        const apiError =
-          error?.response?.data?.message ??
-          "Failed to update project. Please try again.";
-        toast.error(apiError);
+    );
+  };
+
+  const columnSortableIds = useMemo(
+    () => columns.map((c) => `col-${c.id}`),
+    [columns],
+  );
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        setUser(null);
+        toast.success("Logged out successfully");
+        navigate("/login", { replace: true });
+      },
+      onError: () => {
+        setUser(null);
+        navigate("/login", { replace: true });
       },
     });
   };
+
+  const draggingTaskStatusId =
+    draggingTask?.statusId ?? (draggingTask as any)?.status_id;
+
+  const targetStatusName = overColumnStatus
+    ? statusIdToNameMap[overColumnStatus]
+    : "";
+  const targetColorKey = getStatusColorKey(targetStatusName);
 
   return (
     <DndContext
@@ -199,7 +319,7 @@ const DashboardBoard = ({
       onDragEnd={onDragEnd}
     >
       <main className="board-panel">
-        {/* Desktop Board Header */}
+        {/* Desktop Header */}
         <div className="board-header board-header-desktop">
           <div className="board-header-left">
             {activeProject ? (
@@ -209,9 +329,10 @@ const DashboardBoard = ({
                     label=""
                     value={activeProject.name}
                     onSave={(val) => handleSaveProjectField("name", val)}
+                    readOnly={!isCurrentUserOwner}
                   />
                   <span className="task-count-badge">
-                    {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+                    {tasks?.length} {tasks?.length === 1 ? "task" : "tasks"}
                     {isFilteredActive && " (filtered)"}
                   </span>
                 </div>
@@ -224,6 +345,7 @@ const DashboardBoard = ({
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
                     onSave={(val) => handleSaveProjectField("description", val)}
+                    readOnly={!isCurrentUserOwner}
                   />
                 </div>
               </>
@@ -256,7 +378,7 @@ const DashboardBoard = ({
             <button
               type="button"
               className="new-task-button"
-              onClick={onCreateTask}
+              onClick={() => setCreateTaskOpen(true)}
               disabled={!activeProject}
             >
               <Plus size={16} aria-hidden="true" />
@@ -269,8 +391,9 @@ const DashboardBoard = ({
         <div className="board-header board-header-mobile">
           <div className="mobile-header-top-row">
             <button
+              type="button"
               className="mobile-project-select"
-              onClick={onToggleProjectMenu}
+              onClick={() => setIsProjectMenuOpen((prev) => !prev)}
               aria-expanded={isProjectMenuOpen}
             >
               <span>{activeProject?.name ?? "Select a project"}</span>
@@ -281,20 +404,40 @@ const DashboardBoard = ({
               />
             </button>
             <button
+              type="button"
               className="mobile-user-button"
-              onClick={onToggleUserMenu}
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
               aria-expanded={isUserMenuOpen}
               aria-label="Account menu"
             >
-              {userName.charAt(0).toUpperCase()}
+              {user?.photoUrl ? (
+                <img src={user.photoUrl} alt={user.name} />
+              ) : (
+                <span>
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
+              )}
             </button>
           </div>
+
+          {activeProject && (createdDateFormatted || updatedDateFormatted) && (
+            <div className="board-meta-pill mobile-project-meta-pill">
+              {createdDateFormatted && (
+                <span>Created {createdDateFormatted}</span>
+              )}
+              {createdDateFormatted && updatedDateFormatted && (
+                <span className="pill-dot">•</span>
+              )}
+              {updatedDateFormatted && (
+                <span>Updated {updatedDateFormatted}</span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Search and Multi-Filter Toolbar Component */}
+        {/* Filter Toolbar */}
         {activeProject && (
           <div className="task-filter-bar">
-            {/* Search Input Box */}
             <div className="filter-search-wrapper">
               <Search size={16} className="filter-search-icon" />
               <input
@@ -315,27 +458,42 @@ const DashboardBoard = ({
               )}
             </div>
 
-            {/* Filter Options Row */}
             <div className="filter-group-options">
-              {/* Status Pills */}
-              <div className="filter-pills-group">
-                <span className="filter-label">Status:</span>
-                {STATUS_OPTIONS.map((opt) => {
-                  const active = selectedStatuses.includes(opt.value);
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`filter-pill ${active ? "active" : ""}`}
-                      onClick={() => toggleStatusFilter(opt.value)}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Member Avatar Filter */}
+              {memberList.length > 0 && (
+                <div className="filter-pills-group">
+                  <span className="filter-label">Assignee:</span>
+                  <MemberFilterGroup
+                    members={memberList}
+                    selectedMemberId={selectedAssigneeId}
+                    onSelectMember={(id) => setSelectedAssigneeId(id)}
+                  />
+                </div>
+              )}
 
-              {/* Priority Pills */}
+              {/* Status Filters */}
+              {columns.length > 0 && (
+                <div className="filter-pills-group">
+                  <span className="filter-label">Status:</span>
+                  {columns.map((col) => {
+                    const active = selectedStatuses.includes(col.id);
+                    const colorKey = getStatusColorKey(col.name);
+                    return (
+                      <button
+                        key={col.id}
+                        type="button"
+                        data-status-color={colorKey}
+                        className={`filter-pill ${active ? "active" : ""}`}
+                        onClick={() => toggleStatusFilter(col.id)}
+                      >
+                        {col.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Priority Filters */}
               <div className="filter-pills-group">
                 <span className="filter-label">Priority:</span>
                 {PRIORITY_OPTIONS.map((opt) => {
@@ -344,6 +502,7 @@ const DashboardBoard = ({
                     <button
                       key={opt.value}
                       type="button"
+                      data-priority={opt.value}
                       className={`filter-pill ${active ? "active" : ""}`}
                       onClick={() => togglePriorityFilter(opt.value)}
                     >
@@ -353,7 +512,7 @@ const DashboardBoard = ({
                 })}
               </div>
 
-              {/* Overdue Pill */}
+              {/* Overdue Filter */}
               <button
                 type="button"
                 className={`filter-pill filter-pill-overdue ${
@@ -365,14 +524,14 @@ const DashboardBoard = ({
                 <span>Overdue</span>
               </button>
 
-              {/* Clear All Filters */}
+              {/* Reset Filters */}
               {isFilteredActive && (
                 <button
                   type="button"
-                  className="filter-reset-btn"
+                  className="filter-pill filter-pill-clear"
                   onClick={handleResetFilters}
                 >
-                  <X size={14} />
+                  <X size={13} aria-hidden="true" />
                   <span>Clear filters</span>
                 </button>
               )}
@@ -380,21 +539,42 @@ const DashboardBoard = ({
           </div>
         )}
 
-        {/* User Menu Popup */}
+        {/* User Menu */}
         {isUserMenuOpen && (
           <>
             <div
               className="mobile-project-overlay"
-              onClick={onToggleUserMenu}
+              onClick={() => setIsUserMenuOpen(false)}
             />
             <div className="mobile-user-menu">
               <div className="mobile-user-menu-header">
-                <p className="user-name">{userName}</p>
-                <p className="user-email">{userEmail}</p>
+                <p className="user-name">
+                  {user?.name || user?.email || "User"}
+                </p>
+                <p className="user-email">
+                  {user?.email || "No email provided"}
+                </p>
               </div>
+
               <button
+                type="button"
+                className="mobile-project-menu-item"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  setUserProfileModalOpen(true);
+                }}
+              >
+                <UserCog size={16} aria-hidden="true" />
+                <span>Account Settings</span>
+              </button>
+
+              <button
+                type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-danger"
-                onClick={onLogout}
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  handleLogout();
+                }}
               >
                 <LogOut size={16} aria-hidden="true" />
                 <span>Log out</span>
@@ -403,44 +583,55 @@ const DashboardBoard = ({
           </>
         )}
 
-        {/* Mobile Project Switcher Menu */}
         {isProjectMenuOpen && (
           <>
             <div
               className="mobile-project-overlay"
-              onClick={onToggleProjectMenu}
+              onClick={() => setIsProjectMenuOpen(false)}
             />
             <div className="mobile-project-menu">
-              {projects.map((project) => (
-                <div key={project.id} className="project-item-row">
-                  <button
-                    className={`mobile-project-menu-item ${
-                      project.id === activeProjectId
-                        ? "mobile-project-menu-item-active"
-                        : ""
-                    }`}
-                    onClick={() => onSelectProject(project.id)}
-                  >
-                    <Folder size={16} aria-hidden="true" />
-                    <span>{project.name}</span>
-                  </button>
-                  <button
-                    className="project-item-edit"
-                    aria-label={`Edit ${project.name}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
-                    <Pencil size={13} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
+              {projects.map((item: any) => {
+                const project = item?.project || item;
+                if (!project?.id) return null;
+
+                return (
+                  <div key={project.id} className="project-item-row">
+                    <button
+                      type="button"
+                      className={`mobile-project-menu-item ${
+                        project.id === activeProject?.id
+                          ? "mobile-project-menu-item-active"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setActiveProject(project);
+                        setIsProjectMenuOpen(false);
+                      }}
+                    >
+                      <Folder size={16} aria-hidden="true" />
+                      <span>{project.name}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="project-item-edit"
+                      aria-label={`Edit ${project.name}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setIsProjectMenuOpen(false);
+                      }}
+                    >
+                      <Pencil size={13} aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
 
               <button
+                type="button"
                 className="mobile-project-menu-item mobile-project-menu-item-new"
                 onClick={() => {
-                  onToggleProjectMenu();
-                  onCreateProject();
+                  setIsProjectMenuOpen(false);
+                  setCreateProjectOpen(true);
                 }}
               >
                 <Plus size={16} aria-hidden="true" />
@@ -450,80 +641,96 @@ const DashboardBoard = ({
           </>
         )}
 
-        {/* Column Tabs (Mobile Navigation) */}
-        <div className="column-tabs">
-          {columns.map((col) => (
-            <DroppableTab
-              key={col.key}
-              status={col.key}
-              label={col.label}
-              count={getTaskCountForStatus(col.key)}
-              isActive={activeTab === col.key}
-              onSelect={() => onSelectTab(col.key)}
-            />
-          ))}
-        </div>
+        {/* Droppable Tabs */}
+        {columns.length > 0 && (
+          <div className="column-tabs">
+            {columns.map((col) => (
+              <DroppableTab
+                key={col.id}
+                status={col.id as any}
+                label={col.name}
+                count={getTaskCountForStatus(col.id)}
+                isActive={activeTab === col.id}
+                onSelect={() => setActiveTab(col.id)}
+              />
+            ))}
+          </div>
+        )}
 
-        {/* Kanban Board Area */}
+        {/* Dynamic Board Columns */}
         <div className="board">
-          {columns.map((col) => {
-            const colTasks = tasks.filter(
-              (task: Task) => task.status === col.key,
-            );
+          {columns.length === 0 && activeProject && (
+            <div className="board-empty-state">
+              <p>No columns found for this project.</p>
+            </div>
+          )}
 
-            return (
-              <div
-                key={col.key}
-                className={`column column-${col.key} ${
-                  activeTab === col.key ? "column-active" : ""
-                }`}
-              >
-                <div className="column-header column-header-desktop">
-                  <span className={`status-dot status-dot-${col.key}`} />
-                  <span>{col.label}</span>
-                  <span className="column-count">{colTasks.length}</span>
-                </div>
+          <SortableContext
+            items={columnSortableIds}
+            strategy={horizontalListSortingStrategy}
+          >
+            {columns.map((col) => {
+              const colTasks = tasks?.filter((task: Task) => {
+                if (!task) return false;
+                const taskStatusId = task.statusId ?? (task as any).status_id;
+                return taskStatusId === col.id;
+              });
 
-                <ColumnDropZone status={col.key}>
-                  {colTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                  {colTasks.length === 0 && (
-                    <p className="column-empty">
-                      {isFilteredActive
-                        ? "No matching tasks"
-                        : "Drop a task here"}
-                    </p>
-                  )}
-                </ColumnDropZone>
-              </div>
-            );
-          })}
+              return (
+                <SortableColumn
+                  key={col.id}
+                  column={col}
+                  tasks={colTasks ?? []}
+                  isFilteredActive={isFilteredActive}
+                />
+              );
+            })}
+          </SortableContext>
+
+          {activeProject && <AddColumnInline />}
         </div>
 
-        <button className="fab" aria-label="New task" onClick={onCreateTask}>
+        <button
+          type="button"
+          className="fab"
+          aria-label="New task"
+          onClick={() => setCreateTaskOpen(true)}
+        >
           <Plus size={20} />
         </button>
       </main>
 
-      <DragOverlay>
+      {/* Drag Overlay */}
+      <DragOverlay dropAnimation={null}>
         {draggingTask ? (
           <div className="task-card-overlay-wrapper">
-            {overColumnStatus && overColumnStatus !== draggingTask.status && (
+            {overColumnStatus && overColumnStatus !== draggingTaskStatusId && (
               <div
-                className={`jira-transition-badge jira-transition-badge-${overColumnStatus}`}
+                className={`jira-transition-badge jira-transition-badge-${targetColorKey}`}
               >
-                <span>{STATUS_LABELS[draggingTask.status]}</span>
+                <span>
+                  {statusIdToNameMap[draggingTaskStatusId ?? ""] ||
+                    "Current Column"}
+                </span>
                 <ArrowRight size={14} className="transition-arrow" />
-                <span>{STATUS_LABELS[overColumnStatus]}</span>
+                <span>{targetStatusName || "Target Column"}</span>
               </div>
             )}
             <div
-              className={`task-card-overlay task-card-overlay-${
-                overColumnStatus || draggingTask.status
-              }`}
+              className={`task-card-overlay task-card-overlay-${targetColorKey}`}
             >
               <TaskOverlay task={draggingTask} />
+            </div>
+          </div>
+        ) : draggingColumn ? (
+          <div className="column dragging-column-overlay">
+            <div className="column-header column-header-desktop">
+              <span
+                className={`status-dot status-dot-${getStatusColorKey(
+                  draggingColumn.name,
+                )}`}
+              />
+              <span>{draggingColumn.name}</span>
             </div>
           </div>
         ) : null}

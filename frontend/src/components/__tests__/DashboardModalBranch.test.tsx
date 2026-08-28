@@ -33,7 +33,9 @@ describe("Dashboard Modal Branch Coverage", () => {
         return Promise.resolve({ data: [] });
       }
       if (url === "auth/me") {
-        return Promise.resolve({ data: { name: "Aly Mohamed", email: "aly@example.com" } });
+        return Promise.resolve({
+          data: { name: "Aly Mohamed", email: "aly@example.com" },
+        });
       }
       return Promise.resolve({ data: [] });
     });
@@ -43,14 +45,16 @@ describe("Dashboard Modal Branch Coverage", () => {
         <MemoryRouter>
           <Dashboard />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
       expect(screen.getByText("Alpha Project")).toBeInTheDocument();
     });
 
-    const createProjectBtn = screen.getByRole("button", { name: /new project|\+/i });
+    const createProjectBtn = screen.getByRole("button", {
+      name: /new project|\+/i,
+    });
     fireEvent.click(createProjectBtn);
   });
 });

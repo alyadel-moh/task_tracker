@@ -1,4 +1,4 @@
-import { QueryInterface, DataTypes } from "sequelize";
+import { QueryInterface, DataTypes, Sequelize } from "sequelize";
 export default {
   async up(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.createTable("tasks", {
@@ -18,6 +18,16 @@ export default {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",
       },
+      status_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "statuses",
+          key: "id",
+        },
+        onDelete: "RESTRICT", // Prevents deleting a status if tasks exist in it
+        onUpdate: "CASCADE",
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -26,9 +36,15 @@ export default {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      status: {
-        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"),
-        defaultValue: "TODO",
+      created_by: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
       },
       priority: {
         type: DataTypes.ENUM("LOW", "MEDIUM", "HIGH"),
@@ -53,9 +69,19 @@ export default {
         defaultValue: DataTypes.NOW,
       },
     });
-    await queryInterface.addIndex("tasks", ["project_id"]);
+    await queryInterface.addIndex("tasks", ["project_id", "status_id"], {
+      name: "idx_tasks_project_status",
+    });
+    await queryInterface.addIndex("tasks", ["project_id", "due_date"], {
+      name: "idx_tasks_project_due_date",
+    });
   },
   async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable("tasks");
+    if (queryInterface.sequelize.getDialect() === "postgres") {
+      await queryInterface.sequelize.query(
+        'DROP TYPE IF EXISTS "enum_tasks_priority";',
+      );
+    }
   },
 };

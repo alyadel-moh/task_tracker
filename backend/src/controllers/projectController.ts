@@ -1,140 +1,69 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
-import { Project } from "../models";
-
-interface CreateProjectBody {
-  name: string;
-  description?: string;
-}
-
-interface UpdateProjectBody {
-  name?: string;
-  description?: string;
-}
-
+import { ProjectService } from "../services/projectService";
 async function create(
-  req: AuthRequest<
-    Record<string, never>,
-    Record<string, never>,
-    CreateProjectBody
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const { name, description } = req.body;
-    if (!name || !name.trim()) {
-      return res
-        .status(400)
-        .json({ error: "BadRequest", message: "Project name is required" });
+    const { project, id } = await ProjectService.create(
+      req.body.name,
+      req.body.description,
+      req.user.id,
+    );
+    return res.status(201).json({
+      message: "Project created successfully",
+      assignedProjectMembership: {
+        id,
+        role: "OWNER",
+        project,
+      },
+    });
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
     }
-    const project = await Project.create({
-      userId: req.user.id,
-      name: name.trim(),
-      description: description || null,
-    });
-    return res
-      .status(201)
-      .json({ message: "Project created successfully", project });
-  } catch (err) {
     next(err);
   }
 }
-
-async function getAll(
-  req: AuthRequest<Record<string, never>, Record<string, never>, Body>,
-  res: Response,
-  next: NextFunction,
-): Promise<Response | void> {
-  try {
-    const projects = await Project.findAll({
-      where: { userId: req.user.id },
-      order: [["createdAt", "ASC"]],
-    });
-    return res.status(200).json(projects);
-  } catch (err) {
-    next(err);
-  }
-}
-
 async function update(
-  req: AuthRequest<
-    Record<string, never>,
-    Record<string, never>,
-    UpdateProjectBody
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const { name, description } = req.body;
-
-    const project = await Project.findOne({
-      where: { id: req.params.id, userId: req.user.id },
-    });
-
-    if (!project) {
-      return res
-        .status(404)
-        .json({ error: "Not Found", message: "Project not found" });
-    }
-
-    const updatedField: { name?: string; description?: string } = {};
-    const changedLabels: string[] = [];
-
-    if (name !== undefined) {
-      const trimmedName = name.trim();
-      if (!trimmedName) {
-        return res.status(400).json({
-          error: "BadRequest",
-          message: "Project name cannot be empty",
-        });
-      }
-      project.name = trimmedName;
-      updatedField.name = trimmedName;
-      changedLabels.push("Name");
-    }
-    if (description !== undefined) {
-      project.description = description;
-      updatedField.description = description;
-      changedLabels.push("Description");
-    }
-
-    await project.save();
-
+    const { updatedField, changedLabel } = await ProjectService.update(
+      req.params.id,
+      req.user.id,
+      req.body,
+    );
     return res.status(200).json({
-      status: "success",
-      message: `${changedLabels.join(", ") || "Project"} updated successfully`,
+      message: `${changedLabel || "Project"} updated successfully`,
       project: updatedField,
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }
 
 async function remove(
-  req: AuthRequest<
-    Record<string, never>,
-    Record<string, never>,
-    Record<string, never>
-  >,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<Response | void> {
   try {
-    const project = await Project.findOne({
-      where: { id: req.params.id, userId: req.user.id },
-    });
-    if (!project) {
-      return res
-        .status(404)
-        .json({ error: "Not Found", message: "Project not found" });
-    }
-    await project.destroy();
+    await ProjectService.remove(req.params.id, req.user.id);
     return res.status(200).json({ message: "Project deleted successfully" });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
     next(err);
   }
 }
 
-export { create, getAll, update, remove };
+export { create, update, remove };

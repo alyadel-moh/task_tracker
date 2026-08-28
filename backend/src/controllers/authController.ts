@@ -1,94 +1,58 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "../models/index";
-import { generateToken } from "../utils/jwt";
-import bcrypt from "bcryptjs";
-
-interface RegisterBody {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface LoginBody {
-  email: string;
-  password: string;
-}
-
+import { AuthService } from "../services/authService";
+import { AuthRequest } from "../types/AuthRequest";
 async function register(
-  req: Request<{}, {}, RegisterBody>,
+  req: Request,
   res: Response,
   next: NextFunction,
-): Promise<void> {
+): Promise<void | Response> {
   try {
-    const { name, email, password } = req.body;
-
-    // 1. Validate inputs before hashing
-    if (!email || !password || !name) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "Name, email, and password are required",
-      });
-      return;
-    }
-
-    if (password.length < 8) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "Password must be at least 8 characters long",
-      });
-      return;
-    }
-
-    // 2. Hash password and persist
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    await User.create({ name, email, password: hashedPassword });
+    await AuthService.register(req.body);
     res.status(201).json({ message: "User registered successfully" });
-  } catch (error) {
-    next(error);
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    next(err);
   }
 }
 
 async function login(
-  req: Request<{}, {}, LoginBody>,
+  req: Request,
   res: Response,
   next: NextFunction,
-): Promise<void> {
+): Promise<void | Response> {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({
-        error: "Bad Request",
-        message: "Email and password are required",
-      });
-      return;
-    }
-
-    // Scope override ensures 'password' property is loaded onto the instance
-    const user = await User.scope("withPassword").findOne({ where: { email } });
-
-    if (!user) {
-      res
-        .status(401)
-        .json({ error: "Unauthorized", message: "Invalid email or password" });
-      return;
-    }
-
-    const matches = await user.validPassword(password);
-
-    if (!matches) {
-      res
-        .status(401)
-        .json({ error: "Unauthorized", message: "Invalid email or password" });
-      return;
-    }
-
-    const token = generateToken({ id: user.id, email: user.email });
+    const token = await AuthService.login(email, password);
     res.status(200).json({ message: "Login successful", token });
-  } catch (error) {
-    next(error);
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    next(err);
+  }
+}
+
+async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> {
+  try {
+    const { updatedField, changedLabel } = await AuthService.update(
+      req.user!.id as string,
+      req.body,
+    );
+    return res.status(200).json({
+      message: `${changedLabel || "User"} updated successfully`,
+      user: updatedField,
+    });
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    next(err);
   }
 }
 
@@ -99,12 +63,11 @@ async function me(req: Request, res: Response): Promise<void> {
       .json({ error: "Unauthorized", message: "User not authenticated" });
     return;
   }
-  const { id, name, email } = req.user;
-  res.status(200).json({ id, name, email });
+  const user = await AuthService.getUserById(req.user.id as string);
+  res.status(200).json(user);
 }
-
 async function logout(_req: Request, res: Response): Promise<void> {
   res.status(200).json({ message: "Logout successful" });
 }
 
-export { register, login, me, logout };
+export { register, login, me, logout, update };

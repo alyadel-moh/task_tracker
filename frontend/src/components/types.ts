@@ -1,6 +1,6 @@
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
-export type Status = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
-
+export type MembershipStatus = "ACTIVE" | "PENDING";
+export type Role = "OWNER" | "MEMBER";
 export interface Task {
   id: string;
   name: string;
@@ -9,9 +9,12 @@ export interface Task {
   priority: Priority;
   dueDate?: Date | string | null;
   estimatedTime?: number | null;
-  status: Status;
+  statusId: string | null;
+  statusName: string;
+  creator: User;
   createdAt: string;
   updatedAt: string;
+  assignees: User[];
 }
 
 export interface Project {
@@ -26,7 +29,16 @@ export interface Project {
 export interface User {
   id: string;
   name: string;
+  photoUrl?: string | null;
   email: string;
+  updatedAt?: string;
+}
+export interface Statuss {
+  id: string;
+  projectId: string;
+  name: string;
+  position: number;
+  isDefault: boolean | undefined;
 }
 
 export interface TimeEntry {
@@ -51,10 +63,25 @@ export interface HistoryEntry {
     email: string;
   };
 }
+export interface AssignedProjectMembership {
+  id: string;
+  role: Role;
+  project: Project;
+}
+export interface pendingProjectMembership {
+  id: string;
+  role: Role;
+  project: {
+    id: string;
+    name: string;
+  };
+}
 
-export const columns: { key: Status; label: string }[] = [
-  { key: "TODO", label: "To do" },
-  { key: "IN_PROGRESS", label: "In progress" },
-  { key: "IN_REVIEW", label: "In review" },
-  { key: "DONE", label: "Done" },
-];
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  role: Role;
+  membershipStatus: MembershipStatus;
+  createdAt: string;
+  user: User;
+}

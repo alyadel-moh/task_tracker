@@ -25,13 +25,18 @@ describe("useDeleteProject", () => {
   );
 
   it("deletes a project and removes it from projects cache", async () => {
-    queryClient.setQueryData(["projects"], [
-      { id: "p1", name: "Project One" },
-      { id: "p2", name: "Project Two" },
-    ]);
+    queryClient.setQueryData(
+      ["projects"],
+      [
+        { id: "p1", name: "Project One" },
+        { id: "p2", name: "Project Two" },
+      ],
+    );
 
     const mockResponse = { status: "SUCCESS", message: "Deleted" };
-    vi.mocked(axiosInstance.delete).mockResolvedValueOnce({ data: mockResponse });
+    vi.mocked(axiosInstance.delete).mockResolvedValueOnce({
+      data: mockResponse,
+    });
 
     const { result } = renderHook(() => useDeleteProject(), { wrapper });
 

@@ -31,7 +31,7 @@ describe("TaskCard Full Coverage", () => {
         <MemoryRouter>
           <TaskCard {...props} />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
   it("renders task name, priority badge, and total logged time", () => {

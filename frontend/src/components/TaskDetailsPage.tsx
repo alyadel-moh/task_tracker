@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,10 @@ import {
   Plus,
   History,
   Save,
+  User as UserIcon,
+  Users,
+  Check,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import InlineEditField from "../components/InlineEditField";
@@ -24,21 +28,30 @@ import useGetTimeEntries from "../hooks/getAlltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimeEntry";
 import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
+import useGetProjectMembers from "../hooks/getAllprojectMembers";
 import "../css/TaskDetailsPage.css";
-import { Priority, Status } from "./types";
-
+import { Priority, ProjectMember } from "./types";
+import { useAppStore } from "../store/useAppStore";
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
   { value: "HIGH", label: "High" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "TODO", label: "To Do" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "IN_REVIEW", label: "In Review" },
-  { value: "DONE", label: "Done" },
-];
+const formatStatusLabel = (name?: string | null): string => {
+  if (!name) return "Unknown";
+  const normalized = name.trim().toUpperCase();
+  if (normalized === "TODO" || normalized === "TO_DO") return "To Do";
+  if (normalized === "IN_PROGRESS" || normalized === "INPROGRESS")
+    return "In Progress";
+  if (normalized === "DONE") return "Done";
+
+  return name
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 const formatTimestamp = (value: string): string => {
   const date = new Date(value);
@@ -64,7 +77,9 @@ const formatDateOnly = (value: string | Date | null): string => {
   });
 };
 
-const formatForDateTimeInput = (value: string | Date | null): string => {
+const formatForDateTimeInput = (
+  value: string | Date | null | undefined,
+): string => {
   if (!value) return "";
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return "";
@@ -90,6 +105,16 @@ const formatForDateInput = (value: string | Date | null): string => {
   return `${year}-${month}-${day}`;
 };
 
+const getInitials = (name?: string | null): string => {
+  if (!name) return "U";
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
 interface EntryFormState {
   durationMinutes: string;
   entryDate: string;
@@ -99,6 +124,7 @@ interface EntryFormState {
 const TaskDetailsPage = () => {
   const navigate = useNavigate();
   const [savingTask, setSavingTask] = useState(false);
+  const { user, statuses } = useAppStore();
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [newDuration, setNewDuration] = useState("");
@@ -106,17 +132,20 @@ const TaskDetailsPage = () => {
     new Date().toISOString().split("T")[0],
   );
   const [newNote, setNewNote] = useState("");
-  const [overrun, setoverrun] = useState(false);
-
+  const [overrun, setOverrun] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
+  const assigneeDropdownRef = useRef<HTMLDivElement>(null);
 
   const [taskDraft, setTaskDraft] = useState({
     name: "",
     description: "",
-    status: "TODO",
-    priority: "LOW",
+    statusId: "",
+    priority: "LOW" as Priority,
     dueDate: "",
     estimatedTime: "",
+    statusName: "",
   });
 
   const [entryDrafts, setEntryDrafts] = useState<
@@ -131,29 +160,94 @@ const TaskDetailsPage = () => {
   const { data: timeEntriesData, isLoading: entriesLoading } =
     useGetTimeEntries(taskId);
 
+  const { data: projectMembers = [] } = useGetProjectMembers(projectId);
+
   const updateTaskMutation = useUpdateTask(projectId);
   const createEntryMutation = useCreateTimeEntry(taskId);
   const updateEntryMutation = useUpdateTimeEntry(taskId);
   const deleteEntryMutation = useDeleteTimeEntry(taskId);
+
   const entries = timeEntriesData?.timeEntries || [];
   const totalMinutes = timeEntriesData?.totalMinutes || 0;
+  const isTaskCreator = Boolean(task?.creator?.id === user?.id);
+  const isTaskAssignee = (task?.assignees || []).some(
+    (a: any) => (a.id || a.userId) === user?.id,
+  );
+  const canManageAssignees = isTaskCreator || isTaskAssignee;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        assigneeDropdownRef.current &&
+        !assigneeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowAssigneeDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  useEffect(() => {
+    if (task?.estimatedTime && totalMinutes > task.estimatedTime) {
+      setOverrun(true);
+    }
+  }, [task?.estimatedTime, totalMinutes]);
 
-  // Sync server task into local draft state
+  const statusOptions = useMemo(() => {
+    return statuses?.map((s: any) => ({
+      value: s.id,
+      label: formatStatusLabel(s.name),
+      name: s.name,
+    }));
+  }, [statuses]);
+
+  const isTaskDirty = useMemo(() => {
+    if (!task) return false;
+    return (
+      taskDraft.name.trim() !== (task.name || "").trim() ||
+      taskDraft.description.trim() !== (task.description || "").trim() ||
+      taskDraft.statusId !== (task.statusId || "") ||
+      taskDraft.priority !== (task.priority || "LOW") ||
+      taskDraft.dueDate !== formatForDateTimeInput(task.dueDate) ||
+      taskDraft.estimatedTime !==
+        (task.estimatedTime != null ? String(task.estimatedTime) : "")
+    );
+  }, [taskDraft, task]);
+
+  const currentStatusLabel = useMemo(() => {
+    const matched = statusOptions?.find(
+      (opt) => opt.value === taskDraft.statusId,
+    );
+    return matched
+      ? matched.label
+      : formatStatusLabel(
+          taskDraft.statusName || task?.statusName || "Unknown",
+        );
+  }, [
+    statusOptions,
+    taskDraft.statusId,
+    taskDraft.statusName,
+    task?.statusName,
+  ]);
+
+  const assignableMembers = useMemo(() => {
+    return projectMembers.filter((m: any) => m.user?.id !== task?.creator?.id);
+  }, [projectMembers, task?.creator?.id]);
+
   useEffect(() => {
     if (task) {
       setTaskDraft({
         name: task.name || "",
         description: task.description || "",
-        status: task.status || "TODO",
+        statusId: task.statusId || "",
         priority: task.priority || "LOW",
-        dueDate: formatForDateTimeInput(task.dueDate || null),
+        dueDate: formatForDateTimeInput(task.dueDate),
         estimatedTime:
           task.estimatedTime != null ? String(task.estimatedTime) : "",
+        statusName: task.statusName || "",
       });
     }
   }, [task]);
 
-  // Sync server time entries into local draft states
   useEffect(() => {
     if (timeEntriesData?.timeEntries?.length) {
       const initialDrafts: Record<string, EntryFormState> = {};
@@ -168,19 +262,6 @@ const TaskDetailsPage = () => {
     }
   }, [timeEntriesData]);
 
-  const isTaskDirty = useMemo(() => {
-    if (!task) return false;
-    return (
-      taskDraft.name.trim() !== (task.name || "").trim() ||
-      taskDraft.description.trim() !== (task.description || "").trim() ||
-      taskDraft.status !== (task.status || "TODO") ||
-      taskDraft.priority !== (task.priority || "LOW") ||
-      taskDraft.dueDate !== formatForDateTimeInput(task.dueDate || null) ||
-      taskDraft.estimatedTime !==
-        (task.estimatedTime != null ? String(task.estimatedTime) : "")
-    );
-  }, [taskDraft, task]);
-
   if (!task && (taskLoading || entriesLoading)) {
     return (
       <div className="task-page-loading">
@@ -193,11 +274,17 @@ const TaskDetailsPage = () => {
 
   const isOverdue =
     task.dueDate &&
-    task.status !== "DONE" &&
+    task.statusName !== "Done" &&
+    task.statusName !== "DONE" &&
     new Date(task.dueDate) < new Date();
 
   const getDueLabel = (): string | null => {
-    if (!task.dueDate || task.status === "DONE") return null;
+    if (
+      !task.dueDate ||
+      task.statusName === "Done" ||
+      task.statusName === "DONE"
+    )
+      return null;
 
     const today = new Date(new Date().toDateString());
     const due = new Date(task.dueDate);
@@ -224,6 +311,17 @@ const TaskDetailsPage = () => {
     setTaskDraft((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleStatusChange = (selectedStatusId: string) => {
+    const matchedStatus = statusOptions?.find(
+      (opt) => opt.value === selectedStatusId,
+    );
+    setTaskDraft((prev) => ({
+      ...prev,
+      statusId: selectedStatusId,
+      statusName: matchedStatus ? matchedStatus.name : prev.statusName,
+    }));
+  };
+
   const handleSaveAllTaskChanges = () => {
     if (!taskDraft.name.trim()) {
       toast.error("Task name cannot be empty");
@@ -234,24 +332,22 @@ const TaskDetailsPage = () => {
 
     updateTaskMutation.mutate(
       {
-        task: {
-          id: taskId,
-          name: taskDraft.name.trim(),
-          description: taskDraft.description.trim()
-            ? taskDraft.description.trim()
-            : null,
-          status: taskDraft.status as Status,
-          priority: taskDraft.priority as Priority,
-          dueDate: taskDraft.dueDate ? new Date(taskDraft.dueDate) : null,
-          estimatedTime: taskDraft.estimatedTime
-            ? Number(taskDraft.estimatedTime)
-            : null,
-        },
+        id: taskId,
+        name: taskDraft.name.trim(),
+        description: taskDraft.description.trim()
+          ? taskDraft.description.trim()
+          : null,
+        statusId: taskDraft.statusId,
+        priority: taskDraft.priority,
+        dueDate: taskDraft.dueDate ? new Date(taskDraft.dueDate) : null,
+        estimatedTime: taskDraft.estimatedTime
+          ? Number(taskDraft.estimatedTime)
+          : null,
       },
       {
         onSuccess: (res: any) => {
           const backendMessage = res?.message || res?.data?.message;
-          setoverrun(res?.overrun || false);
+          setOverrun(res?.overrun || false);
           toast.success(backendMessage || "Task changes saved successfully", {
             id: "task-save",
           });
@@ -263,6 +359,39 @@ const TaskDetailsPage = () => {
             { id: "task-save" },
           );
           setSavingTask(false);
+        },
+      },
+    );
+  };
+
+  const handleToggleAssignee = (member: ProjectMember) => {
+    const currentAssigneeIds = (task.assignees || []).map((a: any) => a.id);
+    const isAlreadyAssigned = currentAssigneeIds.includes(member.user.id);
+
+    const updatedAssigneeIds = isAlreadyAssigned
+      ? currentAssigneeIds.filter((id: string) => id !== member.user.id)
+      : [...currentAssigneeIds, member.user.id];
+
+    updateTaskMutation.mutate(
+      {
+        id: task.id,
+        assigneeIds: updatedAssigneeIds,
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            isAlreadyAssigned
+              ? `Removed ${member.user.name}`
+              : `Assigned ${member.user.name}`,
+            { id: "assignee-toggle" },
+          );
+          setShowAssigneeDropdown(false);
+        },
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to update assignee",
+            { id: "assignee-toggle" },
+          );
         },
       },
     );
@@ -286,7 +415,7 @@ const TaskDetailsPage = () => {
         onSuccess: (res) => {
           const backendMessage = res?.message || null;
           toast.success(backendMessage);
-          setoverrun(res.overrun || false);
+          setOverrun(res.overrun || false);
           setNewDuration("");
           setNewNote("");
           setShowAddEntry(false);
@@ -328,8 +457,8 @@ const TaskDetailsPage = () => {
     updateEntryMutation.mutate(payload, {
       onSuccess: (res: any) => {
         const backendMessage = res?.message || res?.data?.message;
-        const overrun = res?.overrun ?? false;
-        setoverrun(overrun);
+        const overrunResult = res?.overrun ?? false;
+        setOverrun(overrunResult);
         toast.success(backendMessage || "Entry updated successfully", {
           id: "entry-save",
         });
@@ -351,7 +480,6 @@ const TaskDetailsPage = () => {
         toast.error(err?.response?.data?.message || "Failed to delete entry"),
     });
   };
-
   return (
     <div className="task-page">
       <div className="task-page-container">
@@ -374,6 +502,153 @@ const TaskDetailsPage = () => {
             <History size={16} />
             <span>View history</span>
           </button>
+        </div>
+
+        {/* Top Section: Compact Creator & Assignees */}
+        <div className="task-people-section">
+          {/* Creator Card */}
+          <div className="task-creator-card">
+            <div className="task-people-header">
+              <UserIcon size={13} className="people-header-icon" />
+              <span>Created by</span>
+            </div>
+            <div className="task-user-chip">
+              <div className="task-avatar-wrapper">
+                {task.creator?.photoUrl ? (
+                  <img
+                    src={task.creator.photoUrl}
+                    alt={task.creator.name || "Creator"}
+                    className="task-avatar-img"
+                  />
+                ) : (
+                  <div className="task-avatar-fallback">
+                    {getInitials(task.creator?.name)}
+                  </div>
+                )}
+              </div>
+              <div className="task-user-info">
+                <span className="task-user-name">
+                  {task.creator?.name || "Anonymous User"}
+                </span>
+                <span className="task-user-email">
+                  {task.creator?.email || "No email available"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignees Card with Add Dropdown */}
+          <div className="task-assignees-container">
+            <div className="task-people-header">
+              <div className="task-people-header-left">
+                <Users size={13} className="people-header-icon" />
+                <span>Assignees</span>
+                <span className="task-count-badge">
+                  {task.assignees?.length || 0}
+                </span>
+              </div>
+
+              <div
+                className="add-assignee-menu-wrapper"
+                ref={assigneeDropdownRef}
+              >
+                {canManageAssignees && (
+                  <button
+                    type="button"
+                    className="add-assignee-trigger-btn"
+                    onClick={() => setShowAssigneeDropdown((prev) => !prev)}
+                    aria-label="Manage assignees"
+                  >
+                    <UserCheck size={14} />
+                    <span>Manage Assignees</span>
+                  </button>
+                )}
+                {showAssigneeDropdown && (
+                  <div className="assignee-dropdown-menu">
+                    <div className="assignee-dropdown-list">
+                      {assignableMembers.length === 0 ? (
+                        <div className="assignee-dropdown-empty">
+                          No members found
+                        </div>
+                      ) : (
+                        assignableMembers.map((member: any) => {
+                          const isAssigned = task.assignees?.some(
+                            (a: any) => a.id === member.user?.id,
+                          );
+
+                          return (
+                            <button
+                              key={member.id}
+                              type="button"
+                              className={`assignee-dropdown-item ${
+                                isAssigned ? "is-assigned" : ""
+                              }`}
+                              onClick={() => handleToggleAssignee(member)}
+                            >
+                              <div className="task-avatar-wrapper small">
+                                {member.user?.photoUrl ? (
+                                  <img
+                                    src={member.user.photoUrl}
+                                    alt={member.user.name}
+                                    className="task-avatar-img"
+                                  />
+                                ) : (
+                                  <div className="task-avatar-fallback">
+                                    {getInitials(member.user?.name)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="assignee-dropdown-user-info">
+                                <span className="assignee-dropdown-name">
+                                  {member.user?.name}
+                                </span>
+                                <span className="assignee-dropdown-email">
+                                  {member.user?.email}
+                                </span>
+                              </div>
+                              {isAssigned && (
+                                <Check size={14} className="assigned-check" />
+                              )}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="task-assignees-scroll">
+              {!task.assignees || task.assignees.length === 0 ? (
+                <div className="task-assignees-empty">
+                  No assignees assigned
+                </div>
+              ) : (
+                task.assignees.map((assignee: any) => (
+                  <div className="task-assignee-card" key={assignee.id}>
+                    <div className="task-avatar-wrapper">
+                      {assignee.photoUrl ? (
+                        <img
+                          src={assignee.photoUrl}
+                          alt={assignee.name}
+                          className="task-avatar-img"
+                        />
+                      ) : (
+                        <div className="task-avatar-fallback">
+                          {getInitials(assignee.name)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="task-user-info">
+                      <span className="task-user-name">{assignee.name}</span>
+                      <span className="task-user-email">{assignee.email}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 2-Column Split Wrapper */}
@@ -440,20 +715,17 @@ const TaskDetailsPage = () => {
                   <InlineEditField
                     label=""
                     type="select"
-                    options={STATUS_OPTIONS}
-                    value={taskDraft.status}
+                    options={statusOptions}
+                    value={taskDraft.statusId}
                     displayValue={
                       <span
-                        className={`task-badge badge-status badge-status-${taskDraft.status}`}
+                        className="task-badge badge-status"
+                        data-status={taskDraft.statusName || task?.statusName}
                       >
-                        {
-                          STATUS_OPTIONS.find(
-                            (o) => o.value === taskDraft.status,
-                          )?.label
-                        }
+                        {currentStatusLabel}
                       </span>
                     }
-                    onSave={(v) => updateTaskDraft("status", v)}
+                    onSave={handleStatusChange}
                   />
                 </div>
 
@@ -560,6 +832,8 @@ const TaskDetailsPage = () => {
               )}
             </div>
           </div>
+
+          {/* Right Column: Time Entries */}
           <div className="task-page-card time-entries-card">
             <div className="task-page-card-header">
               <div className="task-page-header-left">
@@ -591,7 +865,6 @@ const TaskDetailsPage = () => {
               </button>
             </div>
 
-            {/* Optional Create Entry Form */}
             {showAddEntry && (
               <form className="add-entry-form" onSubmit={handleCreateEntry}>
                 <div className="add-entry-row">
@@ -649,7 +922,6 @@ const TaskDetailsPage = () => {
               </form>
             )}
 
-            {/* List of Time Entries */}
             <div className="entries-list">
               {entries.length === 0 ? (
                 <div className="entries-empty">
@@ -751,7 +1023,6 @@ const TaskDetailsPage = () => {
                           />
                         </div>
 
-                        {/* SAVE ENTRY CHANGES BUTTON */}
                         {isDirty && (
                           <div className="save-entry-container">
                             <button
@@ -774,7 +1045,8 @@ const TaskDetailsPage = () => {
                       <button
                         type="button"
                         className="entry-delete-btn"
-                        title="Delete time entry"
+                        data-tooltip="delete time entry"
+                        data-tooltip-pos="left"
                         onClick={() => handleDeleteEntry(entry.id)}
                       >
                         <Trash2 size={16} />
@@ -795,4 +1067,5 @@ const TaskDetailsPage = () => {
     </div>
   );
 };
+
 export default TaskDetailsPage;

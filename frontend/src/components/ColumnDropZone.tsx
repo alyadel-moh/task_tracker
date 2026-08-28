@@ -1,19 +1,27 @@
 import { useDroppable } from "@dnd-kit/core";
-import { type ReactNode } from "react";
-import { type Status } from "./types";
 
 interface ColumnDropZoneProps {
-  status: Status;
-  children: ReactNode;
+  status: string;
+  statusColorKey?: "todo" | "in-progress" | "done" | "custom";
+  children: React.ReactNode;
 }
 
-const ColumnDropZone = ({ status, children }: ColumnDropZoneProps) => {
-  const { setNodeRef, isOver } = useDroppable({ id: `column-${status}` });
+const ColumnDropZone = ({
+  status,
+  statusColorKey = "custom",
+  children,
+}: ColumnDropZoneProps) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: status,
+    data: { type: "Column", statusId: status },
+  });
 
   return (
     <div
       ref={setNodeRef}
-      className={`column-drop-zone ${isOver ? "column-drop-zone-over" : ""}`}
+      className={`column-drop-zone column-drop-zone-${statusColorKey} ${
+        isOver ? "column-drop-zone-over" : ""
+      }`}
     >
       {children}
     </div>

@@ -42,20 +42,30 @@ describe("useDeleteTimeEntry", () => {
       historyEntry: { id: "h99", fieldChanged: "deleted_time_entry" },
     };
 
-    vi.mocked(axiosInstance.delete).mockResolvedValueOnce({ data: mockResponse });
+    vi.mocked(axiosInstance.delete).mockResolvedValueOnce({
+      data: mockResponse,
+    });
 
-    const { result } = renderHook(() => useDeleteTimeEntry(taskId), { wrapper });
+    const { result } = renderHook(() => useDeleteTimeEntry(taskId), {
+      wrapper,
+    });
 
     result.current.mutate("e1");
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const updatedCache = queryClient.getQueryData<any>(["time-entries", taskId]);
+    const updatedCache = queryClient.getQueryData<any>([
+      "time-entries",
+      taskId,
+    ]);
     expect(updatedCache.timeEntries).toHaveLength(1);
     expect(updatedCache.timeEntries[0].id).toBe("e2");
     expect(updatedCache.totalMinutes).toBe(20);
 
-    const historyCache = queryClient.getQueryData<any[]>(["task_history", taskId]);
+    const historyCache = queryClient.getQueryData<any[]>([
+      "task_history",
+      taskId,
+    ]);
     expect(historyCache).toHaveLength(1);
     expect(historyCache?.[0].id).toBe("h99");
   });

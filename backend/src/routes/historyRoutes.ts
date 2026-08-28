@@ -8,7 +8,7 @@ router.use(authenticate);
 
 /**
  * @openapi
- * /api/task_history/{taskId}:
+ * /api/task-history/{taskId}:
  *   get:
  *     summary: Retrieve audit history for a specific task
  *     tags: [Task History]
@@ -24,6 +24,7 @@ router.use(authenticate);
  *         description: The unique identifier of the task
  *     responses:
  *       200:
+ *         description: Successfully retrieved task history
  *         content:
  *           application/json:
  *             schema:
@@ -40,21 +41,11 @@ router.use(authenticate);
  *                   actorId:
  *                     type: string
  *                     format: uuid
- *                   eventType:
+ *                   action:
  *                     type: string
- *                     example: FIELD_UPDATED
- *                   fieldChanged:
- *                     type: string
- *                     nullable: true
- *                     example: title
- *                   oldValue:
- *                     type: string
- *                     nullable: true
- *                     example: Old Task Name
- *                   newValue:
- *                     type: string
- *                     nullable: true
- *                     example: New Task Name
+ *                     example: TASK_UPDATED
+ *                   changes:
+ *                     type: object
  *                   createdAt:
  *                     type: string
  *                     format: date-time
@@ -75,7 +66,7 @@ router.use(authenticate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
- *         description: Task not found or you do not have permission to access it
+ *         description: Forbidden - user does not own the project
  *         content:
  *           application/json:
  *             schema:

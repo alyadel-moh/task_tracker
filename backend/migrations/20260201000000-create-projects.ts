@@ -39,6 +39,11 @@ export default {
       },
     });
     await queryInterface.addIndex("projects", ["user_id"]);
+    await queryInterface.addConstraint("projects", {
+      fields: ["user_id", "name"],
+      type: "unique",
+      name: "unique_user_project_name",
+    });
   },
   async down(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.dropTable("projects");

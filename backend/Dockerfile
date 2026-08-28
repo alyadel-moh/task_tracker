@@ -21,7 +21,9 @@ RUN npm install --omit=dev
 # Copy compiled JavaScript output (includes config, models, migrations)
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/.sequelizerc ./.sequelizerc
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "dist/app.js"]
+CMD ["./docker-entrypoint.sh"]

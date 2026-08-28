@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Check, X, Edit2 } from "lucide-react";
+import { Check, X, ChevronDown } from "lucide-react";
 
 interface Option {
   value: string;
@@ -15,7 +15,100 @@ interface InlineEditFieldProps {
   optional?: boolean;
   displayValue?: React.ReactNode;
   onSave: (newValue: string) => void;
+  onCancel?: () => void;
+  initialIsEditing?: boolean;
+  readOnly?: boolean;
+  disabled?: boolean;
 }
+
+interface CustomInlineSelectProps {
+  options: Option[];
+  value: string;
+  onChange: (newValue: string) => void;
+  placeholder?: string;
+}
+
+const CustomInlineSelect: React.FC<CustomInlineSelectProps> = ({
+  options,
+  value,
+  onChange,
+  placeholder = "Select...",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selected = options.find((opt) => opt.value === value);
+
+  const handleToggle = () => {
+    if (!isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpward(spaceBelow < 180);
+    }
+    setIsOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div
+      className={`custom-select-container ${isOpen ? "dropdown-open" : ""}`}
+      ref={dropdownRef}
+      style={{ flex: 1 }}
+    >
+      <button
+        type="button"
+        className={`custom-select-trigger ${isOpen ? "active" : ""}`}
+        onClick={handleToggle}
+      >
+        <div className="custom-select-trigger-content">
+          <span className="custom-select-value">
+            {selected ? selected.label : placeholder}
+          </span>
+        </div>
+        <ChevronDown
+          size={15}
+          className={`custom-select-chevron ${isOpen ? "rotated" : ""}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          className={`custom-select-menu ${openUpward ? "menu-upward" : ""}`}
+        >
+          {options.map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <div
+                key={option.value}
+                className={`custom-select-item ${isSelected ? "selected" : ""}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>{option.label}</span>
+                {isSelected && <Check size={14} className="check-icon" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const InlineEditField: React.FC<InlineEditFieldProps> = ({
   value,
@@ -24,16 +117,27 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   placeholder = "Click to edit...",
   displayValue,
   onSave,
+  onCancel,
+  initialIsEditing,
+  readOnly = false,
+  disabled = false,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const isLocked = readOnly || disabled;
+  const [isEditing, setIsEditing] = useState(
+    isLocked ? false : initialIsEditing,
+  );
   const [draftValue, setDraftValue] = useState(value);
-  const inputRef = useRef<
-    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-  >(null);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setDraftValue(value);
   }, [value]);
+
+  useEffect(() => {
+    if (isLocked) {
+      setIsEditing(false);
+    }
+  }, [isLocked]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -42,18 +146,19 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   }, [isEditing]);
 
   const handleConfirmLocalEdit = () => {
-    onSave(draftValue); // Updates the local draft state in parent
-    setIsEditing(false); // Closes the inline edit input
+    onSave(draftValue);
+    setIsEditing(false);
   };
 
   const handleCancelLocalEdit = () => {
     setDraftValue(value);
     setIsEditing(false);
+    onCancel?.();
   };
 
-  if (isEditing) {
+  if (isEditing && !isLocked) {
     return (
-      <div className="inline-field-editor">
+      <div className="inline-field-editor" style={{ overflow: "visible" }}>
         {type === "textarea" ? (
           <textarea
             ref={inputRef as React.RefObject<HTMLTextAreaElement>}
@@ -63,18 +168,12 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
             onChange={(e) => setDraftValue(e.target.value)}
           />
         ) : type === "select" ? (
-          <select
-            ref={inputRef as React.RefObject<HTMLSelectElement>}
-            className="inline-field-input"
+          <CustomInlineSelect
+            options={options}
             value={draftValue}
-            onChange={(e) => setDraftValue(e.target.value)}
-          >
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            onChange={(newVal) => setDraftValue(newVal)}
+            placeholder={placeholder}
+          />
         ) : (
           <input
             ref={inputRef as React.RefObject<HTMLInputElement>}
@@ -87,7 +186,6 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
         )}
 
         <div className="inline-field-actions">
-          {/* Prevent default on mousedown guarantees single-click confirmation */}
           <button
             type="button"
             className="inline-field-action inline-field-save"
@@ -114,18 +212,27 @@ const InlineEditField: React.FC<InlineEditFieldProps> = ({
   }
 
   return (
-    <div className="inline-field-display" onClick={() => setIsEditing(true)}>
+    <div
+      className={`inline-field-display ${isLocked ? "inline-field-disabled" : ""}`}
+      onClick={() => {
+        if (!isLocked) setIsEditing(true);
+      }}
+      role={isLocked ? "text" : "button"}
+      tabIndex={isLocked ? -1 : 0}
+      style={{ cursor: isLocked ? "default" : "pointer" }}
+    >
       <div className="inline-field-value">
         {displayValue ||
-          (value ? value : <span className="placeholder">{placeholder}</span>)}
+          (value ? (
+            value
+          ) : isLocked ? (
+            <span className="inline-field-empty-readonly">
+              No description provided
+            </span>
+          ) : (
+            <span className="placeholder">{placeholder}</span>
+          ))}
       </div>
-      <button
-        type="button"
-        className="inline-field-edit-button"
-        aria-label="Edit field"
-      >
-        <Edit2 size={14} />
-      </button>
     </div>
   );
 };

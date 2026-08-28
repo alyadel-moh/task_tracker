@@ -31,7 +31,9 @@ describe("useGetAlltimeEntries & useGetProjects", () => {
     const mockEntries = [{ id: "e1", durationMinutes: 60 }];
     vi.mocked(axiosInstance.get).mockResolvedValueOnce({ data: mockEntries });
 
-    const { result } = renderHook(() => useGetAlltimeEntries("task-1"), { wrapper });
+    const { result } = renderHook(() => useGetAlltimeEntries("task-1"), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockEntries);

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { X, FolderPlus, Loader2 } from "lucide-react";
+import { X, FolderPlus, Loader2, Folder, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,12 +30,12 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
   const onSubmit = (data: FormData) => {
     createProject.mutate(
       {
-        name: data.name,
+        name: data.name.trim(),
         description: data.description ?? "",
       },
       {
-        onSuccess: () => {
-          toast.success("Project created successfully!");
+        onSuccess: (data: any) => {
+          toast.success(data?.message || "Project created successfully!");
           onClose();
         },
         onError: (error: any) => {
@@ -48,9 +48,8 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
     );
   };
 
-  // Trigger toast when form validation fails (e.g., clicking Submit with empty name)
   const onInvalid = () => {
-    toast.error("Please fill in all required fields.");
+    toast.error("Please enter a project name.");
   };
 
   useEffect(() => {
@@ -71,7 +70,7 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <div className="modal-header-icon">
+          <div className="modal-header-icon task-modal-header-icon">
             <FolderPlus size={18} aria-hidden="true" />
           </div>
           <button
@@ -87,7 +86,7 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
         <h2 id="create-project-title" className="modal-title">
           New project
         </h2>
-        <p className="modal-subtitle">
+        <p className="modal-subtitle modal-subtitle-compact">
           Give your project a name to start adding tasks.
         </p>
 
@@ -96,49 +95,51 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
           onSubmit={handleSubmit(onSubmit, onInvalid)}
           noValidate
         >
-          <label className="field">
+          {/* Project Name Field */}
+          <div className="field">
             <span className="field-label">Name</span>
-            <input
-              type="text"
-              placeholder="e.g. Website redesign"
-              autoFocus
-              {...register("name")}
-            />
+            <div className="input-with-icon">
+              <Folder size={15} className="input-icon" />
+              <input
+                type="text"
+                placeholder="e.g. Website redesign"
+                autoFocus
+                className={errors.name ? "input-error" : ""}
+                {...register("name")}
+              />
+            </div>
             {errors.name && (
               <small className="field-error">{errors.name.message}</small>
             )}
-          </label>
+          </div>
 
-          <label className="field">
+          {/* Description Field */}
+          <div className="field">
             <span className="field-label">
               Description{" "}
               <span className="field-label-optional">(optional)</span>
             </span>
-            <textarea
-              placeholder="What is this project about?"
-              rows={3}
-              {...register("description")}
-            />
-          </label>
+            <div className="input-with-icon textarea-wrapper">
+              <FileText size={15} className="input-icon textarea-icon" />
+              <textarea
+                placeholder="What is this project about?"
+                rows={3}
+                {...register("description")}
+              />
+            </div>
+          </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="modal-button modal-button-secondary"
-              onClick={onClose}
-              disabled={createProject.isPending}
-            >
-              Cancel
-            </button>
+          {/* Full-width Action Button */}
+          <div className="modal-actions-full">
             <button
               type="submit"
-              className="modal-button modal-button-primary"
+              className="modal-button modal-button-primary modal-button-full"
               disabled={createProject.isPending}
             >
               {createProject.isPending ? (
                 <>
-                  <Loader2 size={14} className="spin" />
-                  Creating...
+                  <Loader2 size={16} className="spin" />
+                  <span>Creating...</span>
                 </>
               ) : (
                 "Create project"

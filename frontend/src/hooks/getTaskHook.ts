@@ -12,8 +12,9 @@ const useGetTask = (projectId: string, taskId: string) => {
       );
       return response.data;
     },
-    enabled: !!localStorage.getItem("token"),
+    enabled: !!localStorage.getItem("token") && !!projectId && !!taskId,
     retry: false,
   });
 };
+
 export default useGetTask;

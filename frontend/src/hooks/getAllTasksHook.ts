@@ -6,30 +6,34 @@ import { type Task } from "../components/types";
 export interface GetTasksRequestParams {
   projectId?: string | null;
   search?: string | null;
-  status?: string[] | string | null;
+  statusId?: string[] | string | null;
   priority?: string[] | string | null;
+  assigneeId?: string | null;
   overdue?: boolean | null;
 }
 
 const useGetTasks = (params?: GetTasksRequestParams) => {
-  const { projectId, search, status, priority, overdue } = params ?? {};
+  const { projectId, search, statusId, priority, assigneeId, overdue } =
+    params ?? {};
 
   return useQuery<Task[], AxiosError>({
     queryKey: [
       "tasks",
       projectId,
       search ?? "",
-      status ?? [],
+      statusId ?? [],
       priority ?? [],
+      assigneeId,
       overdue ?? false,
     ],
     queryFn: async () => {
       const response = await axiosInstance.get<Task[]>(`tasks/${projectId}`, {
         params: {
           search,
-          status,
+          statusId,
           priority,
           overdue,
+          assigneeId,
         },
         paramsSerializer: (paramsToSerialize) => {
           const searchParams = new URLSearchParams();

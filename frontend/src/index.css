@@ -13,3 +13,324 @@ body,
 body {
   font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+
+/* ============================================================
+   GLOBAL TOOLTIP SYSTEM
+   Usage:
+     <button data-tooltip="Edit item">...</button>
+     <button data-tooltip="Delete item" data-tooltip-pos="bottom">...</button>
+   ============================================================ */
+
+[data-tooltip] {
+  position: relative;
+}
+
+/* Tooltip Text Bubble */
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  background-color: #1e222d;
+  color: #f1f5f9;
+  font-size: 0.725rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1000;
+  transition:
+    opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.15s;
+}
+
+/* Tooltip Arrow */
+[data-tooltip]::after {
+  content: "";
+  position: absolute;
+  border-style: solid;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1000;
+  transition:
+    opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.15s;
+}
+
+/* --- DEFAULT POSITION: TOP --- */
+[data-tooltip]:not([data-tooltip-pos])::before,
+[data-tooltip][data-tooltip-pos="top"]::before {
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+[data-tooltip]:not([data-tooltip-pos])::after,
+[data-tooltip][data-tooltip-pos="top"]::after {
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border-width: 5px 5px 0 5px;
+  border-color: #1e222d transparent transparent transparent;
+}
+
+[data-tooltip]:not([data-tooltip-pos]):hover::before,
+[data-tooltip]:not([data-tooltip-pos]):hover::after,
+[data-tooltip][data-tooltip-pos="top"]:hover::before,
+[data-tooltip][data-tooltip-pos="top"]:hover::after,
+[data-tooltip]:not([data-tooltip-pos]):focus-visible::before,
+[data-tooltip]:not([data-tooltip-pos]):focus-visible::after,
+[data-tooltip][data-tooltip-pos="top"]:focus-visible::before,
+[data-tooltip][data-tooltip-pos="top"]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- POSITION: BOTTOM --- */
+[data-tooltip][data-tooltip-pos="bottom"]::before {
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+[data-tooltip][data-tooltip-pos="bottom"]::after {
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  border-width: 0 5px 5px 5px;
+  border-color: transparent transparent #1e222d transparent;
+}
+
+[data-tooltip][data-tooltip-pos="bottom"]:hover::before,
+[data-tooltip][data-tooltip-pos="bottom"]:hover::after,
+[data-tooltip][data-tooltip-pos="bottom"]:focus-visible::before,
+[data-tooltip][data-tooltip-pos="bottom"]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --- POSITION: LEFT --- */
+[data-tooltip][data-tooltip-pos="left"]::before {
+  right: calc(100% + 7px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+}
+
+[data-tooltip][data-tooltip-pos="left"]::after {
+  right: calc(100% + 2px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+  border-width: 5px 0 5px 5px;
+  border-color: transparent transparent transparent #1e222d;
+}
+
+[data-tooltip][data-tooltip-pos="left"]:hover::before,
+[data-tooltip][data-tooltip-pos="left"]:hover::after,
+[data-tooltip][data-tooltip-pos="left"]:focus-visible::before,
+[data-tooltip][data-tooltip-pos="left"]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* --- POSITION: RIGHT --- */
+[data-tooltip][data-tooltip-pos="right"]::before {
+  left: calc(100% + 7px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+}
+
+[data-tooltip][data-tooltip-pos="right"]::after {
+  left: calc(100% + 2px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  border-width: 5px 5px 5px 0;
+  border-color: transparent #1e222d transparent transparent;
+}
+
+[data-tooltip][data-tooltip-pos="right"]:hover::before,
+[data-tooltip][data-tooltip-pos="right"]:hover::after,
+[data-tooltip][data-tooltip-pos="right"]:focus-visible::before,
+[data-tooltip][data-tooltip-pos="right"]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* When disabled / readOnly */
+.inline-field-display.inline-field-disabled {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding-left: 0;
+}
+
+.inline-field-empty-readonly {
+  color: rgba(242, 241, 237, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  margin-left: 10px;
+  user-select: none;
+}
+
+.inline-field-display {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  min-height: 48px;
+  transition: all 0.15s ease;
+}
+
+.inline-field-display:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.inline-field-value {
+  font-size: 14px;
+  color: #f2f1ed;
+  line-height: 1.5;
+  word-break: break-word;
+  flex: 1;
+}
+
+/* PLACEHOLDER STYLING (REMOVED ITALICS, SET TO NORMAL FONT) */
+.inline-field-placeholder,
+.inline-field-empty,
+.inline-field-display .placeholder,
+.inline-field-value:empty::before,
+textarea::placeholder,
+input::placeholder {
+  font-family: "Inter", sans-serif !important;
+  font-style: normal !important;
+  font-size: 14px;
+  color: rgba(242, 241, 237, 0.35);
+}
+
+.inline-field-edit-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.inline-field-display:hover .inline-field-edit-button {
+  opacity: 1;
+}
+
+.inline-field-edit-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f2f1ed;
+}
+
+.inline-field-editor {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.inline-field-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  border-radius: 8px;
+  background: #121210;
+  color: #f2f1ed;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+
+.inline-field-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+textarea.inline-field-input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+select.inline-field-input {
+  min-width: 140px;
+  cursor: pointer;
+  appearance: none;
+  background-color: #1a1a18;
+  color: #f2f1ed;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a3a196' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+input[type="date"].inline-field-input,
+input[type="datetime-local"].inline-field-input {
+  color-scheme: dark;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+.inline-field-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.inline-field-action {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.inline-field-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(242, 241, 237, 0.6);
+}
+
+.inline-field-save {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+}

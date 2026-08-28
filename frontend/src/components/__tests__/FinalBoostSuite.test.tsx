@@ -147,7 +147,10 @@ describe("Final Boost Suite for >85% Coverage", () => {
     });
 
     queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
 
     render(
@@ -160,7 +163,7 @@ describe("Final Boost Suite for >85% Coverage", () => {
             />
           </Routes>
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     await waitFor(() => {
@@ -180,7 +183,7 @@ describe("Final Boost Suite for >85% Coverage", () => {
     // Confirm inline edit for time entry note
     const confirmButtons = screen.getAllByRole("button");
     const confirmSaveBtn = confirmButtons.find((btn) =>
-      btn.className.includes("inline-field-save")
+      btn.className.includes("inline-field-save"),
     );
     if (confirmSaveBtn) fireEvent.mouseDown(confirmSaveBtn);
 
@@ -192,7 +195,7 @@ describe("Final Boost Suite for >85% Coverage", () => {
 
     expect(mockUpdateEntryMutate).toHaveBeenCalledWith(
       expect.objectContaining({ id: "e1" }),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 });

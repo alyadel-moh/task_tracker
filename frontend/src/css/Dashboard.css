@@ -129,7 +129,27 @@
     visibility: visible;
   }
 }
+.project-item-edit {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(242, 241, 237, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
 
+.project-item-edit:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f1ed;
+}
 .project-item-new {
   margin-top: 8px;
   border: 1px dashed rgba(255, 255, 255, 0.18);
@@ -143,54 +163,134 @@
   background: transparent;
 }
 
-/* ---------- User Account Section (Sidebar Bottom) ---------- */
+/* ---------- User Account Section (Sidebar Bottom - Entire Card Clickable) ---------- */
 
 .sidebar-user {
   margin-top: auto;
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 8px 10px;
+  gap: 12px;
+  padding: 10px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer !important;
+  user-select: none;
+  background: transparent;
+  transition:
+    background 0.18s ease,
+    transform 0.12s ease,
+    box-shadow 0.18s ease;
+}
+
+/* Guarantee clicking internal avatar or text passes click directly to parent card */
+.sidebar-user * {
+  pointer-events: none !important;
+}
+
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-user:active {
+  transform: scale(0.97) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.sidebar-user:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.6);
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: rgba(75, 74, 224, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   color: #9fa3f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.sidebar-user:hover .user-avatar {
+  border-color: rgba(159, 163, 245, 0.8) !important;
+  box-shadow: 0 0 10px rgba(75, 74, 224, 0.4) !important;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
 .user-info {
   min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
+.user-name,
+.user-email {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Reduced Name Font Size */
 .user-name {
   font-size: 13px;
   font-weight: 600;
-  margin: 0;
   color: #f2f1ed;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
+/* Reduced Email Font Size */
 .user-email {
-  font-size: 12px;
+  font-size: 11.5px;
   color: rgba(242, 241, 237, 0.45);
-  margin: 1px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 2px;
 }
 
+/* Tighter Icon Sizing */
+.user-info-icon,
+.user-name svg,
+.user-email svg {
+  width: 12px !important;
+  height: 12px !important;
+  flex-shrink: 0;
+  display: block !important;
+  color: rgba(242, 241, 237, 0.45);
+}
+
+.user-name span,
+.user-email span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user:hover .user-name {
+  color: #ffffff;
+}
+
+.sidebar-user:hover .user-email {
+  color: rgba(242, 241, 237, 0.75);
+}
 .sidebar-user-actions {
   display: flex;
   flex-direction: column;
@@ -263,20 +363,28 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-left: 15px;
 }
 
-/* STRICTLY NO GREY BACKGROUND FOR PROJECT TITLE ONLY */
 .board-title-row .inline-field-display {
   background: transparent !important;
   border: 1px solid transparent !important;
-  padding: 0 !important;
+  /* Generous padding matching description box proportions */
+  padding: 8px 14px !important;
+  /* Negative margin so text remains optically aligned with the rest of the board */
+  margin-left: -14px !important;
+  border-radius: 8px !important;
   min-height: auto !important;
   box-shadow: none !important;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease !important;
 }
 
+/* Much more prominent grey hover state */
 .board-title-row .inline-field-display:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-radius: 6px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* Title Sizing */
@@ -316,9 +424,9 @@
 .project-task-count-badge {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(242, 241, 237, 0.6);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
   padding: 2px 8px;
   border-radius: 12px;
   white-space: nowrap;
@@ -508,62 +616,6 @@
   font-weight: 600 !important;
 }
 
-/* 1. STATUS: To Do */
-.filter-pill.active[data-status="TODO"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(1) {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(255, 255, 255, 0.28) !important;
-  color: #f2f1ed !important;
-}
-
-/* 2. STATUS: In Progress */
-.filter-pill.active[data-status="IN_PROGRESS"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(2) {
-  background: rgba(75, 74, 224, 0.25) !important;
-  border-color: rgba(75, 74, 224, 0.6) !important;
-  color: #9fa3f5 !important;
-}
-
-/* 3. STATUS: In Review */
-.filter-pill.active[data-status="IN_REVIEW"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(3) {
-  background: rgba(217, 164, 65, 0.22) !important;
-  border-color: rgba(217, 164, 65, 0.55) !important;
-  color: #ffbf72 !important;
-}
-
-/* 4. STATUS: Done */
-.filter-pill.active[data-status="DONE"],
-.filter-pills-group:nth-of-type(1) .filter-pill.active:nth-of-type(4) {
-  background: rgba(76, 175, 111, 0.22) !important;
-  border-color: rgba(76, 175, 111, 0.55) !important;
-  color: #7fd99a !important;
-}
-
-/* 5. PRIORITY: Low */
-.filter-pill.active[data-priority="LOW"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(1) {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: rgba(242, 241, 237, 0.9) !important;
-}
-
-/* 6. PRIORITY: Medium */
-.filter-pill.active[data-priority="MEDIUM"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(2) {
-  background: rgba(224, 160, 74, 0.22) !important;
-  border-color: rgba(224, 160, 74, 0.5) !important;
-  color: #ffbf72 !important;
-}
-
-/* 7. PRIORITY: High */
-.filter-pill.active[data-priority="HIGH"],
-.filter-pills-group:nth-of-type(2) .filter-pill.active:nth-of-type(3) {
-  background: rgba(224, 90, 90, 0.22) !important;
-  border-color: rgba(224, 90, 90, 0.5) !important;
-  color: #ff9b9b !important;
-}
-
 /* 8. OVERDUE BADGE */
 .filter-pill-overdue.active,
 .filter-pill.active.filter-pill-overdue {
@@ -609,7 +661,7 @@
 
 .column-header {
   display: flex;
-  align-items: center;
+  align-items: center !important;
   gap: 7px;
   margin-bottom: 12px;
   padding: 0 2px;
@@ -619,71 +671,109 @@
 }
 
 .column-count {
-  font-size: 12px;
-  font-weight: 400;
-  color: rgba(242, 241, 237, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  min-width: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(242, 241, 237, 0.6);
   margin-left: 2px;
+  box-sizing: border-box;
 }
 
-/* Status Dots for Column Headers */
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.add-column-wrapper {
+  background: transparent !important;
+  border-color: transparent !important;
 }
 
-.status-dot-TODO {
-  background: rgba(242, 241, 237, 0.4);
+.add-column-header-spacer {
+  visibility: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+.add-column-drop-zone {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
 }
 
-.status-dot-IN_PROGRESS {
-  background: #4b4ae0;
+.add-column-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 0;
+  margin: 0;
+  background: rgba(16, 185, 129, 0.04);
+  color: #10b981;
+  border: 1px dashed rgba(16, 185, 129, 0.35);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.15s ease-in-out;
 }
 
-.status-dot-IN_REVIEW {
-  background: #d9a441;
+.add-column-button:hover {
+  background: rgba(16, 185, 129, 0.09);
+  border-color: #10b981;
+  color: #34d399;
 }
 
-.status-dot-DONE {
-  background: #4caf6f;
+.add-column-button:active {
+  transform: scale(0.99);
 }
-
 /* ---------- DRAG DROP ZONE & STATUS-MATCHING COLUMN HIGHLIGHTS ---------- */
-
+/* Reset Base Drop Zone */
 .column-drop-zone {
   min-height: 80px;
   border-radius: 14px;
   position: relative;
   transition:
-    background 0.12s ease,
-    border-color 0.12s ease;
+    background 0.15s ease,
+    border-color 0.15s ease;
   border: 2px solid transparent;
 }
 
-/* 1. Target: To Do Column Drop Highlight (Gray) */
-.column-TODO .column-drop-zone-over {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+/* 1. To Do -> Grey */
+.column-todo .column-drop-zone-over,
+.column-drop-zone-todo.column-drop-zone-over {
+  background: rgba(148, 163, 184, 0.08) !important;
+  border-color: #94a3b8 !important;
 }
 
-/* 2. Target: In Progress Column Drop Highlight (Indigo/Blue) */
-.column-IN_PROGRESS .column-drop-zone-over {
-  background: rgba(75, 74, 224, 0.15) !important;
-  border-color: #6366f1 !important;
+/* 2. In Progress -> Yellow */
+.column-in-progress .column-drop-zone-over,
+.column-in_progress .column-drop-zone-over,
+.column-IN_PROGRESS .column-drop-zone-over,
+.column-drop-zone-in-progress.column-drop-zone-over {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: #f59e0b !important;
 }
 
-/* 3. Target: In Review Column Drop Highlight (Amber/Yellow) */
-.column-IN_REVIEW .column-drop-zone-over {
-  background: rgba(217, 164, 65, 0.15) !important;
-  border-color: #d9a441 !important;
+/* 3. Done -> Green */
+.column-done .column-drop-zone-over,
+.column-DONE .column-drop-zone-over,
+.column-drop-zone-done.column-drop-zone-over {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #10b981 !important;
 }
 
-/* 4. Target: Done Column Drop Highlight (Emerald Green) */
-.column-DONE .column-drop-zone-over {
-  background: rgba(76, 175, 111, 0.15) !important;
-  border-color: #4caf6f !important;
+/* 4. Custom (In review, etc.) -> Purple */
+.column-custom .column-drop-zone-over,
+.column-drop-zone-custom.column-drop-zone-over {
+  background: rgba(168, 85, 247, 0.08) !important;
+  border-color: #a855f7 !important;
 }
+/* ---------- TASK DRAG OVERLAY & TRANSITION BADGE ---------- */
 
 .task-card-overlay-wrapper {
   display: flex;
@@ -692,66 +782,74 @@
   gap: 8px;
   pointer-events: none;
   will-change: transform;
-  transform: translateZ(0); /* Hardware accelerated */
+  transform: translateZ(0);
 }
 
-/* Base Transition Badge */
 .jira-transition-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  transition: all 0.12s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-width: 1.5px !important;
+  border-style: solid !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
 }
 
 .jira-transition-badge .transition-arrow {
-  opacity: 0.85;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
 }
 
-/* Badge Status Variants */
-.jira-transition-badge-TODO {
-  background: #252528;
-  border: 1.5px solid rgba(255, 255, 255, 0.28);
-  color: #f2f1ed;
+/* 1. To Do (Target) -> Grey */
+.jira-transition-badge-todo {
+  background: #1e2024 !important;
+  border-color: #64748b !important;
+  color: #cbd5e1 !important;
+}
+.jira-transition-badge-todo .transition-arrow {
+  color: #94a3b8 !important;
 }
 
-.jira-transition-badge-TODO .transition-arrow {
-  color: #d1d5db;
-}
-
+/* 2. In Progress (Target) -> Yellow */
+.jira-transition-badge-in-progress,
+.jira-transition-badge-in_progress,
 .jira-transition-badge-IN_PROGRESS {
-  background: #1e1e38;
-  border: 1.5px solid #6366f1;
-  color: #a5b4fc;
+  background: #2a2012 !important;
+  border-color: #f59e0b !important;
+  color: #fbbf24 !important;
 }
-
+.jira-transition-badge-in-progress .transition-arrow,
+.jira-transition-badge-in_progress .transition-arrow,
 .jira-transition-badge-IN_PROGRESS .transition-arrow {
-  color: #818cf8;
+  color: #f59e0b !important;
 }
 
-.jira-transition-badge-IN_REVIEW {
-  background: #2a2215;
-  border: 1.5px solid #d9a441;
-  color: #ffbf72;
-}
-
-.jira-transition-badge-IN_REVIEW .transition-arrow {
-  color: #f59e0b;
-}
-
+/* 3. Done (Target) -> Green */
+.jira-transition-badge-done,
 .jira-transition-badge-DONE {
-  background: #14281f;
-  border: 1.5px solid #4caf6f;
-  color: #7fd99a;
+  background: #11261d !important;
+  border-color: #10b981 !important;
+  color: #34d399 !important;
+}
+.jira-transition-badge-done .transition-arrow,
+.jira-transition-badge-DONE .transition-arrow {
+  color: #10b981 !important;
 }
 
-.jira-transition-badge-DONE .transition-arrow {
-  color: #34d399;
+/* 4. Custom / In review (Target) -> Purple */
+.jira-transition-badge-custom {
+  background: #231633 !important;
+  border-color: #a855f7 !important;
+  color: #c084fc !important;
+}
+.jira-transition-badge-custom .transition-arrow {
+  color: #a855f7 !important;
 }
 
 .column-empty {
@@ -763,7 +861,6 @@
   border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: 10px;
 }
-
 /* ---------- Task Cards ---------- */
 
 .task-card {
@@ -878,38 +975,32 @@
   border-style: solid;
   transition: border-color 0.12s ease;
 }
-
-/* 1. To Do Overlay Border (Neutral Gray) */
-.task-card-overlay-TODO {
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.08);
+.task-card-overlay-todo {
+  border-color: #94a3b8 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(148, 163, 184, 0.2) !important;
 }
 
-/* 2. In Progress Overlay Border (Indigo/Blue) */
-.task-card-overlay-IN_PROGRESS {
-  border-color: #6366f1 !important;
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.25);
+.task-card-overlay-in-progress {
+  border-color: #f59e0b !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(245, 158, 11, 0.25) !important;
 }
 
-/* 3. In Review Overlay Border (Amber/Yellow) */
-.task-card-overlay-IN_REVIEW {
-  border-color: #d9a441 !important;
-  box-shadow: 0 12px 32px rgba(217, 164, 65, 0.25);
+.task-card-overlay-done {
+  border-color: #10b981 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(16, 185, 129, 0.25) !important;
 }
 
-/* 4. Done Overlay Border (Emerald Green) */
-.task-card-overlay-DONE {
-  border-color: #4caf6f !important;
-  box-shadow: 0 12px 32px rgba(76, 175, 111, 0.25);
-}
-
-.task-card-done {
-  opacity: 0.6;
-}
-
-.task-card-done .task-title {
-  text-decoration: line-through;
-  color: rgba(242, 241, 237, 0.55);
+.task-card-overlay-custom {
+  border-color: #a855f7 !important;
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.65),
+    0 0 16px rgba(168, 85, 247, 0.25) !important;
 }
 
 /* Badges & Due Date Pills */
@@ -939,7 +1030,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-.badge-DONE {
+.badge-DONE .badge-done {
   background: rgba(76, 175, 111, 0.16);
   color: #7fd99a;
 }
@@ -984,6 +1075,95 @@
 .task-due-overdue {
   color: #ff9b9b;
   font-weight: 600;
+}
+
+/* ---------- FORM & FIELD POLISHING (TASK MODAL) ---------- */
+
+.task-field-label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(242, 241, 237, 0.7);
+  margin-bottom: 6px;
+}
+
+.task-field-label-with-icon .field-icon {
+  color: rgba(242, 241, 237, 0.45);
+  flex-shrink: 0;
+}
+
+.field-label-optional {
+  font-weight: 400;
+  color: rgba(242, 241, 237, 0.35);
+  font-size: 11px;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: #171715 !important;
+  color: #f2f1ed !important;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field input {
+  height: 42px;
+}
+
+.field select {
+  height: 42px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(242, 241, 237, 0.45)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(242, 241, 237, 0.3);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18) !important;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(0.2) saturate(0) hue-rotate(0deg);
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.9;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 /* ---------- MODAL & BUTTON STYLES (GLOBAL) ---------- */
@@ -1051,6 +1231,27 @@
 .modal-button-primary:hover:not(:disabled) {
   background: #3b3ac2 !important;
 }
+.user-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.user-date-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: rgba(242, 241, 237, 0.4);
+}
+
+.user-date-item svg {
+  flex-shrink: 0;
+  color: rgba(242, 241, 237, 0.35);
+}
 
 .spin {
   animation: spin 1s linear infinite;
@@ -1064,8 +1265,7 @@
     transform: rotate(360deg);
   }
 }
-
-/* ---------- Mobile View ---------- */
+/* ---------- Mobile Only Styles (max-width: 768px) ---------- */
 
 .board-header-mobile,
 .column-tabs,
@@ -1074,20 +1274,19 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
+  /* Hide Desktop Layout Elements */
+  .sidebar,
+  .board-header-desktop,
+  .column-header-desktop {
+    display: none !important;
   }
 
-  .board-header-desktop {
-    display: none;
-  }
-
+  /* Mobile Header Container */
   .board-header-mobile {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 1rem 1.25rem;
+    gap: 8px;
+    padding: 1rem 1.25rem 0.85rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
@@ -1099,55 +1298,78 @@
     gap: 10px;
   }
 
+  /* Project Selector Trigger */
   .mobile-project-select {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: none;
     border: none;
     color: #f2f1ed;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
     padding: 0;
     cursor: pointer;
+    text-align: left;
+  }
+
+  .mobile-project-select span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
   }
 
   .chevron-open {
     transform: rotate(180deg);
   }
 
-  .mobile-search {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    color: rgba(242, 241, 237, 0.45);
-    font-size: 13px;
-  }
-
+  /* Mobile User Profile Avatar Button */
   .mobile-user-button {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: rgba(75, 74, 224, 0.25);
     color: #9fa3f5;
-    border: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     flex-shrink: 0;
+    overflow: hidden;
+    padding: 0;
   }
 
+  .mobile-user-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+  }
+
+  /* Side-by-Side Mobile Created / Updated Date Pill */
+  .mobile-project-meta-pill {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 4px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.72rem;
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Mobile Menus & Overlay */
   .mobile-project-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 15;
   }
 
@@ -1161,26 +1383,9 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 14px;
     padding: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  }
-
-  .mobile-user-menu {
-    position: absolute;
-    top: 64px;
-    right: 1.25rem;
-    width: 220px;
-    z-index: 20;
-    background: #1e1e1b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  }
-
-  .mobile-user-menu-header {
-    padding: 10px 12px 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 6px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    max-height: 320px;
+    overflow-y: auto;
   }
 
   .mobile-project-menu-item {
@@ -1188,15 +1393,20 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 11px 12px;
-    border-radius: 999px;
+    padding: 10px 12px;
+    border-radius: 8px;
     border: none;
     background: transparent;
     color: rgba(242, 241, 237, 0.75);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     text-align: left;
     cursor: pointer;
+  }
+
+  .mobile-project-menu-item svg {
+    color: rgba(242, 241, 237, 0.45);
+    flex-shrink: 0;
   }
 
   .mobile-project-menu-item-active {
@@ -1204,20 +1414,53 @@
     color: #9fa3f5;
   }
 
-  .mobile-project-menu-item-danger {
-    color: #ff9b9b;
+  .mobile-project-menu-item-active svg {
+    color: #9fa3f5;
   }
 
   .mobile-project-menu-item-new {
-    color: rgba(242, 241, 237, 0.45);
+    color: rgba(242, 241, 237, 0.5);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0 0 9px 9px;
+    border-radius: 0 0 8px 8px;
     margin-top: 4px;
-    padding-top: 13px;
+    padding-top: 10px;
   }
 
+  /* User Menu Popover */
+  .mobile-user-menu {
+    position: absolute;
+    top: 64px;
+    right: 1.25rem;
+    width: 230px;
+    z-index: 20;
+    background: #1e1e1b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .mobile-user-menu-header {
+    padding: 8px 10px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 6px;
+    cursor: pointer;
+  }
+
+  .mobile-user-menu-header .user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f2f1ed;
+  }
+
+  .mobile-user-menu-header .user-email {
+    font-size: 12px;
+    color: rgba(242, 241, 237, 0.45);
+  }
+
+  /* Single Column View & Navigation Tabs */
   .column-tabs {
-    display: flex;
+    display: flex !important;
     gap: 6px;
     padding: 10px 1.25rem 0;
     overflow-x: auto;
@@ -1233,19 +1476,12 @@
     color: rgba(242, 241, 237, 0.55);
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.15s ease;
   }
 
   .column-tab-active {
     background: rgba(75, 74, 224, 0.2);
     color: #9fa3f5;
     font-weight: 600;
-  }
-
-  .column-tab-over {
-    background: #4b4ae0 !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 12px rgba(75, 74, 224, 0.6) !important;
   }
 
   .board {
@@ -1261,12 +1497,9 @@
     display: block;
   }
 
-  .column-header-desktop {
-    display: none;
-  }
-
+  /* Floating Action Button (FAB) */
   .fab {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     position: fixed;
@@ -1282,7 +1515,6 @@
     cursor: pointer;
   }
 }
-
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 210px;
@@ -1291,4 +1523,656 @@
   .board {
     gap: 10px;
   }
+}
+/* ---------- BOARD HORIZONTAL SCROLL & SIZING ---------- */
+
+/* ---------- 4 COLUMNS VISIBLE BEFORE SCROLLING ---------- */
+
+.board {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  gap: 16px;
+  width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  padding-bottom: 16px;
+  box-sizing: border-box;
+}
+
+/* (100% - 3 gaps of 16px) / 4 = calc((100% - 48px) / 4) */
+.column,
+.add-column-wrapper {
+  flex: 0 0 calc((100% - 48px) / 4) !important;
+  width: calc((100% - 48px) / 4) !important;
+  min-width: calc((100% - 48px) / 4) !important;
+  max-width: calc((100% - 48px) / 4) !important;
+  box-sizing: border-box;
+}
+
+.add-column-wrapper {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Optional sleek scrollbar */
+.board::-webkit-scrollbar {
+  height: 8px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+/* ==========================================================================
+   Column Header & Layout Alignment
+   ========================================================================== */
+
+.column-header,
+.column-header-desktop {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100%;
+  position: relative;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  margin-bottom: 12px !important;
+  padding: 0 2px;
+  cursor: grab;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.column-header:active,
+.column-header-desktop:active {
+  cursor: grabbing;
+}
+
+/* Left Section: Dot + Name + Counter */
+.column-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+}
+
+/* ==========================================================================
+   Status Indicator Dots
+   ========================================================================== */
+.status-dot {
+  width: 7px !important;
+  height: 7px !important;
+  min-width: 7px !important;
+  min-height: 7px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  flex-shrink: 0;
+  margin-right: 0 !important;
+  margin-left: 13px !important;
+}
+
+/* To Do -> Grey */
+.status-dot-todo {
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.5) !important;
+}
+
+/* In Progress -> Yellow */
+.status-dot-in-progress {
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5) !important;
+}
+
+/* Done -> Green */
+.status-dot-done {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Custom (In Review, etc.) -> Purple */
+.status-dot-custom {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* ==========================================================================
+   Column Name & Inline Editable Display (Precise Height & Grey Shade)
+   ========================================================================== */
+
+.column-title-inline-wrapper {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: center !important;
+}
+
+.column-name-clickable,
+.column-name-static,
+.column-title-inline-wrapper .inline-field-display,
+.column-title-inline-wrapper .inline-field-trigger,
+.column-title-inline-wrapper button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  line-height: 1 !important;
+  padding: 0 6px !important;
+  margin: 0 !important;
+  border-radius: 4px;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #f3f4f6 !important;
+  background: transparent !important;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  box-sizing: border-box !important;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.column-name-static {
+  cursor: grab !important;
+}
+
+/* Subtle bounded grey hover shade */
+.column-name-clickable:hover,
+.column-title-inline-wrapper .inline-field-display:hover,
+.column-title-inline-wrapper .inline-field-trigger:hover,
+.column-title-inline-wrapper button:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   Modern Pill Count Badge
+   ========================================================================== */
+
+.column-count {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  padding: 0 6px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(242, 241, 237, 0.65) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  margin-left: 2px !important;
+  box-sizing: border-box !important;
+}
+
+/* ==========================================================================
+   Column Title Inline Editor (Active Input Mode)
+   ========================================================================== */
+
+.column-inline-field-editor,
+.column-title-inline-wrapper .inline-field-editor {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px;
+}
+
+.column-inline-field-editor .inline-field-input,
+.column-title-inline-wrapper .inline-field-input {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 6px;
+  height: 24px;
+  max-width: 140px;
+  background: #1e1f23;
+  color: #fff;
+  border: 1px solid #3b3d44;
+  border-radius: 4px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.column-inline-field-editor .inline-field-input:focus,
+.column-title-inline-wrapper .inline-field-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+/* ==========================================================================
+   Editor Actions: Save (Check) & Cancel (X)
+   ========================================================================== */
+
+.column-inline-field-editor .inline-field-actions,
+.column-title-inline-wrapper .inline-field-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.column-title-inline-wrapper .inline-field-action,
+.column-inline-field-editor .inline-field-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.column-title-inline-wrapper .inline-field-action:active,
+.column-inline-field-editor .inline-field-action:active {
+  transform: scale(0.95);
+}
+
+.column-title-inline-wrapper .inline-field-save,
+.column-inline-field-editor .inline-field-save {
+  background: #14532d;
+  color: #4ade80;
+}
+
+.column-title-inline-wrapper .inline-field-save:hover,
+.column-inline-field-editor .inline-field-save:hover {
+  background: #166534;
+  color: #86efac;
+}
+
+.column-title-inline-wrapper .inline-field-cancel,
+.column-inline-field-editor .inline-field-cancel {
+  background: #27272a;
+  color: #a1a1aa;
+}
+
+.column-title-inline-wrapper .inline-field-cancel:hover,
+.column-inline-field-editor .inline-field-cancel:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Column Delete Button
+   ========================================================================== */
+
+.column-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  margin-left: auto;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.column-header:hover .column-delete-btn,
+.column-header-desktop:hover .column-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.column-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.column-delete-btn:active {
+  transform: scale(0.95);
+}
+
+.column-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Add Column Spacer (Matches 28px header height & 12px margin exactly)
+   ========================================================================== */
+
+.add-column-header-spacer {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin-bottom: 12px !important;
+  padding: 0 !important;
+}
+.column-name-static {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  padding: 2px 6px;
+  user-select: none;
+  cursor: grab;
+}
+/* Scoped Check & Cancel Buttons for Column Header Inline Editor */
+.column-title-inline-wrapper .inline-field-editor button,
+.column-header-desktop .inline-field-editor button,
+.column-header-desktop .inline-field-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #9ca3af !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Save / Check button inside column header */
+.column-title-inline-wrapper .inline-field-editor button:first-of-type,
+.column-header-desktop .inline-field-editor button:first-of-type,
+.column-header-desktop .inline-field-save {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+  border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.column-title-inline-wrapper .inline-field-editor button:first-of-type:hover,
+.column-header-desktop .inline-field-editor button:first-of-type:hover,
+.column-header-desktop .inline-field-save:hover {
+  background: rgba(34, 197, 94, 0.28) !important;
+  color: #4ade80 !important;
+  border-color: #22c55e !important;
+}
+
+/* Cancel / X button inside column header */
+.column-title-inline-wrapper .inline-field-editor button:last-of-type:hover,
+.column-header-desktop .inline-field-editor button:last-of-type:hover,
+.column-header-desktop .inline-field-cancel:hover {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Ensure SVG strokes inherit the green/red colors */
+.column-title-inline-wrapper .inline-field-editor button svg,
+.column-header-desktop .inline-field-editor button svg {
+  stroke: currentColor !important;
+  width: 13px !important;
+  height: 13px !important;
+}
+/* Ensure column title is completely transparent by default */
+.column-title-inline-wrapper,
+.column-title-inline-wrapper .inline-field-display,
+.column-title-inline-wrapper .inline-field-trigger,
+.column-title-inline-wrapper button,
+.column-name-clickable {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Show the subtle grey background ONLY when hovered */
+.column-title-inline-wrapper .inline-field-display:hover,
+.column-title-inline-wrapper .inline-field-trigger:hover,
+.column-title-inline-wrapper button:hover,
+.column-name-clickable:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.sidebar-bottom-section {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sidebar-members-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: rgba(242, 241, 237, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sidebar-members-btn:hover {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #818cf8;
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2e2842;
+  color: #a78bfa;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Strict row layout */
+.user-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Exact distance between the icon bounding box and the text start */
+  min-width: 0;
+  height: 18px; /* Fixed equal vertical line height */
+}
+
+/* Fixed 16x16 icon box to force all icons into an identical footprint */
+.icon-box {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(242, 241, 237, 0.45);
+}
+
+.icon-box svg {
+  display: block;
+}
+
+/* Text styles */
+.user-name-text,
+.user-email-text,
+.user-role-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+.user-name-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f2f1ed;
+}
+
+.user-email-text {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.6);
+}
+
+.user-role-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #a78bfa;
+}
+/* When disabled / readOnly */
+.inline-field-display.inline-field-disabled {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding-left: 0;
+}
+
+.inline-field-empty-readonly {
+  color: rgba(242, 241, 237, 0.35);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  margin-left: 10px;
+  user-select: none;
+}
+/* Red Pill Style for Clear Filters */
+.filter-pill.filter-pill-clear {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  font-weight: 500;
+  margin-left: auto; /* Pushes it neatly to the far right */
+}
+
+.filter-pill.filter-pill-clear:hover {
+  color: #ffffff;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: translateY(-1px);
+}
+
+.filter-pill.filter-pill-clear:active {
+  background: rgba(239, 68, 68, 0.3);
+  transform: translateY(0);
+}
+
+.status-dot {
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.status-dot-todo {
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.6) !important;
+}
+
+.status-dot-in-progress {
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6) !important;
+}
+
+.status-dot-done {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+}
+
+.status-dot-custom {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6) !important;
+}
+
+/* ==========================================================================
+   2. STATUS PILLS (Active States)
+   ========================================================================== */
+
+.filter-pill[data-status-color="todo"].active {
+  background: rgba(148, 163, 184, 0.18) !important;
+  border-color: rgba(148, 163, 184, 0.5) !important;
+  color: #e2e8f0 !important;
+}
+
+.filter-pill[data-status-color="in-progress"].active {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fbbf24 !important;
+}
+
+.filter-pill[data-status-color="done"].active {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: #34d399 !important;
+}
+
+.filter-pill[data-status-color="custom"].active {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  color: #c084fc !important;
+}
+
+/* ==========================================================================
+   3. PRIORITY PILLS (Active States)
+   ========================================================================== */
+
+.filter-pill[data-priority="LOW"].active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #f1f5f9 !important;
+}
+
+.filter-pill[data-priority="MEDIUM"].active {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: #fcd34d !important;
+}
+
+.filter-pill[data-priority="HIGH"].active {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
 }

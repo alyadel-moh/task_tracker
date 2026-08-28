@@ -1,6 +1,6 @@
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
+export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
 
 export interface HistoryAttributes {
@@ -14,7 +14,7 @@ export interface HistoryAttributes {
   createdAt?: Date;
 }
 
-export type HistoryCreationAttributes = Optional<
+export interface HistoryCreationAttributes extends Optional<
   HistoryAttributes,
   | "id"
   | "taskId"
@@ -23,7 +23,7 @@ export type HistoryCreationAttributes = Optional<
   | "oldValue"
   | "newValue"
   | "eventType"
->;
+> {}
 
 export class TaskHistory
   extends Model<HistoryAttributes, HistoryCreationAttributes>
@@ -51,7 +51,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       taskId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "task_id",
         references: {
           model: "tasks",
           key: "id",
@@ -62,7 +61,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       actorId: {
         type: DataTypes.UUID,
         allowNull: false,
-        field: "actor_id",
         references: {
           model: "users",
           key: "id",
@@ -72,7 +70,6 @@ export default (sequelize: Sequelize): typeof TaskHistory => {
       eventType: {
         type: DataTypes.STRING,
         allowNull: false,
-        field: "event_type",
       },
       fieldChanged: {
         type: DataTypes.STRING,

@@ -54,7 +54,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <Suspense fallback={null}>
         <RouterProvider router={router} />
       </Suspense>
-      <ReactQueryDevtools initialIsOpen={false} />s
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>,
 );

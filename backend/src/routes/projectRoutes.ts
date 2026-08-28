@@ -1,10 +1,5 @@
 import { Router, RequestHandler } from "express";
-import {
-  create,
-  getAll,
-  update,
-  remove,
-} from "../controllers/projectController";
+import { create, update, remove } from "../controllers/projectController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -15,7 +10,7 @@ router.use(authenticate);
  * @openapi
  * /api/projects/create:
  *   post:
- *     summary: Create a new project
+ *     summary: Create a new project with default columns
  *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
@@ -32,6 +27,7 @@ router.use(authenticate);
  *                 example: Mobile App Redesign
  *               description:
  *                 type: string
+ *                 nullable: true
  *                 example: Client facing dashboard updates
  *     responses:
  *       201:
@@ -60,32 +56,6 @@ router.use(authenticate);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post("/create", create as unknown as RequestHandler);
-
-/**
- * @openapi
- * /api/projects:
- *   get:
- *     summary: Retrieve all projects owned by the authenticated user
- *     tags: [Projects]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: A list of projects
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Project'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get("/", getAll as unknown as RequestHandler);
 
 /**
  * @openapi
@@ -124,10 +94,19 @@ router.get("/", getAll as unknown as RequestHandler);
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
  *                 message:
  *                   type: string
+ *                   example: Name, Description updated successfully
  *                 project:
- *                   $ref: '#/components/schemas/Project'
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                     description:
+ *                       type: string
  *       400:
  *         description: Invalid input or empty project name
  *         content:
@@ -136,12 +115,6 @@ router.get("/", getAll as unknown as RequestHandler);
  *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: Forbidden - Not the project owner
  *         content:
  *           application/json:
  *             schema:
@@ -184,12 +157,6 @@ router.patch("/update/:id", update as unknown as RequestHandler);
  *                   example: Project deleted successfully
  *       401:
  *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: Forbidden - Not the project owner
  *         content:
  *           application/json:
  *             schema:

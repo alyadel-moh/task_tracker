@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
-import { Project } from "../components/types";
+import { AssignedProjectMembership } from "../components/types";
 interface CreateProjectData {
   name: string;
   description: string;
 }
 interface CreateProjectResponse {
-  project: Project;
+  assignedProjectMembership: AssignedProjectMembership;
   status: string;
   message: string;
 }
@@ -23,14 +23,16 @@ const useCreateProject = () => {
       console.log("Creating project:", newProjectData);
     },
     onSuccess: (data: CreateProjectResponse) => {
-      const createdProject = data.project;
-      queryClient.setQueryData<Project[]>(["projects"], (oldProjects) => {
-        if (!oldProjects) return [createdProject];
-        if (Array.isArray(oldProjects)) {
-          return [...oldProjects, createdProject];
-        }
-        return oldProjects;
-      });
+      queryClient.setQueryData<AssignedProjectMembership[]>(
+        ["assigned-projects"],
+        (oldMemberships) => {
+          if (!oldMemberships) return [data.assignedProjectMembership];
+          if (Array.isArray(oldMemberships)) {
+            return [...oldMemberships, data.assignedProjectMembership];
+          }
+          return oldMemberships;
+        },
+      );
       console.log("Project created successfully:", data);
     },
     onError: (error: AxiosError) => {

@@ -6,28 +6,19 @@ import {
   ArrowRightLeft,
   Trash2,
   FileText,
+  Users,
+  UserCheck,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import "../css/TaskHistoryDrawer.css";
 import useGetTaskHistory from "../hooks/getTaskHistoryHook";
+import { HistoryEntry } from "./types";
 
 interface TaskHistoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   taskId: string;
-}
-
-export interface HistoryEntry {
-  id: string;
-  eventType: string;
-  fieldChanged?: string | null;
-  oldValue?: string | null;
-  newValue?: string | null;
-  createdAt: string;
-  actor?: {
-    id: string;
-    name: string;
-    email: string;
-  };
 }
 
 const FIELD_LABEL_MAP: Record<string, string> = {
@@ -42,6 +33,7 @@ const FIELD_LABEL_MAP: Record<string, string> = {
   note: "Note",
   entryDate: "Date",
   entry_date: "Date",
+  assignees: "Assignees",
 };
 
 const formatValue = (val?: string | null) => {
@@ -50,7 +42,6 @@ const formatValue = (val?: string | null) => {
   const mappings: Record<string, string> = {
     TODO: "To Do",
     IN_PROGRESS: "In Progress",
-    IN_REVIEW: "In Review",
     DONE: "Done",
     LOW: "Low",
     MEDIUM: "Medium",
@@ -91,7 +82,49 @@ const formatValue = (val?: string | null) => {
   return cleanVal;
 };
 
-const getEventIcon = (eventType: string) => {
+const renderAssigneeTags = (
+  namesStr?: string | null,
+  variant: "default" | "added" | "removed" = "default",
+) => {
+  if (!namesStr || namesStr.trim() === "") {
+    return (
+      <span className="history-value-badge history-badge-unassigned">None</span>
+    );
+  }
+
+  const names = namesStr
+    .split(",")
+    .map((n) => n.trim())
+    .filter(Boolean);
+
+  return (
+    <span className="history-assignee-group">
+      {names.map((name, i) => (
+        <span
+          key={i}
+          className={`history-assignee-chip history-chip-${variant}`}
+        >
+          <span className="history-assignee-chip-icon">
+            {variant === "added" && <UserPlus size={11} />}
+            {variant === "removed" && <UserMinus size={11} />}
+            {variant === "default" && <UserCheck size={11} />}
+          </span>
+          <span className="history-assignee-chip-name">{name}</span>
+        </span>
+      ))}
+    </span>
+  );
+};
+
+const getEventIcon = (eventType: string, fieldChanged?: string | null) => {
+  if (eventType === "ASSIGNEES_CHANGED" || fieldChanged === "assignees") {
+    return (
+      <span className="history-item-icon history-item-icon-users">
+        <Users size={14} />
+      </span>
+    );
+  }
+
   switch (eventType) {
     case "TASK_CREATED":
       return (
@@ -138,113 +171,188 @@ const formatEventDescription = (entry: HistoryEntry) => {
   const oldVal = formatValue(entry.oldValue);
   const newVal = formatValue(entry.newValue);
 
-  // 1. Task Created
+  // 1. Assignees Changed
+  if (
+    entry.eventType === "ASSIGNEES_CHANGED" ||
+    entry.fieldChanged === "assignees"
+  ) {
+    const oldList = entry.oldValue
+      ? entry.oldValue
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+    const newList = entry.newValue
+      ? entry.newValue
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+
+    const added = newList.filter((name) => !oldList.includes(name));
+    const removed = oldList.filter((name) => !newList.includes(name));
+
+    // Case A: Initial Assignment
+    if (oldList.length === 0 && newList.length > 0) {
+      return (
+        <div className="history-desc-container">
+          <span className="history-line">
+            <span className="history-item-actor">{actorName}</span> assigned:
+          </span>
+          <div className="history-assignees-block">
+            {renderAssigneeTags(entry.newValue, "added")}
+          </div>
+        </div>
+      );
+    }
+
+    // Case B: Cleared All Assignees
+    if (oldList.length > 0 && newList.length === 0) {
+      return (
+        <div className="history-desc-container">
+          <span className="history-line">
+            <span className="history-item-actor">{actorName}</span> removed all
+            assignees
+          </span>
+          <div className="history-assignees-block">
+            {renderAssigneeTags(entry.oldValue, "removed")}
+          </div>
+        </div>
+      );
+    }
+
+    // Case C: Granular Added / Removed Diff
+    return (
+      <div className="history-desc-container">
+        <span className="history-line">
+          <span className="history-item-actor">{actorName}</span> updated
+          assignees:
+        </span>
+        <div className="history-granular-diff">
+          {added.length > 0 && (
+            <div className="history-diff-row">
+              <span className="history-diff-label added">+ Added:</span>
+              {renderAssigneeTags(added.join(", "), "added")}
+            </div>
+          )}
+          {removed.length > 0 && (
+            <div className="history-diff-row">
+              <span className="history-diff-label removed">- Removed:</span>
+              {renderAssigneeTags(removed.join(", "), "removed")}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Task Created
   if (entry.eventType === "TASK_CREATED") {
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> created this
         task
-      </>
+      </span>
     );
   }
 
-  // 2. Time Entry Created
+  // 3. Time Entry Created
   if (entry.eventType === "TIME_ENTRY_CREATED") {
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> logged a time
         entry {newVal && <span className="history-highlight">({newVal})</span>}
-      </>
+      </span>
     );
   }
 
-  // 3. Time Entry Updated
+  // 4. Time Entry Updated
   if (
     entry.eventType === "TIME_ENTRY_UPDATED" ||
     entry.eventType === "TIME_ENTRY_ENTRY_UPDATED"
   ) {
     if (fieldName && oldVal && newVal) {
       return (
-        <>
+        <span className="history-line">
           <span className="history-item-actor">{actorName}</span> updated time
           entry <span className="history-field-name">{fieldName}</span> from{" "}
           <span className="history-value-badge">{oldVal}</span> to{" "}
           <span className="history-value-badge">{newVal}</span>
-        </>
+        </span>
       );
     }
     if (fieldName && newVal) {
       return (
-        <>
+        <span className="history-line">
           <span className="history-item-actor">{actorName}</span> updated time
           entry <span className="history-field-name">{fieldName}</span> to{" "}
           <span className="history-value-badge">{newVal}</span>
-        </>
+        </span>
       );
     }
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> updated a time
         entry
-      </>
+      </span>
     );
   }
 
-  // 4. Time Entry Deleted
+  // 5. Time Entry Deleted
   if (entry.eventType === "TIME_ENTRY_DELETED") {
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> deleted a time
         entry
-      </>
+      </span>
     );
   }
 
-  // 5. Status Changed
+  // 6. Status Changed
   if (entry.eventType === "STATUS_CHANGED" || fieldName === "Status") {
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> changed{" "}
         <span className="history-field-name">Status</span> from{" "}
         <span className="history-value-badge">{oldVal || "None"}</span> to{" "}
         <span className="history-value-badge">{newVal}</span>
-      </>
+      </span>
     );
   }
 
-  // 6. Task Attributes (Name, Description, Due Date, Priority, etc.)
+  // 7. Task Field Updated
   if (fieldName) {
     if (oldVal && newVal) {
       return (
-        <>
+        <span className="history-line">
           <span className="history-item-actor">{actorName}</span> updated{" "}
           <span className="history-field-name">{fieldName}</span> from{" "}
           <span className="history-value-badge">{oldVal}</span> to{" "}
           <span className="history-value-badge">{newVal}</span>
-        </>
+        </span>
       );
     }
     if (newVal) {
       return (
-        <>
+        <span className="history-line">
           <span className="history-item-actor">{actorName}</span> updated{" "}
           <span className="history-field-name">{fieldName}</span> to{" "}
           <span className="history-value-badge">{newVal}</span>
-        </>
+        </span>
       );
     }
     return (
-      <>
+      <span className="history-line">
         <span className="history-item-actor">{actorName}</span> cleared{" "}
         <span className="history-field-name">{fieldName}</span>
-      </>
+      </span>
     );
   }
 
   return (
-    <>
+    <span className="history-line">
       <span className="history-item-actor">{actorName}</span> updated the task
-    </>
+    </span>
   );
 };
 
@@ -320,11 +428,11 @@ const TaskHistoryDrawer = ({
             <ul className="history-list">
               {taskHistory.map((entry: HistoryEntry) => (
                 <li key={entry.id} className="history-item">
-                  {getEventIcon(entry.eventType)}
+                  {getEventIcon(entry.eventType, entry.fieldChanged)}
                   <div className="history-item-content">
-                    <p className="history-item-text">
+                    <div className="history-item-text">
                       {formatEventDescription(entry)}
-                    </p>
+                    </div>
                     <span className="history-item-time">
                       {formatDate(entry.createdAt)}
                     </span>

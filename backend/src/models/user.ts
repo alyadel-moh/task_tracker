@@ -5,6 +5,7 @@ export interface UserAttributes {
   id: string;
   name: string;
   email: string;
+  photoUrl?: string | null;
   password?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,6 +24,7 @@ export class User
   declare public name: string;
   declare public email: string;
   declare public password: string;
+  declare public photoUrl?: string | null;
 
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
@@ -54,6 +56,10 @@ export default (sequelize: Sequelize): typeof User => {
         allowNull: false,
         unique: true,
         validate: { isEmail: true },
+      },
+      photoUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       password: {
         type: DataTypes.STRING,

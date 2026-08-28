@@ -80,7 +80,10 @@ describe("Dashboard Full Branch Coverage Suite", () => {
     vi.clearAllMocks();
     localStorage.setItem("token", "test-token");
     queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
   });
 
@@ -98,13 +101,17 @@ describe("Dashboard Full Branch Coverage Suite", () => {
     });
 
     // Click project item to switch active project (Line 192-194)
-    const projectItems = screen.getAllByRole("button", { name: /Project Beta/i });
+    const projectItems = screen.getAllByRole("button", {
+      name: /Project Beta/i,
+    });
     if (projectItems.length > 0) {
       fireEvent.click(projectItems[0]);
     }
 
     // Trigger open project creation modal button (Line 173-174)
-    const newProjButtons = screen.getAllByRole("button", { name: /new project/i });
+    const newProjButtons = screen.getAllByRole("button", {
+      name: /new project/i,
+    });
     if (newProjButtons.length > 0) {
       fireEvent.click(newProjButtons[0]);
     }

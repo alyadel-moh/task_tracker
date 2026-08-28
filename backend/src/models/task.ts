@@ -1,24 +1,26 @@
 import { Model, DataTypes, Sequelize, Optional } from "sequelize";
+import { User } from "./user";
 
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH";
 
 export interface TaskAttributes {
   id: string;
   name: string;
   description?: string | null;
-  status: TaskStatus;
   priority: TaskPriority;
   dueDate?: Date | null;
   estimatedTime?: number | null;
   projectId: string;
+  statusId?: string | null;
+  createdBy: string;
+  assignees?: User[] | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export type TaskCreationAttributes = Optional<
   TaskAttributes,
-  "id" | "status" | "priority" | "description" | "dueDate" | "estimatedTime"
+  "id" | "priority" | "description" | "dueDate" | "estimatedTime" | "statusId"
 >;
 
 export class Task
@@ -28,12 +30,13 @@ export class Task
   declare public id: string;
   declare public name: string;
   declare public description: string | null;
-  declare public status: TaskStatus;
   declare public priority: TaskPriority;
   declare public dueDate: Date | null;
   declare public estimatedTime: number | null;
   declare public projectId: string;
-
+  declare public statusId: string | null;
+  declare public createdBy: string;
+  declare public assignees?: User[] | null;
   declare public readonly createdAt: Date;
   declare public readonly updatedAt: Date;
 }
@@ -55,9 +58,15 @@ export default (sequelize: Sequelize): typeof Task => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      status: {
-        type: DataTypes.ENUM("TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"),
-        defaultValue: "TODO",
+      statusId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+          model: "statuses",
+          key: "id",
+        },
+        onDelete: "RESTRICT", // Prevents deleting a status if tasks exist in it
+        onUpdate: "CASCADE",
       },
       priority: {
         type: DataTypes.ENUM("LOW", "MEDIUM", "HIGH"),
@@ -70,6 +79,16 @@ export default (sequelize: Sequelize): typeof Task => {
       estimatedTime: {
         type: DataTypes.INTEGER,
         allowNull: true,
+      },
+      createdBy: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onDelete: "RESTRICT",
+        onUpdate: "CASCADE",
       },
       projectId: {
         type: DataTypes.UUID,
