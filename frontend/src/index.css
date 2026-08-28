@@ -334,16 +334,18 @@ input[type="number"] {
   background: rgba(34, 197, 94, 0.18);
   color: #4ade80;
 }
-
 html {
-  font-size: 14px; /* Default browser is 16px. 14px shrinks the overall layout to ~87% */
-  -webkit-text-size-adjust: 100%;
+  font-size: 80%; /* Scales default 16px down to ~12.8px (exact 80% look) */
 }
 
-.login-card,
-.signup-card,
-.auth-container {
-  width: 100%;
-  max-width: 380px; /* Adjust width to keep the card compact */
-  margin: 0 auto;
+#root {
+  zoom: 0.8; /* Chrome, Edge, Brave, Safari */
+}
+
+@supports not (zoom: 0.8) {
+  #root {
+    transform: scale(0.8);
+    transform-origin: top center;
+    width: 125%;
+  }
 }
