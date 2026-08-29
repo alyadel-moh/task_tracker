@@ -654,7 +654,7 @@ const TaskDetailsPage = () => {
         {/* 2-Column Split Wrapper */}
         <div className="task-page-split">
           {/* Left Column: Task Details */}
-          <div className="task-page-card">
+          <div className="task-page-card" data-priority={taskDraft.priority}>
             <div className="task-page-card-header">
               <div className="task-page-header-left">
                 <div className="task-page-icon-wrapper">
@@ -722,6 +722,7 @@ const TaskDetailsPage = () => {
                         className="task-badge badge-status"
                         data-status={taskDraft.statusName || task?.statusName}
                       >
+                        <span className="badge-status-dot" />
                         {currentStatusLabel}
                       </span>
                     }
@@ -744,6 +745,7 @@ const TaskDetailsPage = () => {
                       <span
                         className={`task-badge badge-priority badge-priority-${taskDraft.priority}`}
                       >
+                        <span className="badge-priority-dot" />
                         {
                           PRIORITY_OPTIONS.find(
                             (o) => o.value === taskDraft.priority,
@@ -842,16 +844,6 @@ const TaskDetailsPage = () => {
                 </div>
                 <div>
                   <h2 className="task-page-main-title">Time Entries</h2>
-                  <div className="entries-subtext-container">
-                    <span className="entries-total-subtext">
-                      Total: {totalMinutes} mins
-                    </span>
-                    {overrun && (
-                      <span className="entries-overrun-badge">
-                        ⚠️ Exceeds estimated time
-                      </span>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -863,6 +855,44 @@ const TaskDetailsPage = () => {
                 <Plus size={16} />
                 <span>Log Time</span>
               </button>
+            </div>
+
+            <div className="time-budget-bar-wrapper">
+              <div className="time-budget-bar-track">
+                <div
+                  className={`time-budget-bar-fill ${
+                    task.estimatedTime
+                      ? totalMinutes / task.estimatedTime > 1
+                        ? "over"
+                        : totalMinutes / task.estimatedTime > 0.85
+                          ? "caution"
+                          : "safe"
+                      : "safe"
+                  }`}
+                  style={{
+                    width: task.estimatedTime
+                      ? `${Math.min(
+                          (totalMinutes / task.estimatedTime) * 100,
+                          100,
+                        )}%`
+                      : "6%",
+                  }}
+                />
+              </div>
+              <div className="time-budget-bar-labels">
+                <span>{totalMinutes} mins logged</span>
+                {task.estimatedTime ? (
+                  <span>{task.estimatedTime} mins budgeted</span>
+                ) : (
+                  <span>No estimate set</span>
+                )}
+              </div>
+              {overrun && (
+                <span className="entries-overrun-badge">
+                  <AlertTriangle size={12} />
+                  Exceeds estimated time
+                </span>
+              )}
             </div>
 
             {showAddEntry && (

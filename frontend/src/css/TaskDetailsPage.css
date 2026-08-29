@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 *,
 *::before,
@@ -39,6 +39,8 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .task-page-loading {
@@ -51,11 +53,17 @@ body {
   color: rgba(242, 241, 237, 0.4);
 }
 
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
 .task-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
@@ -67,8 +75,8 @@ body {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(242, 241, 237, 0.7);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
   padding: 10px 18px;
   border-radius: 8px;
@@ -88,20 +96,36 @@ body {
   gap: 32px;
   flex: 1;
   min-height: 0;
-  max-height: calc(100vh - 100px);
 }
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
 
 .task-page-card {
   background: #1c1c1f;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid transparent;
   border-radius: 16px;
   padding: 36px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
-  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+/* Priority accent — quiet signal at the edge of the card, no need to read the badge */
+.task-page-card[data-priority="HIGH"] {
+  border-left-color: #ef4444;
+}
+
+.task-page-card[data-priority="MEDIUM"] {
+  border-left-color: #f59e0b;
+}
+
+.task-page-card[data-priority="LOW"] {
+  border-left-color: #4b5563;
 }
 
 .task-page-card-header {
@@ -122,8 +146,8 @@ body {
 }
 
 .task-page-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
   background: rgba(99, 102, 241, 0.12);
   border: 1px solid rgba(99, 102, 241, 0.25);
@@ -141,71 +165,85 @@ body {
 }
 
 .task-page-main-title {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   color: #f2f1ed;
   margin: 0;
   line-height: 1.2;
 }
 
-/* SUBTEXT & OVERRUN WARNING BADGE */
-.entries-subtext-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-
-.entries-total-subtext {
-  font-size: 13px;
-  color: rgba(242, 241, 237, 0.5);
-  display: inline-block;
-}
-
-.entries-overrun-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 3px 9px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  line-height: 1;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
-  animation: pulseWarning 2s infinite ease-in-out;
-}
-
-@keyframes pulseWarning {
-  0%,
-  100% {
-    border-color: rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    border-color: rgba(239, 68, 68, 0.65);
-  }
-}
 .task-page-meta-badge {
-  font-size: 13px;
+  font-size: 12.5px;
   color: rgba(242, 241, 237, 0.45);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 8px 16px;
   border-radius: 20px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .task-page-body {
   display: flex;
   flex-direction: column;
-  gap: 18px; /* Restored full spacing */
+  gap: 18px;
   flex: 1;
   overflow: visible;
-  padding-right: 0;
 }
+
+/* ==========================================================================
+   Time Budget Bar — signature element
+   ========================================================================== */
+
+.time-budget-bar-wrapper {
+  margin: 2px 0 22px;
+  flex-shrink: 0;
+}
+
+.time-budget-bar-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.time-budget-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition:
+    width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.3s ease;
+}
+
+.time-budget-bar-fill.caution {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.time-budget-bar-fill.over {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+}
+
+.time-budget-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 9px;
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+.time-budget-bar-labels span:first-child {
+  font-weight: 700;
+  color: rgba(242, 241, 237, 0.8);
+}
+
+/* ==========================================================================
+   Fields
+   ========================================================================== */
 
 .task-page-title-field {
   margin-top: 4px;
@@ -226,11 +264,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(242, 241, 237, 0.5);
+  letter-spacing: 0.07em;
+  color: rgba(242, 241, 237, 0.45);
   margin-bottom: 8px;
   min-height: 26px;
 }
@@ -239,7 +277,8 @@ body {
   font-size: 12px;
   font-weight: 400;
   text-transform: lowercase;
-  color: rgba(242, 241, 237, 0.35);
+  letter-spacing: 0;
+  color: rgba(242, 241, 237, 0.3);
   margin-left: 2px;
 }
 
@@ -247,7 +286,6 @@ body {
   color: rgba(242, 241, 237, 0.4);
 }
 
-/* Full original divider spacing */
 .task-page-divider {
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -255,7 +293,6 @@ body {
   flex-shrink: 0;
 }
 
-/* 2x2 Grid with full original 22px row gaps */
 .task-page-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -265,72 +302,96 @@ body {
   flex-shrink: 0;
 }
 
-/* Full original badge pill size */
+/* ==========================================================================
+   Badges — dot + label chips (quiet, not solid pills)
+   ========================================================================== */
+
 .task-badge {
   display: inline-flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  min-width: 110px !important;
-  padding: 8px 20px !important;
+  gap: 8px !important;
+  justify-content: flex-start !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  padding: 8px 16px 8px 12px !important;
   border-radius: 8px !important;
-  font-size: 14px !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
   text-transform: capitalize !important;
-  text-align: center !important;
+  border: 1px solid transparent !important;
   box-sizing: border-box !important;
 }
 
-/* Save button aligned with breathing room */
-.save-task-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-.badge-status[data-status*="todo" i],
-.badge-status[data-status*="to do" i],
-.badge-status[data-status*="to-do" i] {
-  background-color: rgba(148, 163, 184, 0.15) !important;
-  color: #94a3b8 !important;
-  border-color: rgba(148, 163, 184, 0.35) !important;
+.badge-status-dot,
+.badge-priority-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.badge-status[data-status*="progress" i] {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+/* Status */
+.badge-status {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(242, 241, 237, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* 3. DONE (Emerald / Green) */
-.badge-status[data-status*="done" i],
-.badge-status[data-status*="complete" i] {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  color: #34d399 !important;
-  border-color: rgba(16, 185, 129, 0.35) !important;
+.badge-status[data-status*="todo" i] .badge-status-dot,
+.badge-status[data-status*="to do" i] .badge-status-dot,
+.badge-status[data-status*="to-do" i] .badge-status-dot {
+  background: #94a3b8;
+  box-shadow: 0 0 6px rgba(148, 163, 184, 0.5);
 }
 
-/* 4. CUSTOM / FALLBACK (Purple / Violet) */
+.badge-status[data-status*="progress" i] .badge-status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.badge-status[data-status*="done" i] .badge-status-dot,
+.badge-status[data-status*="complete" i] .badge-status-dot {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
 .badge-status:not([data-status*="todo" i]):not([data-status*="to do" i]):not(
     [data-status*="to-do" i]
   ):not([data-status*="progress" i]):not([data-status*="done" i]):not(
     [data-status*="complete" i]
-  ) {
-  background-color: rgba(168, 85, 247, 0.15) !important;
-  color: #c084fc !important;
-  border-color: rgba(168, 85, 247, 0.35) !important;
+  )
+  .badge-status-dot {
+  background: #a855f7;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
 }
 
-.badge-priority-MEDIUM {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+/* Priority */
+.badge-priority {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(242, 241, 237, 0.75) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.badge-priority-LOW .badge-priority-dot {
+  background: #64748b;
+}
+
+.badge-priority-MEDIUM .badge-priority-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+.badge-priority-HIGH .badge-priority-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 .badge-priority-HIGH {
-  background: rgba(239, 68, 68, 0.12);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
+/* Due date pill */
 .task-due-label {
   display: inline-flex;
   align-items: center;
@@ -361,12 +422,27 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* White Save Changes Button */
+/* ==========================================================================
+   Save Bar
+   ========================================================================== */
+
 .save-task-container,
 .save-entry-container {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+  animation: save-bar-in 0.18s ease;
+}
+
+@keyframes save-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .save-task-btn {
@@ -378,8 +454,8 @@ body {
   border: 1px solid #ffffff;
   border-radius: 8px;
   padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -396,14 +472,15 @@ body {
   cursor: not-allowed;
 }
 
-/* Time Entries List Section */
+/* ==========================================================================
+   Time Entries
+   ========================================================================== */
+
 .task-page-card.time-entries-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding: 36px;
-  overflow: hidden;
 }
 
 .add-entry-btn {
@@ -413,9 +490,9 @@ body {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #34d399;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 16px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -424,6 +501,22 @@ body {
 .add-entry-btn:hover {
   background: rgba(16, 185, 129, 0.25);
   color: #6ee7b7;
+  transform: translateY(-1px);
+}
+
+.entries-overrun-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  padding: 4px 10px;
+  border-radius: 999px;
+  line-height: 1;
 }
 
 .add-entry-form {
@@ -451,10 +544,10 @@ body {
 }
 
 .add-entry-field label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: rgba(242, 241, 237, 0.5);
 }
 
@@ -467,7 +560,9 @@ body {
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .add-entry-field input:focus {
@@ -492,8 +587,8 @@ body {
   height: 40px !important;
   min-width: 105px !important;
   padding: 0 20px !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
   border-radius: 8px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -528,7 +623,7 @@ body {
 .entries-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -570,7 +665,7 @@ body {
 }
 
 .entries-empty p {
-  font-size: 16px;
+  font-size: 15px;
   margin: 0;
 }
 
@@ -578,8 +673,9 @@ body {
   position: relative;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 2px solid rgba(52, 211, 153, 0.4);
   border-radius: 12px;
-  padding: 20px;
+  padding: 18px 20px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -590,6 +686,7 @@ body {
 .entry-row:hover {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.14);
+  border-left-color: #34d399;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -604,7 +701,7 @@ body {
 .entry-meta-badge-container {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .entry-created-badge {
@@ -618,6 +715,7 @@ body {
   padding: 4px 10px;
   border-radius: 20px;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .entry-row-header {
@@ -639,8 +737,10 @@ body {
 }
 
 .entry-duration .inline-field-value {
-  font-weight: 600;
+  font-weight: 800;
+  font-size: 16px;
   color: #34d399;
+  font-variant-numeric: tabular-nums;
 }
 
 .entry-delete-btn {
@@ -685,6 +785,18 @@ body {
   }
 }
 
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .time-budget-bar-fill,
+  .save-task-container,
+  .save-entry-container,
+  .add-entry-btn,
+  .save-task-btn {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 @media (max-width: 1100px) {
   html,
   body,
@@ -694,9 +806,9 @@ body {
   }
   .task-page-split {
     grid-template-columns: 1fr;
-    max-height: none;
   }
 }
+
 @media (max-width: 640px) {
   .task-page {
     padding: 1rem 1rem 1.5rem;
@@ -708,13 +820,14 @@ body {
   }
 
   .task-page-main-title {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .task-page-card-header {
     flex-wrap: wrap;
     gap: 10px;
   }
+
   .task-page-meta-badge {
     display: flex;
     flex-wrap: wrap;
@@ -722,24 +835,20 @@ body {
     font-size: 10px;
     white-space: normal;
     padding: 8px 12px;
-    border-radius: 10px; /* was 20px pill — full pill shape looks odd once it wraps to 2 lines */
+    border-radius: 10px;
     width: fit-content;
     max-width: 100%;
   }
+
   .entry-created-badge {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    font-size: 9px;
+    font-size: 12px;
+    line-height: 1.5;
     white-space: normal;
-    padding: 8px 2px;
+    padding: 10px 14px;
     border-radius: 10px;
-  }
-
-  /* keep each date on one line — if both badges don't fit side by side, the second one drops to its own new line instead of breaking mid-text */
-  .task-page-meta-badge,
-  .entry-created-badge {
-    white-space: nowrap;
   }
 
   .task-page-grid {
@@ -754,78 +863,7 @@ body {
   }
 
   .task-badge {
-    width: 100%;
-    min-width: 0 !important;
-  }
-
-  .entry-main {
-    padding-right: 32px;
-  }
-}
-@media (max-width: 640px) {
-  /* Time Entries card only — Task Details card is untouched */
-  .task-page-card.time-entries-card {
-    padding: 20px;
-    border-radius: 12px;
-  }
-
-  .time-entries-card .task-page-main-title {
-    font-size: 20px;
-  }
-
-  .time-entries-card .task-page-card-header {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  /* Created/Updated badge on each entry — full width, wraps cleanly */
-  .entry-created-badge {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: normal;
-    padding: 10px 14px;
-    border-radius: 10px;
-    color: rgba(242, 241, 237, 0.5);
-  }
-
-  /* Icon + label inline, left-aligned, full width — scoped to entries only */
-  .entries-list .entry-field .task-field-label-with-icon {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  .entries-list .entry-field .task-field-label-with-icon .field-icon {
-    display: inline-flex !important;
-    flex-shrink: 0;
-  }
-
-  /* Duration/Date stack full width instead of squeezing 2-up */
-  .entry-row-header {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .add-entry-row {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .entry-field {
-    width: 100%;
-  }
-
-  .entry-field input,
-  .entry-field .entry-value-display {
-    width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
   }
 
   .entry-main {
@@ -834,7 +872,7 @@ body {
 }
 
 /* ==========================================================================
-   Compact Top People Section (Creator & Assignees)
+   People Section (Creator & Assignees)
    ========================================================================== */
 
 .task-people-section {
@@ -845,7 +883,6 @@ body {
   width: 100%;
 }
 
-/* Creator Card: Fits content neatly without empty void */
 .task-creator-card {
   background: #14161b;
   border: 1px solid #232730;
@@ -857,14 +894,13 @@ body {
   justify-content: center;
 }
 
-/* Assignees Card: Fills the remaining space smoothly */
 .task-assignees-container {
   background: #14161b;
   border: 1px solid #232730;
   border-radius: 10px;
   padding: 10px 14px;
   flex: 1;
-  min-width: 0; /* Ensures scrollbar behaves correctly */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -877,7 +913,7 @@ body {
   font-size: 0.688rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: #7e8798;
   margin-bottom: 6px;
 }
@@ -886,7 +922,6 @@ body {
   color: #6366f1;
 }
 
-/* Uniform Chip Styling */
 .task-user-chip,
 .task-assignee-card {
   display: inline-flex;
@@ -895,19 +930,10 @@ body {
   background: #1a1d24;
   border: 1px solid #2a2e3b;
   border-radius: 8px;
-  padding: 4px 12px;
-  transition: all 0.2s ease;
-}
-
-.task-user-chip,
-.task-assignee-card {
   padding: 12px 18px;
-}
-
-.task-user-chip,
-.task-assignee-card {
   min-width: 280px;
   max-width: 340px;
+  transition: all 0.2s ease;
 }
 
 .task-assignee-card:hover {
@@ -915,7 +941,6 @@ body {
   background: #1f232c;
 }
 
-/* Compact Avatars */
 .task-avatar-wrapper {
   width: 32px;
   height: 32px;
@@ -937,10 +962,9 @@ body {
 .task-avatar-fallback {
   color: #ffffff;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* Text Hierarchy */
 .task-user-info {
   display: flex;
   flex-direction: column;
@@ -949,7 +973,7 @@ body {
 
 .task-user-name {
   font-size: 0.84rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #f1f5f9;
   line-height: 1.2;
   white-space: nowrap;
@@ -967,7 +991,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Assignees Scroll Track */
 .task-assignees-scroll {
   display: flex;
   gap: 8px;
@@ -995,6 +1018,7 @@ body {
   align-items: center;
   height: 32px;
 }
+
 .task-count-badge {
   display: inline-flex;
   align-items: center;
@@ -1008,6 +1032,7 @@ body {
   padding: 1px 7px;
   min-width: 18px;
   height: 18px;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 800px) {
@@ -1019,7 +1044,6 @@ body {
   }
 }
 
-/* Assignees Header Layout */
 .task-assignees-container .task-people-header {
   display: flex;
   align-items: center;
@@ -1033,7 +1057,6 @@ body {
   gap: 6px;
 }
 
-/* Add Assignee Trigger Button */
 .add-assignee-menu-wrapper {
   position: relative;
 }
@@ -1045,10 +1068,10 @@ body {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #94a3b8;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1059,7 +1082,6 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
 }
 
-/* Assignee Dropdown Menu */
 .assignee-dropdown-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -1068,8 +1090,8 @@ body {
   max-height: 280px;
   background: #1e222d;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -1078,22 +1100,18 @@ body {
 
 .assignee-dropdown-title {
   padding: 8px 12px;
-  font-size: 0.725rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   color: #64748b;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ==========================================================================
-   ASSIGNEE DROPDOWN LIST SPACING & ITEM FIX
-   ========================================================================== */
-
 .assignee-dropdown-list {
   display: flex !important;
   flex-direction: column !important;
-  gap: 4px !important; /* Adds clear separation between items */
+  gap: 4px !important;
   padding: 6px !important;
   overflow-y: auto !important;
 }
@@ -1108,6 +1126,7 @@ body {
   border: 1px solid transparent !important;
   background: transparent !important;
   box-sizing: border-box !important;
+  cursor: pointer;
   transition: all 0.15s ease !important;
 }
 
@@ -1115,7 +1134,6 @@ body {
   background: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Clean, non-colliding highlight for assigned members */
 .assignee-dropdown-item.is-assigned {
   background: rgba(99, 102, 241, 0.12) !important;
   border-color: rgba(99, 102, 241, 0.25) !important;
@@ -1126,10 +1144,6 @@ body {
   background: rgba(99, 102, 241, 0.2) !important;
   border-color: rgba(99, 102, 241, 0.4) !important;
 }
-
-/* ==========================================================================
-   ALIGN DROPDOWN USER INFO TO MATCH TOP ASSIGNEE CHIPS
-   ========================================================================== */
 
 .assignee-dropdown-user-info {
   display: flex !important;
@@ -1144,7 +1158,7 @@ body {
 
 .assignee-dropdown-name {
   font-size: 0.84rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   color: #f1f5f9 !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
@@ -1161,6 +1175,7 @@ body {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+
 .assigned-check {
   color: #6366f1;
   flex-shrink: 0;
