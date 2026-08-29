@@ -136,7 +136,7 @@ const DashboardSidebar = () => {
               }
             >
               <Users size={16} aria-hidden="true" />
-              <span>Manage Team & Tasks</span>
+              <span>Project Management</span>
             </button>
           )}
 
