@@ -344,6 +344,50 @@
 .spin {
   animation: spin 0.8s linear infinite;
 }
+/* ==========================================================================
+   SLEEK DARK SCROLLBAR (TASK HISTORY & DRAWER)
+   ========================================================================== */
+
+/* 1. Standard modern CSS syntax (Firefox & Chromium modern) */
+.task-history-drawer,
+.history-drawer-content,
+.history-list,
+.task-page-body,
+[class*="history"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+/* 2. WebKit browsers (Chrome, Edge, Brave, Safari) */
+.task-history-drawer::-webkit-scrollbar,
+.history-drawer-content::-webkit-scrollbar,
+.history-list::-webkit-scrollbar,
+[class*="history"]::-webkit-scrollbar {
+  width: 5px;
+}
+
+.task-history-drawer::-webkit-scrollbar-track,
+.history-drawer-content::-webkit-scrollbar-track,
+.history-list::-webkit-scrollbar-track,
+[class*="history"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.task-history-drawer::-webkit-scrollbar-thumb,
+.history-drawer-content::-webkit-scrollbar-thumb,
+.history-list::-webkit-scrollbar-thumb,
+[class*="history"]::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.task-history-drawer::-webkit-scrollbar-thumb:hover,
+.history-drawer-content::-webkit-scrollbar-thumb:hover,
+.history-list::-webkit-scrollbar-thumb:hover,
+[class*="history"]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
 
 @keyframes spin {
   from {

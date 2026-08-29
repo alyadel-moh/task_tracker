@@ -72,7 +72,7 @@ export async function addMember(
       role,
     );
     return res.status(201).json({
-      message: "Member added successfully",
+      message: "Invitation sent successfully!",
       projectMember: {
         id: projectMember.id,
         userId: projectMember.userId,
@@ -102,7 +102,7 @@ export async function leaveProject(
   try {
     const { projectId } = req.params;
     await ProjectMemberService.leaveProject(projectId, req.user.id);
-    return res.status(200).json({ message: "Successfully left the project" });
+    return res.status(200).json({ message: "Successfully left the project!" });
   } catch (err: any) {
     if (err.status) {
       return res.status(err.status).json({ message: err.message });
@@ -121,7 +121,7 @@ export async function cancelInvitation(
     await ProjectMemberService.cancelInvitation(req.user.id, projectId, id!);
     return res
       .status(200)
-      .json({ message: "Invitation canceled successfully" });
+      .json({ message: "Invitation canceled successfully!" });
   } catch (err: any) {
     if (err.status) {
       return res.status(err.status).json({ message: err.message });
@@ -140,7 +140,7 @@ export async function acceptInvitation(
       req.user.id,
     );
     return res.status(200).json({
-      message: "Invitation accepted successfully",
+      message: "Invitation accepted successfully!",
       assignedprojectMembership: membership,
     });
   } catch (err: any) {
@@ -163,7 +163,7 @@ export async function declineInvitation(
     );
     return res
       .status(200)
-      .json({ message: "Invitation declined successfully" });
+      .json({ message: "Invitation declined successfully!" });
   } catch (err: any) {
     if (err.status) {
       return res.status(err.status).json({ message: err.message });

@@ -93,7 +93,7 @@ async function remove(
       req.params.id,
     );
     return res.status(200).json({
-      message: "Time entry deleted successfully",
+      message: "TimeEntry deleted successfully",
       historyEntry: taskHistoryEntry,
     });
   } catch (err: any) {
