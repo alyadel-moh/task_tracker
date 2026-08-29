@@ -97,8 +97,8 @@ const DashboardSidebar = () => {
                   <button
                     type="button"
                     className="project-delete-inline-btn"
-                    data-tooltip="Delete project"
-                    data-tooltip-pos="right"
+                    data-tooltip={`Delete ${project.name}`}
+                    data-tooltip-pos="left"
                     onClick={(e) => {
                       e.stopPropagation();
                       setProjectToDelete({
@@ -146,7 +146,7 @@ const DashboardSidebar = () => {
             onClick={() => setUserProfileModalOpen(true)}
             role="button"
             tabIndex={0}
-            data-tooltip="View profile details"
+            data-tooltip={`View ${user?.name}'s  profile details`}
             data-tooltip-pos="right"
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

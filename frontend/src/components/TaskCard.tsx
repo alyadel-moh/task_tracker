@@ -113,7 +113,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
             <button
               type="button"
               className="task-delete-button"
-              data-tooltip="delete task"
+              data-tooltip={`Delete ${task.name}`}
               data-tooltip-pos="left"
               aria-label={`Delete ${task.name}`}
               onPointerDown={(e) => e.stopPropagation()}
