@@ -762,6 +762,76 @@ body {
     padding-right: 32px;
   }
 }
+@media (max-width: 640px) {
+  /* Time Entries card only — Task Details card is untouched */
+  .task-page-card.time-entries-card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .time-entries-card .task-page-main-title {
+    font-size: 20px;
+  }
+
+  .time-entries-card .task-page-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Created/Updated badge on each entry — full width, wraps cleanly */
+  .entry-created-badge {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: rgba(242, 241, 237, 0.5);
+  }
+
+  /* Icon + label inline, left-aligned, full width — scoped to entries only */
+  .entries-list .entry-field .task-field-label-with-icon {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .entries-list .entry-field .task-field-label-with-icon .field-icon {
+    display: inline-flex !important;
+    flex-shrink: 0;
+  }
+
+  /* Duration/Date stack full width instead of squeezing 2-up */
+  .entry-row-header {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .add-entry-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .entry-field {
+    width: 100%;
+  }
+
+  .entry-field input,
+  .entry-field .entry-value-display {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .entry-main {
+    padding-right: 32px;
+  }
+}
 
 /* ==========================================================================
    Compact Top People Section (Creator & Assignees)
