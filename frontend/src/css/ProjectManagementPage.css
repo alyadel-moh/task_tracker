@@ -27,7 +27,7 @@ body {
    Page Shell
    ========================================================================== */
 
-.task-page {
+.pm-page {
   height: 100vh;
   width: 100%;
   background: #121210;
@@ -37,19 +37,21 @@ body {
   overflow: hidden;
 }
 
-.task-page-container {
+.pm-page-container {
   width: 100%;
   max-width: 1800px;
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 /* ==========================================================================
    Header Bar
    ========================================================================== */
 
-.task-page-header {
+.pm-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -57,13 +59,13 @@ body {
   flex-shrink: 0;
 }
 
-.task-page-header-nav-group {
+.pm-header-nav-group {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.task-page-back {
+.pm-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -78,20 +80,19 @@ body {
   transition: all 0.15s ease;
 }
 
-.task-page-back:hover {
+.pm-back-btn:hover {
   color: #f2f1ed;
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-.header-divider {
+.pm-header-divider {
   width: 1px;
   height: 20px;
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Project Branding Badge */
-.project-brand-badge {
+.pm-brand-badge {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -102,12 +103,12 @@ body {
   transition: all 0.15s ease;
 }
 
-.project-brand-badge:hover {
+.pm-brand-badge:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.14);
 }
 
-.project-brand-icon {
+.pm-brand-icon {
   width: 28px;
   height: 28px;
   border-radius: 7px;
@@ -124,14 +125,14 @@ body {
   flex-shrink: 0;
 }
 
-.project-brand-meta {
+.pm-brand-meta {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
   min-width: 0;
 }
 
-.project-brand-name {
+.pm-brand-name {
   font-size: 14px;
   font-weight: 700;
   color: #f2f1ed;
@@ -141,14 +142,13 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Right Side */
-.header-right-meta {
+.pm-header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.header-leave-project-btn {
+.pm-leave-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -163,23 +163,105 @@ body {
   transition: all 0.15s ease;
 }
 
-.header-leave-project-btn:hover:not(:disabled) {
+.pm-leave-btn:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.45);
   color: #ffffff;
   transform: translateY(-1px);
 }
 
-.header-leave-project-btn:disabled {
+.pm-leave-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Stats Summary Row
+   ========================================================================== */
+
+.member-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.member-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #1c1c1f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: all 0.15s ease;
+}
+
+.member-stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.member-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-total {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #818cf8;
+}
+
+.stat-icon-active {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: #4ade80;
+}
+
+.stat-icon-pending {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.stat-icon-owner {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+}
+
+.member-stat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.member-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f2f1ed;
+  line-height: 1.1;
+}
+
+.member-stat-label {
+  font-size: 12px;
+  color: rgba(242, 241, 237, 0.5);
+  font-weight: 500;
 }
 
 /* ==========================================================================
    Members Card
    ========================================================================== */
 
-.task-page-card {
+.pm-card {
   background: #1c1c1f;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
@@ -187,12 +269,10 @@ body {
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
-  overflow: hidden;
 }
 
-.task-page-card-header {
+.pm-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -203,13 +283,13 @@ body {
   flex-shrink: 0;
 }
 
-.task-page-header-left {
+.pm-card-header-left {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.task-page-icon-wrapper {
+.pm-icon-wrapper {
   width: 48px;
   height: 48px;
   border-radius: 12px;
@@ -222,7 +302,7 @@ body {
   flex-shrink: 0;
 }
 
-.task-page-main-title {
+.pm-main-title {
   font-size: 24px;
   font-weight: 700;
   color: #f2f1ed;
@@ -230,7 +310,7 @@ body {
   line-height: 1.2;
 }
 
-.add-entry-btn {
+.pm-add-member-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -245,43 +325,23 @@ body {
   transition: all 0.15s ease;
 }
 
-.add-entry-btn:hover {
+.pm-add-member-btn:hover {
   background: rgba(16, 185, 129, 0.25);
   color: #6ee7b7;
 }
 
-.task-page-body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.task-page-body::-webkit-scrollbar {
-  width: 6px;
-}
-
-.task-page-body::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 3px;
-}
-
-.task-page-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-}
-
-.task-page-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+/* Wider cards — 2 per row on most desktop widths */
+.pm-members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+  gap: 16px;
 }
 
 /* ==========================================================================
    Add Member Form
    ========================================================================== */
 
-.add-entry-form {
+.pm-add-form {
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
@@ -293,19 +353,19 @@ body {
   flex-shrink: 0;
 }
 
-.add-entry-row {
+.pm-add-form-row {
   display: grid;
   grid-template-columns: 1.4fr 0.8fr;
   gap: 16px;
 }
 
-.add-entry-field {
+.pm-add-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.add-entry-field label {
+.pm-add-field label {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -313,7 +373,7 @@ body {
   color: rgba(242, 241, 237, 0.5);
 }
 
-.add-entry-field input {
+.pm-add-field input {
   padding: 10px 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
@@ -325,12 +385,12 @@ body {
   transition: border-color 0.15s ease;
 }
 
-.add-entry-field input:focus {
+.pm-add-field input:focus {
   border-color: #34d399;
   box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
 }
 
-.add-entry-form .add-entry-actions {
+.pm-add-form .pm-add-actions {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
@@ -338,7 +398,7 @@ body {
   margin-top: 4px !important;
 }
 
-.add-entry-form .add-entry-actions .inline-field-action {
+.pm-add-form .pm-add-actions .pm-form-action {
   width: auto !important;
   height: 40px !important;
   min-width: 105px !important;
@@ -354,25 +414,25 @@ body {
   border: none;
 }
 
-.add-entry-form .add-entry-actions .inline-field-cancel {
+.pm-add-form .pm-add-actions .pm-form-cancel {
   background: #252528 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #d1d0c9 !important;
 }
 
-.add-entry-form .add-entry-actions .inline-field-cancel:hover {
+.pm-add-form .pm-add-actions .pm-form-cancel:hover {
   background: #303035 !important;
   color: #ffffff !important;
 }
 
-.add-entry-form .add-entry-actions .inline-field-save {
+.pm-add-form .pm-add-actions .pm-form-save {
   background: #10b981 !important;
   border: 1px solid #34d399 !important;
   color: #042f20 !important;
   font-weight: 700 !important;
 }
 
-.add-entry-form .add-entry-actions .inline-field-save:hover {
+.pm-add-form .pm-add-actions .pm-form-save:hover {
   background: #34d399 !important;
   color: #022015 !important;
 }
@@ -460,9 +520,10 @@ body {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 14px;
+  min-height: 190px;
   transition: all 0.15s ease;
-  flex-shrink: 0;
 }
 
 .member-card-container:hover {
@@ -476,27 +537,44 @@ body {
   background: rgba(245, 158, 11, 0.015);
 }
 
-/* Hover action buttons, top-right of card */
+.member-card-container.owner-style {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.member-card-container.owner-style:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.07);
+}
+
+.member-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.member-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .member-card-actions-group {
-  position: absolute;
-  top: 14px;
-  right: 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  z-index: 10;
+  flex-shrink: 0;
   opacity: 0;
   pointer-events: none;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-  transform: translateY(-2px);
+  transition: opacity 0.15s ease;
 }
 
 .member-card-container:hover .member-card-actions-group {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0);
 }
 
 .member-card-action-btn {
@@ -553,19 +631,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* Card header row: role + status badges */
-.member-card-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.member-card-badges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .member-badge-role {
   display: inline-flex;
   align-items: center;
@@ -579,6 +644,12 @@ body {
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.owner-style .member-badge-role {
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.25);
 }
 
 .member-badge-status {
@@ -609,7 +680,6 @@ body {
   border-radius: 50%;
 }
 
-/* Card main content: avatar + name/email */
 .member-card-main-content {
   display: flex;
   align-items: center;
@@ -617,18 +687,24 @@ body {
 }
 
 .member-card-avatar {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
   background: rgba(99, 102, 241, 0.15);
   border: 1px solid rgba(99, 102, 241, 0.3);
   color: #818cf8;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.owner-style .member-card-avatar {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #c084fc;
 }
 
 .member-card-details {
@@ -640,7 +716,7 @@ body {
 }
 
 .member-card-name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #f2f1ed;
   letter-spacing: -0.01em;
@@ -660,7 +736,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Card footer: access level */
 .member-card-footer-row {
   display: flex;
   align-items: center;
@@ -688,11 +763,29 @@ body {
   color: rgba(242, 241, 237, 0.65);
 }
 
+/* Empty filtered state */
+.member-list-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: rgba(242, 241, 237, 0.3);
+  text-align: center;
+}
+
+.member-list-empty p {
+  font-size: 14px;
+  margin: 0;
+}
+
 /* ==========================================================================
    Leave Project — Confirmation Modal
    ========================================================================== */
 
-.modal-overlay {
+.pm-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
@@ -703,7 +796,7 @@ body {
   z-index: 1000;
 }
 
-.modal-card {
+.pm-modal-card {
   background: #1c1c1f;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -712,12 +805,12 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.modal-header {
+.pm-modal-header {
   display: flex;
   margin-bottom: 16px;
 }
 
-.modal-header-icon {
+.pm-modal-header-icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -726,34 +819,34 @@ body {
   justify-content: center;
 }
 
-.modal-header-icon-danger {
+.pm-modal-header-icon-danger {
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #f87171;
 }
 
-.modal-title {
+.pm-modal-title {
   font-size: 18px;
   font-weight: 700;
   color: #f2f1ed;
   margin: 0 0 8px;
 }
 
-.modal-subtitle {
+.pm-modal-subtitle {
   font-size: 14px;
   line-height: 1.5;
   color: rgba(242, 241, 237, 0.55);
   margin: 0 0 24px;
 }
 
-.modal-actions {
+.pm-modal-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
 }
 
-.modal-button {
+.pm-modal-btn {
   padding: 10px 18px;
   font-size: 14px;
   font-weight: 600;
@@ -763,29 +856,29 @@ body {
   transition: all 0.15s ease;
 }
 
-.modal-button-secondary {
+.pm-modal-btn-secondary {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(242, 241, 237, 0.7);
 }
 
-.modal-button-secondary:hover:not(:disabled) {
+.pm-modal-btn-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.05);
   color: #f2f1ed;
 }
 
-.modal-button-danger {
+.pm-modal-btn-danger {
   background: #ef4444;
   border: 1px solid #ef4444;
   color: #ffffff;
 }
 
-.modal-button-danger:hover:not(:disabled) {
+.pm-modal-btn-danger:hover:not(:disabled) {
   background: #dc2626;
   border-color: #dc2626;
 }
 
-.modal-button:disabled {
+.pm-modal-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -797,46 +890,70 @@ body {
 @media (max-width: 1100px) {
   html,
   body,
-  .task-page {
+  .pm-page {
     height: auto;
     overflow: auto;
   }
 }
 
+@media (max-width: 900px) {
+  .member-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pm-members-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
-  .task-page {
+  .pm-page {
     padding: 1rem 1rem 1.5rem;
   }
 
-  .task-page-card {
+  .pm-card {
     padding: 20px;
     border-radius: 12px;
   }
 
-  .task-page-main-title {
+  .pm-main-title {
     font-size: 20px;
   }
 
-  .task-page-card-header {
+  .pm-card-header {
     flex-wrap: wrap;
     gap: 10px;
   }
 
-  .task-page-header-nav-group {
+  .pm-header-nav-group {
     gap: 10px;
     flex-wrap: wrap;
   }
 
-  .header-divider {
+  .pm-header-divider {
     display: none;
   }
 
-  .project-brand-name {
+  .pm-brand-name {
     max-width: 140px;
   }
 
-  .header-leave-project-btn span {
+  .pm-leave-btn span {
     display: none;
+  }
+
+  .member-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .member-stat-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .member-stat-value {
+    font-size: 20px;
   }
 
   .member-filter-tabs {
@@ -848,19 +965,18 @@ body {
     white-space: nowrap;
   }
 
-  .add-entry-row {
+  .pm-add-form-row {
     grid-template-columns: 1fr;
     gap: 14px;
   }
 
+  .member-card-header-row {
+    flex-wrap: wrap;
+  }
+
   .member-card-actions-group {
-    position: static;
     opacity: 1;
     pointer-events: auto;
-    transform: none;
-    margin-top: -4px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
   }
 
   .member-card-main-content {

@@ -24,6 +24,8 @@ import {
   FiRepeat,
   FiLogOut,
   FiAlertTriangle,
+  FiAward,
+  FiClock,
 } from "react-icons/fi";
 import { useAppStore } from "../store/useAppStore";
 
@@ -74,6 +76,7 @@ export function ProjectManagementPage() {
 
   const activeCount = members.filter((m) => getStatus(m) === "ACTIVE").length;
   const pendingCount = members.filter((m) => getStatus(m) === "PENDING").length;
+  const ownerCount = members.filter((m) => m.role === "OWNER").length;
 
   const filteredMembers = members.filter((m) => {
     const status = getStatus(m);
@@ -81,6 +84,12 @@ export function ProjectManagementPage() {
     if (activeTab === "PENDING") return status === "PENDING";
     return true;
   });
+
+  const emptyStateCopy: Record<typeof activeTab, string> = {
+    ALL: "No members yet. Invite someone to get started.",
+    ACTIVE: "No active members right now.",
+    PENDING: "No pending invitations.",
+  };
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,40 +191,36 @@ export function ProjectManagementPage() {
   };
 
   return (
-    <div className="task-page">
-      <div className="task-page-container">
+    <div className="pm-page">
+      <div className="pm-page-container">
         {/* Header Bar */}
-        <div className="task-page-header">
-          <div className="task-page-header-nav-group">
+        <div className="pm-page-header">
+          <div className="pm-header-nav-group">
             <button
               type="button"
-              className="task-page-back"
+              className="pm-back-btn"
               onClick={() => navigate(`/projects`)}
             >
               <FiArrowLeft size={16} />
               <span>Back to board</span>
             </button>
 
-            <div className="header-divider" />
+            <div className="pm-header-divider" />
 
-            {/* Live Project Identity */}
-            <div className="project-brand-badge">
-              <div className="project-brand-icon">
+            <div className="pm-brand-badge">
+              <div className="pm-brand-icon">
                 <FiLayers size={14} />
               </div>
-              <div className="project-brand-meta">
-                <span className="project-brand-name">
-                  {activeProject?.name}
-                </span>
+              <div className="pm-brand-meta">
+                <span className="pm-brand-name">{activeProject?.name}</span>
               </div>
             </div>
           </div>
 
-          {/* Leave Project Action */}
-          <div className="header-right-meta">
+          <div className="pm-header-right">
             <button
               type="button"
-              className="header-leave-project-btn"
+              className="pm-leave-btn"
               onClick={handleLeaveProjectClick}
               disabled={leaveProjectMutation.isPending}
               title="Leave this project"
@@ -230,23 +235,65 @@ export function ProjectManagementPage() {
           </div>
         </div>
 
+        {/* Stats Summary Row */}
+        <div className="member-stats-row">
+          <div className="member-stat-card">
+            <div className="member-stat-icon stat-icon-total">
+              <FiUsers size={18} />
+            </div>
+            <div className="member-stat-meta">
+              <span className="member-stat-value">{members.length}</span>
+              <span className="member-stat-label">Total Members</span>
+            </div>
+          </div>
+
+          <div className="member-stat-card">
+            <div className="member-stat-icon stat-icon-active">
+              <FiCheck size={18} />
+            </div>
+            <div className="member-stat-meta">
+              <span className="member-stat-value">{activeCount}</span>
+              <span className="member-stat-label">Active</span>
+            </div>
+          </div>
+
+          <div className="member-stat-card">
+            <div className="member-stat-icon stat-icon-pending">
+              <FiClock size={18} />
+            </div>
+            <div className="member-stat-meta">
+              <span className="member-stat-value">{pendingCount}</span>
+              <span className="member-stat-label">Pending</span>
+            </div>
+          </div>
+
+          <div className="member-stat-card">
+            <div className="member-stat-icon stat-icon-owner">
+              <FiAward size={18} />
+            </div>
+            <div className="member-stat-meta">
+              <span className="member-stat-value">{ownerCount}</span>
+              <span className="member-stat-label">Owners</span>
+            </div>
+          </div>
+        </div>
+
         {/* Full-Width Project Members Card */}
-        <div className="task-page-card">
-          <div className="task-page-card-header">
-            <div className="task-page-header-left">
-              <div className="task-page-icon-wrapper">
+        <div className="pm-card">
+          <div className="pm-card-header">
+            <div className="pm-card-header-left">
+              <div className="pm-icon-wrapper">
                 <FiUsers size={22} />
               </div>
               <div>
-                <h1 className="task-page-main-title">Project Members</h1>
+                <h1 className="pm-main-title">Project Members</h1>
               </div>
             </div>
 
-            {/* Add Member Button - Only visible to owners */}
             {isCurrentUserOwner && (
               <button
                 type="button"
-                className="add-entry-btn"
+                className="pm-add-member-btn"
                 onClick={() => setShowAddMember((prev) => !prev)}
               >
                 <FiUserPlus size={14} />
@@ -255,11 +302,10 @@ export function ProjectManagementPage() {
             )}
           </div>
 
-          {/* Add Member Form - Only rendered for owners */}
           {isCurrentUserOwner && showAddMember && (
-            <form className="add-entry-form" onSubmit={handleAddMember}>
-              <div className="add-entry-row">
-                <div className="add-entry-field">
+            <form className="pm-add-form" onSubmit={handleAddMember}>
+              <div className="pm-add-form-row">
+                <div className="pm-add-field">
                   <label>Member Email</label>
                   <input
                     type="email"
@@ -270,7 +316,7 @@ export function ProjectManagementPage() {
                   />
                 </div>
 
-                <div className="add-entry-field">
+                <div className="pm-add-field">
                   <label>Role</label>
                   <CustomSelect
                     options={ROLE_OPTIONS}
@@ -282,17 +328,17 @@ export function ProjectManagementPage() {
                 </div>
               </div>
 
-              <div className="add-entry-actions">
+              <div className="pm-add-actions">
                 <button
                   type="button"
-                  className="inline-field-action inline-field-cancel"
+                  className="pm-form-action pm-form-cancel"
                   onClick={() => setShowAddMember(false)}
                 >
                   <FiX size={14} style={{ marginRight: "4px" }} /> Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-field-action inline-field-save"
+                  className="pm-form-action pm-form-save"
                   disabled={addMemberMutation.isPending}
                 >
                   <FiCheck size={14} style={{ marginRight: "4px" }} />
@@ -332,154 +378,164 @@ export function ProjectManagementPage() {
             </button>
           </div>
 
-          {/* Member Cards List */}
-          <div className="task-page-body">
-            {filteredMembers.map((member) => {
-              const displayName =
-                member.user?.name || (member as any).name || "Unknown User";
-              const displayEmail =
-                member.user?.email || (member as any).email || "";
-              const isPending = getStatus(member) === "PENDING";
-              const initials = displayName.substring(0, 2).toUpperCase();
-              const memberUserId = member.user?.id || member.id;
-              const isSelf = Boolean(user?.id && memberUserId === user.id);
-              const canManageCard = isCurrentUserOwner && !isSelf;
+          {/* Member Cards Grid */}
+          <div className="pm-members-grid">
+            {filteredMembers.length === 0 ? (
+              <div className="member-list-empty">
+                <FiUsers size={28} />
+                <p>{emptyStateCopy[activeTab]}</p>
+              </div>
+            ) : (
+              filteredMembers.map((member) => {
+                const displayName =
+                  member.user?.name || (member as any).name || "Unknown User";
+                const displayEmail =
+                  member.user?.email || (member as any).email || "";
+                const isPending = getStatus(member) === "PENDING";
+                const initials = displayName.substring(0, 2).toUpperCase();
+                const memberUserId = member.user?.id || member.id;
+                const isSelf = Boolean(user?.id && memberUserId === user.id);
+                const canManageCard = isCurrentUserOwner && !isSelf;
+                const isOwner = member.role === "OWNER";
 
-              return (
-                <div
-                  key={member.id}
-                  className={`member-card-container ${isPending ? "pending-style" : ""}`}
-                >
-                  {canManageCard && (
-                    <div className="member-card-actions-group">
-                      {!isPending && (
-                        <button
-                          type="button"
-                          className="member-card-action-btn action-toggle-role"
-                          title={`Change role to ${member.role === "OWNER" ? "Member" : "Owner"}`}
-                          disabled={updateRoleMutation.isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleRole(member);
-                          }}
-                        >
-                          <FiRepeat size={12} />
-                          <span>
-                            {member.role === "OWNER"
-                              ? "Make Member"
-                              : "Make Owner"}
-                          </span>
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        className={`member-card-action-btn ${
-                          isPending
-                            ? "action-cancel-invite"
-                            : "action-delete-member"
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveMember(member);
-                        }}
-                      >
-                        {isPending ? (
-                          <>
-                            <FiXCircle size={13} />
-                            <span>Cancel Invite</span>
-                          </>
-                        ) : (
-                          <>
-                            <FiTrash2 size={13} />
-                            <span>Delete Member</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Badges */}
-                  <div className="member-card-header-row">
-                    <div className="member-card-badges">
-                      <span className="member-badge-role">
-                        <FiShield size={11} />{" "}
-                        {member.role === "OWNER" ? "Owner" : "Member"}
-                      </span>
-                      <span
-                        className={`member-badge-status ${
-                          isPending ? "status-pending" : "status-active"
-                        }`}
-                      >
-                        <span
-                          className={`badge-dot ${
-                            isPending ? "dot-amber" : "dot-green"
-                          }`}
-                        />
-                        {isPending ? "Pending" : "Active"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="member-card-main-content">
-                    <div className="member-card-avatar">{initials}</div>
-                    <div className="member-card-details">
-                      <span className="member-card-name">
-                        {displayName} {isSelf && "(You)"}
-                      </span>
-                      {displayEmail && (
-                        <span className="member-card-email">
-                          <FiMail size={12} />
-                          {displayEmail}
+                return (
+                  <div
+                    key={member.id}
+                    className={`member-card-container ${
+                      isPending ? "pending-style" : ""
+                    } ${isOwner ? "owner-style" : ""}`}
+                  >
+                    <div className="member-card-header-row">
+                      <div className="member-card-badges">
+                        <span className="member-badge-role">
+                          {isOwner ? (
+                            <FiAward size={11} />
+                          ) : (
+                            <FiShield size={11} />
+                          )}{" "}
+                          {isOwner ? "Owner" : "Member"}
                         </span>
+                        <span
+                          className={`member-badge-status ${
+                            isPending ? "status-pending" : "status-active"
+                          }`}
+                        >
+                          <span
+                            className={`badge-dot ${isPending ? "dot-amber" : "dot-green"}`}
+                          />
+                          {isPending ? "Pending" : "Active"}
+                        </span>
+                      </div>
+
+                      {canManageCard && (
+                        <div className="member-card-actions-group">
+                          {!isPending && (
+                            <button
+                              type="button"
+                              className="member-card-action-btn action-toggle-role"
+                              title={`Change role to ${member.role === "OWNER" ? "Member" : "Owner"}`}
+                              disabled={updateRoleMutation.isPending}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleRole(member);
+                              }}
+                            >
+                              <FiRepeat size={12} />
+                              <span>
+                                {member.role === "OWNER"
+                                  ? "Make Member"
+                                  : "Make Owner"}
+                              </span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            className={`member-card-action-btn ${
+                              isPending
+                                ? "action-cancel-invite"
+                                : "action-delete-member"
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveMember(member);
+                            }}
+                          >
+                            {isPending ? (
+                              <>
+                                <FiXCircle size={13} />
+                                <span>Cancel Invite</span>
+                              </>
+                            ) : (
+                              <>
+                                <FiTrash2 size={13} />
+                                <span>Delete Member</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
 
-                  <div className="member-card-footer-row">
-                    <div className="member-footer-item">
-                      <span className="footer-label">Access Level</span>
-                      <span className="footer-value">
-                        {member.role === "OWNER"
-                          ? "Full Project Access"
-                          : "Standard Collaborator"}
-                      </span>
+                    <div className="member-card-main-content">
+                      <div className="member-card-avatar">{initials}</div>
+                      <div className="member-card-details">
+                        <span className="member-card-name">
+                          {displayName} {isSelf && "(You)"}
+                        </span>
+                        {displayEmail && (
+                          <span className="member-card-email">
+                            <FiMail size={12} />
+                            {displayEmail}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="member-card-footer-row">
+                      <div className="member-footer-item">
+                        <span className="footer-label">Access Level</span>
+                        <span className="footer-value">
+                          {isOwner
+                            ? "Full Project Access"
+                            : "Standard Collaborator"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
 
-      {/* Confirmation Modal for Leaving Project */}
       {isConfirmingLeave && (
         <div
-          className="modal-overlay"
+          className="pm-modal-overlay"
           onClick={() => setIsConfirmingLeave(false)}
         >
           <div
-            className="modal-card"
+            className="pm-modal-card"
             style={{ maxWidth: 440 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <div className="modal-header-icon modal-header-icon-danger">
+            <div className="pm-modal-header">
+              <div className="pm-modal-header-icon pm-modal-header-icon-danger">
                 <FiAlertTriangle size={18} aria-hidden="true" />
               </div>
             </div>
 
-            <h2 className="modal-title">Leave "{activeProject?.name}"?</h2>
-            <p className="modal-subtitle">
+            <h2 className="pm-modal-title">Leave "{activeProject?.name}"?</h2>
+            <p className="pm-modal-subtitle">
               Are you sure you want to leave this project? You will lose access
               to its resources and boards.
             </p>
 
-            <div className="modal-actions">
+            <div className="pm-modal-actions">
               <button
                 type="button"
-                className="modal-button modal-button-secondary"
+                className="pm-modal-btn pm-modal-btn-secondary"
                 onClick={() => setIsConfirmingLeave(false)}
                 disabled={leaveProjectMutation.isPending}
               >
@@ -487,7 +543,7 @@ export function ProjectManagementPage() {
               </button>
               <button
                 type="button"
-                className="modal-button modal-button-danger"
+                className="pm-modal-btn pm-modal-btn-danger"
                 onClick={handleConfirmLeave}
                 disabled={leaveProjectMutation.isPending}
               >
