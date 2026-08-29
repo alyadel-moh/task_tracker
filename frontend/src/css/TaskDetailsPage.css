@@ -920,7 +920,8 @@ body {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .task-assignees-container {
@@ -932,21 +933,28 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .task-people-header {
   display: flex;
   align-items: center;
   gap: 6px;
+  height: 28px;
+  min-height: 28px;
   font-size: 0.688rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: #7e8798;
   margin-bottom: 6px;
+  box-sizing: border-box;
 }
 
+.task-creator-card .task-user-chip {
+  margin-top: 2px;
+}
 .people-header-icon {
   color: #6366f1;
 }
