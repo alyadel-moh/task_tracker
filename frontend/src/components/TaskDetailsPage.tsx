@@ -114,7 +114,20 @@ const getInitials = (name?: string | null): string => {
     .toUpperCase()
     .slice(0, 2);
 };
-
+export const getStatusColorKey = (
+  name?: string,
+): "todo" | "in-progress" | "done" | "custom" => {
+  if (!name) return "custom";
+  const normalized = name
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
+  if (normalized === "todo" || normalized === "to-do") return "todo";
+  if (normalized === "inprogress" || normalized === "in-progress")
+    return "in-progress";
+  if (normalized === "done") return "done";
+  return "custom";
+};
 interface EntryFormState {
   durationMinutes: string;
   entryDate: string;
@@ -654,7 +667,13 @@ const TaskDetailsPage = () => {
         {/* 2-Column Split Wrapper */}
         <div className="task-page-split">
           {/* Left Column: Task Details */}
-          <div className="task-page-card" data-priority={taskDraft.priority}>
+          <div
+            className="task-page-card"
+            data-priority={taskDraft.priority}
+            data-status-color={getStatusColorKey(
+              taskDraft.statusName || task?.statusName,
+            )}
+          >
             <div className="task-page-card-header">
               <div className="task-page-header-left">
                 <div className="task-page-icon-wrapper">

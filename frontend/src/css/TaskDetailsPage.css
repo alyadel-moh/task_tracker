@@ -117,15 +117,42 @@ body {
 
 /* Priority accent — quiet signal at the edge of the card, no need to read the badge */
 .task-page-card[data-priority="HIGH"] {
-  border-left-color: #ef4444;
+  border-right-color: #ef4444;
+  border-width: medium;
 }
 
 .task-page-card[data-priority="MEDIUM"] {
-  border-left-color: #f59e0b;
+  border-right-color: #f59e0b;
+  border-width: medium;
 }
 
 .task-page-card[data-priority="LOW"] {
-  border-left-color: #4b5563;
+  border-right-color: #4b5563;
+  border-width: medium;
+}
+
+/* 1. To Do (Slate / Grey) */
+.task-page-card[data-status-color="todo"] {
+  border-left-color: #94a3b8;
+  border-width: medium;
+}
+
+/* 2. In Progress (Amber / Yellow) */
+.task-page-card[data-status-color="in-progress"] {
+  border-left-color: #f59e0b;
+  border-width: medium;
+}
+
+/* 3. Done (Emerald / Green) */
+.task-page-card[data-status-color="done"] {
+  border-left-color: #10b981;
+  border-width: medium;
+}
+
+/* 4. Any Custom Status (Purple / Violet) */
+.task-page-card[data-status-color="custom"] {
+  border-left-color: #a855f7;
+  border-width: medium;
 }
 
 .task-page-card-header {
