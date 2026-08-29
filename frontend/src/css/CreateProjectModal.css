@@ -510,7 +510,7 @@
    6. Responsiveness
    ========================================================================== */
 
-@media (max-width: 380px) {
+@media (max-width: 640px) {
   .modal-card {
     padding: 1.25rem;
     border-radius: 14px;
@@ -518,5 +518,11 @@
 
   .field-row {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .modal-card {
+    overflow-y: auto !important;
+    max-height: calc(100vh - 3rem);
   }
 }

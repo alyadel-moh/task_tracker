@@ -25,7 +25,6 @@ import {
   UserCog,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import DroppableTab from "./DroppableTab";
 import TaskOverlay from "./TaskOverlay";
 import SortableColumn from "./SortableColumn";
 import AddColumnInline from "./AddColumnInline";
@@ -374,7 +373,7 @@ const DashboardBoard = ({
               onClick={() => setIsProjectMenuOpen((prev) => !prev)}
               aria-expanded={isProjectMenuOpen}
             >
-              <span>{activeProject?.name ?? "Select a project"}</span>
+              <span>Projects</span>
               <ChevronDown
                 size={16}
                 aria-hidden="true"
@@ -398,6 +397,30 @@ const DashboardBoard = ({
             </button>
           </div>
 
+          {activeProject && (
+            <div className="mobile-project-title-row">
+              <InlineEditField
+                label=""
+                value={activeProject.name}
+                onSave={(val) => handleSaveProjectField("name", val)}
+                readOnly={!isCurrentUserOwner}
+              />
+            </div>
+          )}
+
+          {activeProject && (
+            <div className="board-description-row mobile-project-description-row">
+              <InlineEditField
+                label=""
+                type="textarea"
+                optional
+                value={activeProject.description ?? ""}
+                placeholder="Add a project description..."
+                onSave={(val) => handleSaveProjectField("description", val)}
+                readOnly={!isCurrentUserOwner}
+              />
+            </div>
+          )}
           {activeProject && (createdDateFormatted || updatedDateFormatted) && (
             <div className="board-meta-pill mobile-project-meta-pill">
               {createdDateFormatted && (
@@ -617,20 +640,30 @@ const DashboardBoard = ({
             </div>
           </>
         )}
-
-        {/* Droppable Tabs */}
-        {columns.length > 0 && (
+        {/* Mobile Column Tab Bar — scrollable left/right */}
+        {activeProject && columns.length > 0 && (
           <div className="column-tabs">
-            {columns.map((col) => (
-              <DroppableTab
-                key={col.id}
-                status={col.id as any}
-                label={col.name}
-                count={getTaskCountForStatus(col.id)}
-                isActive={activeTab === col.id}
-                onSelect={() => setActiveTab(col.id)}
-              />
-            ))}
+            {columns.map((col) => {
+              const colorKey = getStatusColorKey(col.name);
+              const isActive = activeTab === col.id;
+              return (
+                <button
+                  key={col.id}
+                  type="button"
+                  className={`column-tab ${isActive ? "column-tab-active" : ""}`}
+                  onClick={() => setActiveTab(col.id)}
+                >
+                  <span className={`status-dot status-dot-${colorKey}`} />
+                  <span>{col.name}</span>
+                  <span className="column-count">
+                    {getTaskCountForStatus(col.id)}
+                  </span>
+                </button>
+              );
+            })}
+            <div className="mobile-add-column-inline">
+              <AddColumnInline />
+            </div>
           </div>
         )}
 

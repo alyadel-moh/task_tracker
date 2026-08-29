@@ -1283,10 +1283,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 /* ---------- Mobile Only Styles (max-width: 768px) ---------- */
 
 .board-header-mobile,
-.column-tabs,
 .fab {
   display: none;
 }
+
 /* ==========================================================================
    COMPLETE REPLACEMENT: MOBILE & RESPONSIVE MEDIA QUERIES
    ========================================================================== */
@@ -1297,7 +1297,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     visibility: visible;
   }
 }
-
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 210px;
@@ -1307,20 +1306,25 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     gap: 10px;
   }
 }
-
 @media (max-width: 768px) {
   /* 1. Hide Desktop Sidebar, Headers, and Duplicate Inner Column Headers */
   .sidebar,
   .board-header-desktop,
   .column-header,
   .column-header-desktop,
-  .add-column-wrapper,
   .board .column-header,
   .column .column-header {
     display: none !important;
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  /* NOTE: .add-column-wrapper is intentionally excluded from the blanket-hide
+     rule above — it's handled separately below since it also needs to render
+     inline inside .column-tabs on mobile. */
+  .add-column-wrapper {
+    display: none !important;
   }
 
   /* 2. Container & Safe Areas */
@@ -1357,16 +1361,22 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   .mobile-project-select {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     background: none;
     border: none;
-    color: #f2f1ed;
-    font-size: 18px;
-    font-weight: 700;
+    color: rgba(242, 241, 237, 0.55);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     padding: 0;
     cursor: pointer;
     text-align: left;
     max-width: 75%;
+  }
+
+  .mobile-project-select:hover {
+    color: #f2f1ed;
   }
 
   .mobile-project-select span {
@@ -1403,6 +1413,37 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     object-fit: cover;
     border-radius: 50%;
     display: block;
+  }
+
+  .mobile-project-title-row {
+    margin-top: 2px;
+  }
+
+  .mobile-project-title-row .inline-field-display,
+  .mobile-project-title-row .inline-field-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f2f1ed;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .mobile-project-description-row {
+    margin-top: 2px;
+  }
+
+  .mobile-project-description-row .inline-field-display,
+  .mobile-project-description-row .inline-field-value {
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: rgba(242, 241, 237, 0.6);
+    display: block;
+    width: 100%;
   }
 
   .mobile-project-meta-pill {
@@ -1475,29 +1516,34 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
     margin-top: 0 !important;
+    width: fit-content !important;
+    max-width: fit-content !important;
+    align-self: flex-start !important;
   }
 
-  /* 5. Mobile Horizontal Tab Bar (With Pill Borders, Dots & Count Badges) */
+  /* 5. Mobile Horizontal Tab Bar (pills + dots + count badges + inline add-column) */
   .column-tabs {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     flex-wrap: nowrap !important;
     gap: 8px !important;
-    padding: 10px 1.25rem 10px !important;
+    padding: 10px 1.25rem !important;
     width: 100% !important;
     overflow-x: auto !important;
+    overflow-y: hidden !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box !important;
   }
 
   .column-tabs::-webkit-scrollbar {
     display: none;
   }
 
-  /* Individual Tab Button Container */
   .column-tab,
   .droppable-tab {
     display: inline-flex !important;
@@ -1513,10 +1559,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     cursor: pointer !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
+    flex-grow: 0 !important;
     transition: all 0.15s ease !important;
   }
 
-  /* Active Selected Tab */
   .column-tab.column-tab-active {
     background: rgba(75, 74, 224, 0.18) !important;
     border-color: rgba(75, 74, 224, 0.45) !important;
@@ -1524,17 +1570,16 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     font-weight: 600 !important;
   }
 
-  /* Status Dot inside Mobile Tab */
   .column-tab .status-dot {
-    display: inline-block !important;
     width: 8px !important;
     height: 8px !important;
+    min-width: 8px !important;
+    min-height: 8px !important;
     border-radius: 50% !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
   }
 
-  /* Grey Rounded Pill Count Badge inside Mobile Tab */
   .column-tab .column-count {
     display: inline-flex !important;
     align-items: center !important;
@@ -1556,6 +1601,97 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background: rgba(75, 74, 224, 0.3) !important;
     border-color: rgba(75, 74, 224, 0.45) !important;
     color: #c7d2fe !important;
+  }
+
+  /* --- Inline "Add column" control, sitting inside the tab scroll row --- */
+
+  .mobile-add-column-inline {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Root of AddColumnInline: <div className="column add-column-wrapper">
+     Override desktop's column-card sizing so it behaves as an inline pill here */
+  .mobile-add-column-inline .add-column-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* Hidden alignment spacer — only needed for desktop column-header alignment */
+  .mobile-add-column-inline .add-column-header-spacer {
+    display: none !important;
+  }
+
+  /* .column-drop-zone.add-column-drop-zone — the actual pill/input container */
+  .mobile-add-column-inline .add-column-drop-zone {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important;
+    min-height: 0 !important;
+    height: 32px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* Collapsed trigger button */
+  .mobile-add-column-inline .add-column-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    height: 32px !important;
+    padding: 0 16px !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    background: rgba(16, 185, 129, 0.06) !important;
+    color: #10b981 !important;
+    border: 1px dashed rgba(16, 185, 129, 0.4) !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Expanded InlineEditField state — compact inline input, not full width */
+  .mobile-add-column-inline .add-column-drop-zone input {
+    width: 140px !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    background: #1e1e1b !important;
+    color: #f2f1ed !important;
+    border: 1px solid rgba(99, 102, 241, 0.5) !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+  }
+
+  .mobile-add-column-inline .add-column-drop-zone input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25) !important;
+  }
+
+  .mobile-add-column-inline .inline-field-action {
+    width: 26px !important;
+    height: 26px !important;
+    flex-shrink: 0 !important;
   }
 
   /* 6. Board & Active Column Rendering */
@@ -1694,17 +1830,52 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     cursor: pointer;
     z-index: 99;
   }
-  /* Prevent Overdue from expanding to 100% full width */
-  .filter-pill-overdue,
-  .filter-pill.filter-pill-overdue {
-    width: fit-content !important;
-    max-width: fit-content !important;
-    align-self: flex-start !important;
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
+
+  /* 8. Empty State */
+  .board-empty-state {
+    width: 100%;
+    min-height: 160px;
+    padding: 32px 20px;
+  }
+
+  .board-empty-state p {
+    font-size: 13px;
+  }
+
+  /* 9. Drag overlays — constrain to viewport width */
+  .task-card-overlay-wrapper {
+    max-width: calc(100vw - 32px);
+  }
+
+  .task-card-overlay {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .jira-transition-badge {
+    max-width: calc(100vw - 32px);
+    font-size: 11px !important;
+    padding: 5px 10px !important;
+  }
+
+  .dragging-column-overlay {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .dragging-column-overlay .column-header {
+    display: flex !important;
+    padding: 10px 14px !important;
+    height: auto !important;
   }
 }
 
+@media (min-width: 769px) {
+  .column-tabs {
+    display: none !important;
+  }
+}
 /* ==========================================================================
    TASK DETAILS PAGE - MOBILE RESPONSIVE FIXES
    ========================================================================== */
@@ -2466,37 +2637,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   transform: translateY(0);
 }
 
-.status-dot {
-  width: 8px !important;
-  height: 8px !important;
-  min-width: 8px !important;
-  min-height: 8px !important;
-  border-radius: 50% !important;
-  display: inline-block !important;
-  flex-shrink: 0;
-  margin-right: 6px;
-}
-
-.status-dot-todo {
-  background-color: #94a3b8 !important;
-  box-shadow: 0 0 8px rgba(148, 163, 184, 0.6) !important;
-}
-
-.status-dot-in-progress {
-  background-color: #f59e0b !important;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6) !important;
-}
-
-.status-dot-done {
-  background-color: #10b981 !important;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
-}
-
-.status-dot-custom {
-  background-color: #a855f7 !important;
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6) !important;
-}
-
 /* ==========================================================================
    2. STATUS PILLS (Active States)
    ========================================================================== */
@@ -2545,4 +2685,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   background: rgba(239, 68, 68, 0.2) !important;
   border-color: rgba(239, 68, 68, 0.5) !important;
   color: #fca5a5 !important;
+}
+@media (min-width: 769px) {
+  .column-tabs {
+    display: none !important;
+  }
 }

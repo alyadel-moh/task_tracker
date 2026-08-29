@@ -19,74 +19,56 @@ export class StatusService {
     if (!ismember) {
       throw { status: 403, message: "You are not a member of this project" };
     }
+
     const status = await StatusRepository.getByIdAndProjectId(id, projectId);
     if (!status) {
       throw { status: 404, message: "Status not found" };
     }
+
     const updatedFields: UpdateStatusBody = {};
     const updatedLabels: string[] = [];
-    const transaction = await sequelize.transaction();
-    try {
-      if (name !== undefined) {
-        const trimmedName = name.trim();
-        if (!trimmedName) {
-          await transaction.rollback();
-          throw { status: 400, message: "Status name cannot be empty" };
-        }
-        if (status.isDefault) {
-          await transaction.rollback();
-          throw { status: 400, message: "Cannot update default status" };
-        }
-        updatedFields.name = trimmedName;
-        updatedLabels.push("Name");
-        status.name = trimmedName;
-      } else if (
-        position !== undefined &&
-        position >= 0 &&
-        position !== status.position
-      ) {
-        const oldPosition = status.position;
-        const newPosition = position;
-        status.position = -1;
-        await status.save({ transaction });
-        if (newPosition < oldPosition) {
-          await Status.increment("position", {
-            by: 1,
-            where: {
-              projectId: status.projectId,
-              position: {
-                [Op.gte]: newPosition,
-                [Op.lt]: oldPosition,
-              },
-              id: { [Op.ne]: status.id },
-            },
-            transaction,
-          });
-        } else if (newPosition > oldPosition) {
-          await Status.decrement("position", {
-            by: 1,
-            where: {
-              projectId: status.projectId,
-              position: {
-                [Op.gt]: oldPosition,
-                [Op.lte]: newPosition,
-              },
-              id: { [Op.ne]: status.id },
-            },
-            transaction,
-          });
-        }
-        status.position = newPosition;
-        updatedFields.position = newPosition;
-        updatedLabels.push("Position");
+
+    if (name !== undefined) {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
+        throw { status: 400, message: "Status name cannot be empty" };
       }
-      await status.save({ transaction });
-      await transaction.commit();
-      return { updatedFields, updatedLabels };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
+      if (status.isDefault) {
+        throw { status: 400, message: "Cannot update default status" };
+      }
+      updatedFields.name = trimmedName;
+      updatedLabels.push("Name");
+      status.name = trimmedName;
+      await status.save();
+    } else if (
+      position !== undefined &&
+      position >= 0 &&
+      position !== status.position
+    ) {
+      const newPosition = position;
+      const allStatuses = await StatusRepository.getAll(projectId);
+      const reordered = allStatuses.filter((s) => s.id !== status.id);
+      reordered.splice(newPosition, 0, status);
+
+      for (let i = 0; i < reordered.length; i++) {
+        await Status.update(
+          { position: -(i + 1) },
+          { where: { id: reordered[i].id } },
+        );
+      }
+      for (let i = 0; i < reordered.length; i++) {
+        await Status.update(
+          { position: i },
+          { where: { id: reordered[i].id } },
+        );
+      }
+
+      status.position = newPosition;
+      updatedFields.position = newPosition;
+      updatedLabels.push("Position");
     }
+
+    return { updatedFields, updatedLabels };
   }
   static async create(projectId: string, userId: string, name: string) {
     if (!name || !name.trim()) {
