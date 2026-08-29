@@ -1,0 +1,3 @@
+html {
+  font-size: 87.5%; /* 14px instead of default 16px ≈ visually close to 80% zoom */
+}
