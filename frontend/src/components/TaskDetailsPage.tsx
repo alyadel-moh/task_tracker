@@ -865,7 +865,12 @@ const TaskDetailsPage = () => {
                   <h2 className="task-page-main-title">Time Entries</h2>
                 </div>
               </div>
-
+              {overrun && (
+                <span className="entries-overrun-badge">
+                  <AlertTriangle size={12} />
+                  Exceeds estimated time
+                </span>
+              )}
               <button
                 type="button"
                 className="add-entry-btn"
@@ -906,12 +911,6 @@ const TaskDetailsPage = () => {
                   <span>No estimate set</span>
                 )}
               </div>
-              {overrun && (
-                <span className="entries-overrun-badge">
-                  <AlertTriangle size={12} />
-                  Exceeds estimated time
-                </span>
-              )}
             </div>
 
             {showAddEntry && (
