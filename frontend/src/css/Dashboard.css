@@ -643,15 +643,30 @@
 }
 
 /* ---------- Board Grid & Columns ---------- */
+/* ---------- Desktop Board Layout (Default) ---------- */
 
 .board {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  padding: 1.25rem 1.5rem;
-  align-content: start;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1.25rem 1.5rem 16px;
+  box-sizing: border-box;
+}
+
+.column,
+.add-column-wrapper {
+  flex: 0 0 calc((100% - 48px) / 4);
+  width: calc((100% - 48px) / 4);
+  min-width: 260px;
+  max-width: 380px;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .column {
@@ -1272,21 +1287,62 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .fab {
   display: none;
 }
+/* ==========================================================================
+   COMPLETE REPLACEMENT: MOBILE & RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
 
-@media (max-width: 768px) {
-  /* Hide Desktop Layout Elements */
-  .sidebar,
-  .board-header-desktop,
-  .column-header-desktop {
-    display: none !important;
+@media (hover: none) {
+  .project-delete-inline-btn {
+    opacity: 0.55;
+    visibility: visible;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 210px;
   }
 
-  /* Mobile Header Container */
+  .board {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 1. Hide Desktop Sidebar, Headers, and Duplicate Inner Column Headers */
+  .sidebar,
+  .board-header-desktop,
+  .column-header,
+  .column-header-desktop,
+  .add-column-wrapper,
+  .board .column-header,
+  .column .column-header {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 2. Container & Safe Areas */
+  .dashboard {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .board-panel {
+    height: 100vh;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* 3. Mobile Header & Project Selector */
   .board-header-mobile {
     display: flex !important;
     flex-direction: column;
     gap: 8px;
-    padding: 1rem 1.25rem 0.85rem;
+    padding: 12px 1.25rem 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
@@ -1298,7 +1354,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     gap: 10px;
   }
 
-  /* Project Selector Trigger */
   .mobile-project-select {
     display: flex;
     align-items: center;
@@ -1311,20 +1366,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     padding: 0;
     cursor: pointer;
     text-align: left;
+    max-width: 75%;
   }
 
   .mobile-project-select span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 220px;
   }
 
   .chevron-open {
     transform: rotate(180deg);
   }
 
-  /* Mobile User Profile Avatar Button */
   .mobile-user-button {
     width: 36px;
     height: 36px;
@@ -1351,21 +1405,187 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     display: block;
   }
 
-  /* Side-by-Side Mobile Created / Updated Date Pill */
   .mobile-project-meta-pill {
     display: inline-flex !important;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 4px;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.72rem;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 0.68rem;
+    color: rgba(242, 241, 237, 0.5);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
     width: fit-content;
     max-width: 100%;
-    overflow-x: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  /* Mobile Menus & Overlay */
+  .mobile-project-meta-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 4. Filter Toolbar & Single-Line Horizontal Scroll */
+  .task-filter-bar {
+    padding: 10px 1.25rem;
+    gap: 10px;
+  }
+
+  .filter-group-options {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .filter-pills-group {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .filter-pills-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-label {
+    flex-shrink: 0 !important;
+  }
+
+  .filter-pill {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .filter-pill-overdue,
+  .filter-pill.filter-pill-overdue {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    margin-top: 0 !important;
+  }
+
+  /* 5. Mobile Horizontal Tab Bar (With Pill Borders, Dots & Count Badges) */
+  .column-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 10px 1.25rem 10px !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .column-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Individual Tab Button Container */
+  .column-tab,
+  .droppable-tab {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 6px 12px 6px 10px !important;
+    border-radius: 9999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: rgba(242, 241, 237, 0.7) !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    transition: all 0.15s ease !important;
+  }
+
+  /* Active Selected Tab */
+  .column-tab.column-tab-active {
+    background: rgba(75, 74, 224, 0.18) !important;
+    border-color: rgba(75, 74, 224, 0.45) !important;
+    color: #9fa3f5 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Status Dot inside Mobile Tab */
+  .column-tab .status-dot {
+    display: inline-block !important;
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Grey Rounded Pill Count Badge inside Mobile Tab */
+  .column-tab .column-count {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: rgba(242, 241, 237, 0.65) !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    margin-left: 2px !important;
+  }
+
+  .column-tab.column-tab-active .column-count {
+    background: rgba(75, 74, 224, 0.3) !important;
+    border-color: rgba(75, 74, 224, 0.45) !important;
+    color: #c7d2fe !important;
+  }
+
+  /* 6. Board & Active Column Rendering */
+  .board {
+    display: block !important;
+    width: 100% !important;
+    padding: 10px 1.25rem 5rem !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  .column {
+    display: none !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .column.column-active,
+  .column.column-mobile-active {
+    display: block !important;
+  }
+
+  .column-drop-zone {
+    width: 100%;
+    min-height: 180px;
+  }
+
+  /* 7. Menus & Floating Action Button */
   .mobile-project-overlay {
     position: fixed;
     inset: 0;
@@ -1426,7 +1646,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     padding-top: 10px;
   }
 
-  /* User Menu Popover */
   .mobile-user-menu {
     position: absolute;
     top: 64px;
@@ -1458,53 +1677,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     color: rgba(242, 241, 237, 0.45);
   }
 
-  /* Single Column View & Navigation Tabs */
-  .column-tabs {
-    display: flex !important;
-    gap: 6px;
-    padding: 10px 1.25rem 0;
-    overflow-x: auto;
-  }
-
-  .column-tab {
-    font-size: 13px;
-    font-weight: 500;
-    padding: 7px 12px;
-    border-radius: 999px;
-    border: none;
-    background: transparent;
-    color: rgba(242, 241, 237, 0.55);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .column-tab-active {
-    background: rgba(75, 74, 224, 0.2);
-    color: #9fa3f5;
-    font-weight: 600;
-  }
-
-  .board {
-    display: block;
-    padding: 10px 1.25rem 5rem;
-  }
-
-  .column {
-    display: none;
-  }
-
-  .column-active {
-    display: block;
-  }
-
-  /* Floating Action Button (FAB) */
   .fab {
     display: flex !important;
     align-items: center;
     justify-content: center;
     position: fixed;
     right: 20px;
-    bottom: 24px;
+    bottom: max(24px, env(safe-area-inset-bottom));
     width: 52px;
     height: 52px;
     border-radius: 50%;
@@ -1513,43 +1692,234 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     border: none;
     box-shadow: 0 6px 20px rgba(75, 74, 224, 0.4);
     cursor: pointer;
+    z-index: 99;
+  }
+  /* Prevent Overdue from expanding to 100% full width */
+  .filter-pill-overdue,
+  .filter-pill.filter-pill-overdue {
+    width: fit-content !important;
+    max-width: fit-content !important;
+    align-self: flex-start !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 }
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar {
-    width: 210px;
+
+/* ==========================================================================
+   TASK DETAILS PAGE - MOBILE RESPONSIVE FIXES
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* 1. Page Container & Safe Area */
+  .task-page,
+  .task-details-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    padding: max(16px, env(safe-area-inset-top)) 16px
+      max(32px, env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
 
-  .board {
-    gap: 10px;
+  /* 2. Top Navigation Bar (Back to board / View history) */
+  .task-top-nav,
+  .task-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .task-top-nav button,
+  .task-top-nav a {
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 3. Re-order Layout: Main Task Card First, Meta Cards (Created By / Assignees) Below */
+  .task-layout-grid,
+  .task-content-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  /* Main Task Details Card takes top priority */
+  .task-main-card {
+    order: 1 !important;
+    width: 100% !important;
+  }
+
+  /* Side Meta Cards (Assignees / Created By) go below the main content on mobile */
+  .task-sidebar-cards,
+  .task-meta-sidebar {
+    order: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  /* 4. Fix Task Header Title & Overflowing Date Pill */
+  .task-details-header-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .task-details-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  /* Date pill shrinks nicely without cutting off text */
+  .task-created-badge,
+  .task-meta-badge {
+    align-self: flex-start !important;
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 5. Inputs & Textareas Full Width */
+  .task-field-group,
+  .field {
+    width: 100% !important;
+  }
+
+  .task-field-group input,
+  .task-field-group textarea,
+  .task-field-group select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Two-column form fields stack vertically on compact screens */
+  .field-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  /* ==========================================================================
+   TIME ENTRIES & ENTRY ROWS FIX (MOBILE ONLY)
+   ========================================================================== */
+
+  /* 1. Reset entries container */
+  .entries-list {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    gap: 12px !important;
+  }
+
+  /* 2. Contain entry row inside the card */
+  .entry-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    position: static !important;
+    overflow: hidden !important;
+  }
+
+  /* 3. Wrap metadata (Date/Created timestamp) */
+  .entry-row .board-meta-pill,
+  .entry-row .entry-meta,
+  .entry-row div:has(> span) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 0.7rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* 4. Fix row fields layout (Duration & Date) */
+  .entry-row .field-row,
+  .entry-row .entry-content-grid,
+  .entry-row .entry-fields {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  .entry-row input,
+  .entry-row .entry-value-box,
+  .entry-row .inline-field-display {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 5. Fix optional note field */
+  .entry-row .entry-note,
+  .entry-row .task-description-row {
+    width: 100% !important;
+    margin-top: 8px !important;
+    word-break: break-word !important;
+  }
+  /* Force every row/grid inside entry-row to stack vertically */
+  .entry-row > div,
+  .entry-row [class*="grid"],
+  .entry-row [class*="row"],
+  .entry-row [class*="fields"] {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  /* Ensure child boxes and inputs take full width */
+  .entry-row > div > div,
+  .entry-row input,
+  .entry-row select,
+  .entry-row [class*="value"],
+  .entry-row [class*="box"],
+  .entry-row [class*="field"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 /* ---------- BOARD HORIZONTAL SCROLL & SIZING ---------- */
-
-/* ---------- 4 COLUMNS VISIBLE BEFORE SCROLLING ---------- */
-
-.board {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: flex-start !important;
-  gap: 16px;
-  width: 100%;
-  overflow-x: auto !important;
-  overflow-y: hidden;
-  padding-bottom: 16px;
-  box-sizing: border-box;
-}
-
-/* (100% - 3 gaps of 16px) / 4 = calc((100% - 48px) / 4) */
-.column,
-.add-column-wrapper {
-  flex: 0 0 calc((100% - 48px) / 4) !important;
-  width: calc((100% - 48px) / 4) !important;
-  min-width: calc((100% - 48px) / 4) !important;
-  max-width: calc((100% - 48px) / 4) !important;
-  box-sizing: border-box;
-}
 
 .add-column-wrapper {
   background: transparent !important;
@@ -2175,131 +2545,4 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   background: rgba(239, 68, 68, 0.2) !important;
   border-color: rgba(239, 68, 68, 0.5) !important;
   color: #fca5a5 !important;
-}
-/* 1. Safe Area & Mobile Header */
-.board-panel {
-  padding-top: max(16px, env(safe-area-inset-top));
-  padding-bottom: max(80px, env(safe-area-inset-bottom));
-  overflow-x: hidden;
-}
-
-@media (max-width: 768px) {
-  .mobile-header-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px 8px;
-    width: 100%;
-  }
-
-  .mobile-project-select {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    max-width: 75%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .board-meta-pill.mobile-project-meta-pill {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: 0.75rem;
-    margin: 4px 16px 12px;
-    padding: 6px 12px;
-    width: fit-content;
-    max-width: calc(100% - 32px);
-    word-break: break-word;
-  }
-
-  /* 2. Responsive Filters Bar */
-  .task-filter-bar {
-    padding: 0 16px 12px;
-  }
-
-  .filter-group-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .filter-pills-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hide scrollbar */
-    padding-bottom: 2px;
-  }
-
-  .filter-pills-group::-webkit-scrollbar {
-    display: none;
-  }
-
-  .filter-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
-    flex-shrink: 0;
-  }
-
-  /* 3. Mobile Tabs Scroll & View */
-  .column-tabs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 16px 12px;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .column-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* 4. Full Width Column on Mobile */
-  .board {
-    display: flex;
-    flex-direction: column;
-    padding: 0 16px;
-    width: 100%;
-    min-height: 250px;
-  }
-
-  /* Hide inactive columns on mobile, show only the active tab's column */
-  .column {
-    display: none;
-    width: 100% !important;
-    min-width: 100% !important;
-  }
-
-  .column.column-mobile-active {
-    display: flex;
-    flex-direction: column;
-    width: 100% !important;
-  }
-
-  .column-empty {
-    padding: 40px 16px;
-    text-align: center;
-    border: 1px dashed rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    width: 100%;
-  }
-
-  /* Floating Action Button Placement */
-  .fab {
-    bottom: max(24px, env(safe-area-inset-bottom));
-    right: 20px;
-    z-index: 99;
-  }
 }

@@ -107,8 +107,16 @@ const Dashboard = () => {
       return;
     }
 
-    // Only seed the store if it hasn't been loaded yet for this project
-    if (statuses?.length === 0) {
+    const fetchedIds = fetchedStatuses
+      .map((s) => s.id)
+      .sort()
+      .join(",");
+    const currentIds = (statuses ?? [])
+      .map((s) => s.id)
+      .sort()
+      .join(",");
+
+    if (fetchedIds !== currentIds) {
       setStatuses(
         [...fetchedStatuses]
           .map((status: Statuss) => ({
@@ -118,7 +126,7 @@ const Dashboard = () => {
           .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0)),
       );
     }
-  }, [fetchedStatuses, projectId, setStatuses, statuses?.length]);
+  }, [fetchedStatuses, projectId, setStatuses]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -166,7 +174,6 @@ const Dashboard = () => {
     const { active, over } = event;
     const activeId = String(active.id);
 
-    // 1. Column Drag Reordering
     if (activeId.startsWith("col-")) {
       setDraggingColumn(null);
       if (!over) return;
@@ -184,16 +191,12 @@ const Dashboard = () => {
         if (oldIndex !== -1 && newIndex !== -1 && statuses) {
           const previousStatuses = [...statuses];
 
-          // Move item in array and recalculate position for each item
           const reordered = arrayMove(statuses, oldIndex, newIndex).map(
             (col, index) => ({
               ...col,
               position: index,
             }),
           );
-
-          // Immediately update local store to reflect visual position
-          setStatuses(reordered);
 
           const draggedCol = statuses[oldIndex];
           const formattedName = formatStatusName(draggedCol?.name);
@@ -208,6 +211,7 @@ const Dashboard = () => {
             {
               onSuccess: () => {
                 toast.success(`Column "${formattedName}" moved successfully!`);
+                setStatuses(reordered);
               },
               onError: () => {
                 setStatuses(previousStatuses);

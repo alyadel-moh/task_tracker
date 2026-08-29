@@ -697,6 +697,72 @@ body {
     max-height: none;
   }
 }
+@media (max-width: 640px) {
+  .task-page {
+    padding: 1rem 1rem 1.5rem;
+  }
+
+  .task-page-card {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .task-page-main-title {
+    font-size: 20px;
+  }
+
+  .task-page-card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .task-page-meta-badge {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-size: 10px;
+    white-space: normal;
+    padding: 8px 12px;
+    border-radius: 10px; /* was 20px pill — full pill shape looks odd once it wraps to 2 lines */
+    width: fit-content;
+    max-width: 100%;
+  }
+  .entry-created-badge {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 9px;
+    white-space: normal;
+    padding: 8px 2px;
+    border-radius: 10px;
+  }
+
+  /* keep each date on one line — if both badges don't fit side by side, the second one drops to its own new line instead of breaking mid-text */
+  .task-page-meta-badge,
+  .entry-created-badge {
+    white-space: nowrap;
+  }
+
+  .task-page-grid {
+    grid-template-columns: 1fr;
+    row-gap: 16px;
+  }
+
+  .add-entry-row,
+  .entry-row-header {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .task-badge {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .entry-main {
+    padding-right: 32px;
+  }
+}
+
 /* ==========================================================================
    Compact Top People Section (Creator & Assignees)
    ========================================================================== */

@@ -488,19 +488,18 @@ const DashboardBoard = ({
                     </button>
                   );
                 })}
+                {/* Overdue Filter */}
+                <button
+                  type="button"
+                  className={`filter-pill filter-pill-overdue ${
+                    overdueOnly ? "active" : ""
+                  }`}
+                  onClick={() => setOverdueOnly(!overdueOnly)}
+                >
+                  <AlertTriangle size={13} />
+                  <span>Overdue</span>
+                </button>
               </div>
-
-              {/* Overdue Filter */}
-              <button
-                type="button"
-                className={`filter-pill filter-pill-overdue ${
-                  overdueOnly ? "active" : ""
-                }`}
-                onClick={() => setOverdueOnly(!overdueOnly)}
-              >
-                <AlertTriangle size={13} />
-                <span>Overdue</span>
-              </button>
 
               {/* Reset Filters */}
               {isFilteredActive && (
