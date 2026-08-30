@@ -196,31 +196,34 @@ export class TaskRepository {
     });
   }
   static async getTaskWithAccess(taskId: string, userId: string) {
-    const task = await Task.findOne({
-      where: { id: taskId },
+    const task = await Task.findByPk(taskId, {
       include: [
         {
           model: ProjectMembers,
           as: "projectMembers",
           required: false,
-          where: { userId, membershipStatus: "ACTIVE" },
+          where: {
+            userId,
+            membershipStatus: "ACTIVE",
+          },
           attributes: ["id"],
         },
         {
           model: TaskAssignee,
-          as: "assignees",
+          as: "taskAssignments",
           required: false,
           where: { userId },
           attributes: ["id"],
         },
       ],
+      attributes: ["id", "createdBy", "projectId", "estimatedTime"],
     });
 
     if (!task) return null;
 
     const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
     const isCreator = task.createdBy === userId;
-    const isAssignee = Boolean((task as any).assignees?.length > 0);
+    const isAssignee = Boolean((task as any).taskAssignments?.length > 0);
     const isTaskMember = isCreator || isAssignee;
 
     return {
@@ -293,7 +296,7 @@ export class TaskRepository {
         {
           model: User,
           as: "assignees",
-          attributes: ["id", "name", "email", "photoUrl"],
+          attributes: ["id", "name", "email"],
           through: { attributes: [] },
         },
         {
@@ -315,15 +318,17 @@ export class TaskRepository {
         "priority",
         "estimatedTime",
         "dueDate",
+        "createdBy",
+        "projectId",
       ],
     });
 
     if (!task) return null;
 
-    const assignees: User[] = (task as any).assignees || [];
+    const assignees = (task as any).assignees || [];
     const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
     const isCreator = task.createdBy === userId;
-    const isAssignee = assignees.some((assignee) => assignee.id === userId);
+    const isAssignee = assignees.some((a: any) => a.id === userId);
     const isTaskMember = isCreator || isAssignee;
 
     return {

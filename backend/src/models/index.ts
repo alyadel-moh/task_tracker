@@ -136,6 +136,11 @@ User.hasMany(TaskAssignee, {
   as: "userAssignments",
   onDelete: "CASCADE",
 });
+Task.hasMany(ProjectMembers, {
+  foreignKey: "projectId",
+  sourceKey: "projectId",
+  as: "projectMembers",
+});
 TaskAssignee.belongsTo(User, { foreignKey: "userId", as: "user" });
 export {
   User,
