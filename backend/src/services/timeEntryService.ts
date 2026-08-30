@@ -3,28 +3,52 @@ import { isValidISODate, isNumberInRange } from "../utils/validators";
 import { TaskRepository } from "../repositories/taskReposiotry";
 import { TimeEntryRepository } from "../repositories/timeEntryRepository";
 import { TaskHistoryRepository } from "../repositories/taskHistoryRepository";
-import sequelize from "../models";
+import sequelize, { Task, TimeEntry } from "../models";
 
 interface UpdateTimeEntryBody {
   durationMinutes?: number;
   entryDate?: Date | string;
   note?: string;
 }
-async function getTaskWithAccess(userId: string, taskId: string) {
-  const access = await TaskRepository.getTaskWithAccess(taskId, userId);
+function assertTaskAuthorization(access: any): asserts access is {
+  task: Task;
+  isProjectMember: boolean;
+  isTaskMember: boolean;
+  isProjectOwner: boolean;
+  isAuthorized: boolean;
+} {
+  if (!access || !access.task) {
+    throw { status: 404, message: "Task not found" };
+  }
 
-  if (!access?.isProjectMember) {
+  if (!access.isProjectMember) {
     throw { status: 403, message: "You are not a member of this project" };
   }
-  if (!access.isTaskMember) {
-    throw { status: 403, message: "You are not a member of this task" };
+  if (!access.isAuthorized) {
+    const reasons: string[] = [];
+    if (!access.isProjectOwner) {
+      reasons.push("not the project owner");
+    }
+    if (!access.isTaskMember) {
+      reasons.push("neither assigned to nor the creator of this task");
+    }
+    throw {
+      status: 403,
+      message: `Access denied: you are ${reasons.join(" and ")}.`,
+    };
   }
+}
+
+async function getTaskWithAccess(userId: string, taskId: string) {
+  const access = await TaskRepository.getTaskWithAccess(taskId, userId);
+  assertTaskAuthorization(access);
   return access.task;
 }
+
 export class TimeEntryService {
   static async create(
     durationMinutes: number,
-    entryDate: Date,
+    entryDate: Date | string,
     note: string,
     taskId: string,
     userId: string,
@@ -32,9 +56,12 @@ export class TimeEntryService {
     const task = await getTaskWithAccess(userId, taskId);
     if (
       !Number.isInteger(durationMinutes) ||
-      !isNumberInRange(durationMinutes)
+      !isNumberInRange(durationMinutes, 1, 1440)
     ) {
-      throw { status: 400, message: "Duration must be a positive integer" };
+      throw {
+        status: 400,
+        message: "Duration must be an integer between 1 and 1440 minutes",
+      };
     }
     if (!entryDate || !isValidISODate(entryDate)) {
       throw { status: 400, message: "Entry date is required" };
@@ -81,6 +108,9 @@ export class TimeEntryService {
 
   static async getAll(taskId: string, userId: string) {
     const access = await TaskRepository.getTaskWithAccess(taskId, userId);
+    if (!access || !access.task) {
+      throw { status: 404, message: "Task not found" };
+    }
     if (!access?.isProjectMember) {
       throw { status: 403, message: "You are not a member of this project" };
     }
@@ -91,14 +121,19 @@ export class TimeEntryService {
 
   static async update(
     durationMinutes: number,
-    entryDate: Date,
+    entryDate: Date | string,
     note: string,
     taskId: string,
     userId: string,
     id: string,
   ) {
-    const task = await getTaskWithAccess(userId, taskId);
-    const timeEntry = await TimeEntryRepository.getById(id, taskId);
+    const access = await TimeEntryRepository.getTimeEntrywithAccess(
+      id,
+      taskId,
+      userId,
+    );
+    assertTaskAuthorization(access);
+    const timeEntry = access?.timeEntry;
     if (!timeEntry) {
       throw { status: 404, message: "Time entry not found" };
     }
@@ -181,8 +216,8 @@ export class TimeEntryService {
         transaction,
       );
       const overrun =
-        changedLabels.includes("Duration") && task.estimatedTime
-          ? totalMinutes > task.estimatedTime
+        changedLabels.includes("Duration") && access.task.estimatedTime
+          ? totalMinutes > access.task.estimatedTime
           : false;
       await transaction.commit();
       return {
@@ -197,8 +232,13 @@ export class TimeEntryService {
     }
   }
   static async remove(taskId: string, userId: string, id: string) {
-    await getTaskWithAccess(userId, taskId);
-    const timeEntry = await TimeEntryRepository.getById(id, taskId);
+    const access = await TimeEntryRepository.getTimeEntrywithAccess(
+      id,
+      taskId,
+      userId,
+    );
+    assertTaskAuthorization(access);
+    const timeEntry = access?.timeEntry;
     if (!timeEntry) {
       throw { status: 404, message: "Time entry not found" };
     }

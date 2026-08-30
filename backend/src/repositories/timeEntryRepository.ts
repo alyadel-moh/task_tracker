@@ -1,5 +1,5 @@
 import { Transaction } from "sequelize";
-import { TimeEntry } from "../models";
+import { ProjectMembers, Task, TaskAssignee, TimeEntry } from "../models";
 
 export class TimeEntryRepository {
   static async sumloggedTime(
@@ -15,7 +15,7 @@ export class TimeEntryRepository {
 
   static async create(
     durationMinutes: number,
-    entryDate: Date,
+    entryDate: Date | string,
     note: string,
     taskId: string,
     transaction: Transaction,
@@ -53,5 +53,71 @@ export class TimeEntryRepository {
       where: { id, taskId },
       attributes: ["id", "durationMinutes", "entryDate", "note"],
     });
+  }
+  static async getTimeEntrywithAccess(
+    id: string,
+    taskId: string,
+    userId: string,
+  ) {
+    const timeEntry = await TimeEntry.findOne({
+      where: { id, taskId },
+      include: [
+        {
+          model: Task,
+          as: "task",
+          attributes: ["id", "createdBy", "estimatedTime"],
+          include: [
+            {
+              model: TaskAssignee,
+              as: "taskAssignments",
+              required: false,
+              where: { userId },
+              attributes: ["userId"],
+            },
+            {
+              model: ProjectMembers,
+              as: "projectMembers",
+              required: false,
+              where: { userId, membershipStatus: "ACTIVE" },
+              attributes: ["id", "role"],
+            },
+          ],
+        },
+      ],
+      attributes: ["id", "durationMinutes", "entryDate", "note"],
+    });
+
+    if (!timeEntry) return null;
+
+    const task = (timeEntry as any).task;
+    if (!task) {
+      return {
+        timeEntry,
+        task: null,
+        isProjectMember: false,
+        isTaskMember: false,
+        isProjectOwner: false,
+        isAuthorized: false,
+      };
+    }
+
+    const projectMembers: any[] = task.projectMembers || [];
+    const isProjectMember = projectMembers.length > 0;
+    const isCreator = task.createdBy === userId;
+    const isAssignee = Boolean(task.taskAssignments?.length > 0);
+    const isProjectOwner = projectMembers.some(
+      (pm: any) => pm.role === "OWNER",
+    );
+    const isTaskMember = isCreator || isAssignee;
+    const isAuthorized = isProjectOwner || isTaskMember;
+
+    return {
+      timeEntry,
+      task,
+      isProjectMember,
+      isTaskMember,
+      isProjectOwner,
+      isAuthorized,
+    };
   }
 }

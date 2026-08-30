@@ -1,5 +1,5 @@
 import sequelize, { User } from "../models";
-import { TaskPriority } from "../models/task";
+import { Task, TaskPriority } from "../models/task";
 import { TaskHistoryService } from "./taskHistoryService";
 import { isMember } from "../utils/projectGaurds";
 import { TaskRepository } from "../repositories/taskReposiotry";
@@ -18,24 +18,44 @@ interface UpdateTaskBody {
   assignees?: User[] | null;
 }
 const ALLOWED_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
-async function getTaskWithAccess(
+function assertTaskAuthorization(
+  access: any,
   projectId: string,
-  id: string,
-  userId: string,
-) {
-  const access = await TaskRepository.getTaskWithAccess(id, userId);
-
+): asserts access is {
+  task: Task;
+  isProjectMember: boolean;
+  isTaskMember: boolean;
+  isProjectOwner: boolean;
+  isAuthorized: boolean;
+} {
   if (!access || !access.task || access.task.projectId !== projectId) {
     throw { status: 404, message: "Task not found" };
   }
   if (!access.isProjectMember) {
     throw { status: 403, message: "You are not a member of this project" };
   }
-  if (!access.isTaskMember) {
-    throw { status: 403, message: "You are not a member of this task" };
+  if (!access.isAuthorized) {
+    const reasons: string[] = [];
+    if (!access.isProjectOwner) {
+      reasons.push("not the project owner");
+    }
+    if (!access.isTaskMember) {
+      reasons.push("neither assigned to nor the creator of this task");
+    }
+    throw {
+      status: 403,
+      message: `Access denied: you are ${reasons.join(" and ")}.`,
+    };
   }
-
-  return access.task;
+}
+async function getTaskWithAccess(
+  projectId: string,
+  id: string,
+  userId: string,
+) {
+  const access = await TaskRepository.getTaskWithAccess(id, userId);
+  assertTaskAuthorization(access, projectId);
+  return access?.task;
 }
 export class TaskService {
   static async create(
@@ -196,15 +216,7 @@ export class TaskService {
       projectId,
       userId,
     );
-    if (!access?.task) {
-      throw { status: 404, message: "Task not found" };
-    }
-    if (!access.isProjectMember) {
-      throw { status: 403, message: "You are not a member of this project" };
-    }
-    if (!access.isTaskMember) {
-      throw { status: 403, message: "You are not a member of this task" };
-    }
+    assertTaskAuthorization(access, projectId);
     const task = access.task;
     const currentTaskAssignees = (task as any).assignees || [];
     const currentAssigneeIds = currentTaskAssignees.map((a: any) => a.id);

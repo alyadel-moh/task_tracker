@@ -1,7 +1,9 @@
-export const isValidISODate = (dateString?: unknown): boolean => {
-  if (!dateString || typeof dateString !== "string") return false;
-  const date = new Date(dateString);
-  return !isNaN(date.getTime());
+export const isValidISODate = (date?: unknown): boolean => {
+  if (!date) return false;
+  if (date instanceof Date) return !isNaN(date.getTime());
+  if (typeof date !== "string") return false;
+  const parsed = new Date(date);
+  return !isNaN(parsed.getTime());
 };
 
 export const isNumberInRange = (

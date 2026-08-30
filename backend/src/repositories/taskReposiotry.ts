@@ -206,7 +206,7 @@ export class TaskRepository {
             userId,
             membershipStatus: "ACTIVE",
           },
-          attributes: ["id"],
+          attributes: ["id", "role"],
         },
         {
           model: TaskAssignee,
@@ -221,15 +221,21 @@ export class TaskRepository {
 
     if (!task) return null;
 
+    const projectMembers: any[] = (task as any).projectMembers || [];
     const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
     const isCreator = task.createdBy === userId;
     const isAssignee = Boolean((task as any).taskAssignments?.length > 0);
+    const isProjectOwner = projectMembers.some(
+      (pm: any) => pm.role === "OWNER",
+    );
     const isTaskMember = isCreator || isAssignee;
-
+    const isAuthorized = isProjectOwner || isTaskMember;
     return {
       task,
       isProjectMember,
       isTaskMember,
+      isProjectOwner,
+      isAuthorized,
     };
   }
   static async updateAssignees(
@@ -307,7 +313,7 @@ export class TaskRepository {
             userId,
             membershipStatus: "ACTIVE",
           },
-          attributes: ["id"],
+          attributes: ["id", "role"],
         },
       ],
       attributes: [
@@ -322,19 +328,23 @@ export class TaskRepository {
         "projectId",
       ],
     });
-
     if (!task) return null;
-
     const assignees = (task as any).assignees || [];
+    const projectMembers: any[] = (task as any).projectMembers || [];
     const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
     const isCreator = task.createdBy === userId;
+    const isProjectOwner = projectMembers.some(
+      (pm: any) => pm.role === "OWNER",
+    );
     const isAssignee = assignees.some((a: any) => a.id === userId);
     const isTaskMember = isCreator || isAssignee;
-
+    const isAuthorized = isProjectOwner || isTaskMember;
     return {
       task,
       isProjectMember,
       isTaskMember,
+      isProjectOwner,
+      isAuthorized,
     };
   }
 }
