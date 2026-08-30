@@ -213,7 +213,7 @@ export class TaskRepository {
           as: "taskAssignments",
           required: false,
           where: { userId },
-          attributes: ["id"],
+          attributes: ["userId"],
         },
       ],
       attributes: ["id", "createdBy", "projectId", "estimatedTime"],
