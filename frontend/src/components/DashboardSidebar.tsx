@@ -7,7 +7,6 @@ import {
   Mail,
   UserIcon,
   Users,
-  Shield,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -15,6 +14,7 @@ import PendingInvitations from "./PendingInvitationsComponent";
 import { useAppStore } from "../store/useAppStore";
 import useGetAssignedProjects from "../hooks/getProjectsHook";
 import useLogout from "../hooks/logoutHook";
+import { useEffect } from "react";
 
 const formatDate = (dateString?: string) => {
   if (!dateString) return null;
@@ -39,6 +39,8 @@ const DashboardSidebar = () => {
     setCreateProjectOpen,
     setUserProfileModalOpen,
     setProjectToDelete,
+    userRole,
+    setUserRole,
   } = useAppStore();
 
   const { data: projects = [] } = useGetAssignedProjects();
@@ -70,7 +72,13 @@ const DashboardSidebar = () => {
     return projId === activeProject?.id;
   });
   const activeProjectName = activeMembership?.project?.name;
-  const userRole = activeMembership?.role;
+  useEffect(() => {
+    if (activeMembership?.role) {
+      setUserRole(activeMembership.role);
+    } else {
+      setUserRole(undefined); // or a default role if your store supports null
+    }
+  }, [activeMembership?.role, setUserRole]);
   return (
     <>
       <aside className="sidebar">
@@ -180,13 +188,6 @@ const DashboardSidebar = () => {
               </div>
               {userRole && (
                 <div className="user-info-row">
-                  <span className="icon-box">
-                    <Shield
-                      size={14}
-                      className="user-info-icon"
-                      aria-hidden="true"
-                    />
-                  </span>
                   <span className="user-role-text">
                     {userRole?.toUpperCase()}
                   </span>

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Project, Task, User, Statuss } from "../components/types";
+import { Project, Task, User, Statuss, Role } from "../components/types";
 
 interface AppState {
   // Auth
@@ -18,6 +18,9 @@ interface AppState {
 
   statuses: Statuss[] | null;
   setStatuses: (statuses: Statuss[] | null) => void;
+
+  userRole: "OWNER" | "MEMBER" | undefined;
+  setUserRole: (role: Role | undefined) => void;
 
   // Menus
   isProjectMenuOpen: boolean;
@@ -55,6 +58,9 @@ export const useAppStore = create<AppState>()(
 
       activeProject: null,
       setActiveProject: (activeProject) => set({ activeProject }),
+
+      userRole: undefined,
+      setUserRole: (userRole) => set({ userRole }),
 
       tasks: null,
       setTasks: (tasks) => set({ tasks }),

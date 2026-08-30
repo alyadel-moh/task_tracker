@@ -39,7 +39,7 @@
   background: #1e1e1b;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  padding: 1.5rem;
+  padding: 1.75rem;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   animation: card-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -61,15 +61,15 @@
 
 .modal-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .modal-header-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: rgba(75, 74, 224, 0.16);
   color: #9fa3f5;
   display: flex;
@@ -85,11 +85,11 @@
 }
 
 .modal-close {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   border: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: rgba(242, 241, 237, 0.5);
   display: flex;
   align-items: center;
@@ -97,27 +97,32 @@
   cursor: pointer;
   transition:
     background 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
   color: #f2f1ed;
 }
 
+.modal-close:active {
+  transform: scale(0.92);
+}
+
 .modal-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 4px;
+  letter-spacing: -0.015em;
+  margin: 14px 0 5px;
   color: #f2f1ed;
 }
 
 .modal-subtitle {
-  font-size: 13px;
+  font-size: 13.5px;
   color: rgba(242, 241, 237, 0.5);
-  margin: 0 0 20px;
-  line-height: 1.4;
+  margin: 0 0 22px;
+  line-height: 1.5;
 }
 
 .modal-subtitle-compact {
@@ -138,7 +143,7 @@
 
 .field {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .field-row {
@@ -148,11 +153,11 @@
 }
 
 .field-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(242, 241, 237, 0.7);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(242, 241, 237, 0.75);
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .field-label-optional {
@@ -169,7 +174,7 @@
 
 .input-with-icon .input-icon {
   position: absolute;
-  left: 12px;
+  left: 13px;
   top: 50%;
   transform: translateY(-50%);
   color: rgba(242, 241, 237, 0.4);
@@ -180,27 +185,32 @@
 
 .input-with-icon input {
   width: 100%;
-  height: 40px;
-  padding: 10px 12px 10px 38px !important;
+  height: 44px;
+  padding: 10px 12px 10px 40px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9px;
-  font-size: 13.5px;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: inherit;
   box-sizing: border-box;
   background-color: #171715 !important;
   color: #f2f1ed !important;
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.input-with-icon input:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .due-date-input {
   width: 100%;
-  height: 40px;
+  height: 44px;
   padding: 10px 12px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9px;
-  font-size: 13.5px;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: inherit;
   box-sizing: border-box;
   background-color: #171715 !important;
@@ -237,8 +247,8 @@
 
 .textarea-wrapper .textarea-icon {
   position: absolute;
-  left: 12px;
-  top: 12px;
+  left: 13px;
+  top: 13px;
   color: rgba(242, 241, 237, 0.4);
   pointer-events: none;
   z-index: 2;
@@ -247,20 +257,25 @@
 
 .textarea-wrapper textarea {
   width: 100%;
-  padding: 10px 12px 10px 38px !important;
+  padding: 12px 12px 12px 40px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9px;
-  font-size: 13.5px;
+  border-radius: 10px;
+  font-size: 14px;
   font-family: inherit;
   box-sizing: border-box;
   background-color: #171715 !important;
   color: #f2f1ed !important;
   resize: vertical;
-  min-height: 76px;
-  line-height: 1.5;
+  min-height: 84px;
+  line-height: 1.55;
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.textarea-wrapper textarea:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .textarea-wrapper:focus-within .textarea-icon {
@@ -297,22 +312,23 @@
 
 .modal-actions,
 .modal-actions-full {
-  margin-top: 6px;
+  margin-top: 8px;
   width: 100%;
 }
 
 .modal-button {
   width: 100%;
-  height: 40px;
+  height: 44px;
   padding: 10px 16px;
-  border-radius: 9px;
+  border-radius: 10px;
   border: none;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition:
     background 0.15s ease,
-    transform 0.1s ease;
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -327,14 +343,17 @@
 .modal-button-primary {
   background: #6366f1;
   color: #ffffff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
 }
 
-.modal-button-primary:hover {
+.modal-button-primary:hover:not(:disabled) {
   background: #4f46e5;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
 }
 
-.modal-button-primary:active {
+.modal-button-primary:active:not(:disabled) {
   transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .spin {
@@ -363,8 +382,7 @@
   .field-row {
     grid-template-columns: 1fr;
   }
-}
-@media (max-width: 640px) {
+
   .modal-card {
     overflow-y: auto !important;
     max-height: calc(100vh - 3rem);

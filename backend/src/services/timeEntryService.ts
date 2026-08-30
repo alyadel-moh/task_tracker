@@ -10,15 +10,16 @@ interface UpdateTimeEntryBody {
   entryDate?: Date | string;
   note?: string;
 }
-async function isOwner(userId: string, taskId: string) {
-  const task = await TaskRepository.findOwnedTask(taskId, userId);
-  if (!task) {
-    throw {
-      status: 404,
-      message: "Task not found or you do not have permission to access it",
-    };
+async function getTaskWithAccess(userId: string, taskId: string) {
+  const access = await TaskRepository.getTaskWithAccess(taskId, userId);
+
+  if (!access?.isProjectMember) {
+    throw { status: 403, message: "You are not a member of this project" };
   }
-  return task;
+  if (!access.isTaskMember) {
+    throw { status: 403, message: "You are not a member of this task" };
+  }
+  return access.task;
 }
 export class TimeEntryService {
   static async create(
@@ -28,6 +29,7 @@ export class TimeEntryService {
     taskId: string,
     userId: string,
   ) {
+    const task = await getTaskWithAccess(userId, taskId);
     if (
       !Number.isInteger(durationMinutes) ||
       !isNumberInRange(durationMinutes)
@@ -37,7 +39,6 @@ export class TimeEntryService {
     if (!entryDate || !isValidISODate(entryDate)) {
       throw { status: 400, message: "Entry date is required" };
     }
-    const task = await isOwner(userId, taskId);
     const transaction = await sequelize.transaction();
     try {
       const timeEntry = await TimeEntryRepository.create(
@@ -79,7 +80,10 @@ export class TimeEntryService {
   }
 
   static async getAll(taskId: string, userId: string) {
-    await isOwner(userId, taskId);
+    const access = await TaskRepository.getTaskWithAccess(taskId, userId);
+    if (!access?.isProjectMember) {
+      throw { status: 403, message: "You are not a member of this project" };
+    }
     const timeEntries = await TimeEntryRepository.getAll(taskId);
     const totalMinutes = await TimeEntryRepository.sumloggedTime(taskId);
     return { timeEntries, totalMinutes };
@@ -93,7 +97,7 @@ export class TimeEntryService {
     userId: string,
     id: string,
   ) {
-    const task = await isOwner(userId, taskId);
+    const task = await getTaskWithAccess(userId, taskId);
     const timeEntry = await TimeEntryRepository.getById(id, taskId);
     if (!timeEntry) {
       throw { status: 404, message: "Time entry not found" };
@@ -193,7 +197,7 @@ export class TimeEntryService {
     }
   }
   static async remove(taskId: string, userId: string, id: string) {
-    await isOwner(userId, taskId);
+    await getTaskWithAccess(userId, taskId);
     const timeEntry = await TimeEntryRepository.getById(id, taskId);
     if (!timeEntry) {
       throw { status: 404, message: "Time entry not found" };

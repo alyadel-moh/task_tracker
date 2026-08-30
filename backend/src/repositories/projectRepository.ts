@@ -17,7 +17,7 @@ export class ProjectRepository {
             userId,
             membershipStatus: "ACTIVE",
           },
-          required: false, // LEFT JOIN so we can distinguish 404 vs 403
+          required: false,
         },
       ],
     });

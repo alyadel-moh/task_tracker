@@ -1,13 +1,12 @@
 import sequelize, { User } from "../models";
 import { TaskPriority } from "../models/task";
 import { TaskHistoryService } from "./taskHistoryService";
-import { isMember, isOwner } from "../utils/projectGaurds";
+import { isMember } from "../utils/projectGaurds";
 import { TaskRepository } from "../repositories/taskReposiotry";
 import { isNumberInRange, isValidISODate } from "../utils/validators";
 import { StatusRepository } from "../repositories/statusRepository";
 import { TaskHistoryRepository } from "../repositories/taskHistoryRepository";
 import { TimeEntryRepository } from "../repositories/timeEntryRepository";
-import { isAssignee, isCreator } from "../utils/taskGaurds";
 interface UpdateTaskBody {
   name?: string;
   description?: string;
@@ -19,6 +18,25 @@ interface UpdateTaskBody {
   assignees?: User[] | null;
 }
 const ALLOWED_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
+async function getTaskWithAccess(
+  projectId: string,
+  id: string,
+  userId: string,
+) {
+  const access = await TaskRepository.getTaskWithAccess(id, userId);
+
+  if (!access || !access.task || access.task.projectId !== projectId) {
+    throw { status: 404, message: "Task not found" };
+  }
+  if (!access.isProjectMember) {
+    throw { status: 403, message: "You are not a member of this project" };
+  }
+  if (!access.isTaskMember) {
+    throw { status: 403, message: "You are not a member of this task" };
+  }
+
+  return access.task;
+}
 export class TaskService {
   static async create(
     projectId: string,
@@ -35,6 +53,7 @@ export class TaskService {
     if (!ismember) {
       throw { status: 403, message: "You are not a member of this project" };
     }
+
     if (!name || !name.trim()) {
       throw { status: 400, message: "Task name is required" };
     }
@@ -172,19 +191,21 @@ export class TaskService {
     userId: string,
     assigneeIds: string[] | null,
   ) {
-    const ismember = await isMember(userId, projectId);
-    if (!ismember) {
-      throw { status: 403, message: "You are not a member of this project" };
-    }
-    const isassignee = await isAssignee(id, userId, projectId);
-    const iscreator = await isCreator(id, userId, projectId);
-    if (!isassignee && !iscreator) {
-      throw { status: 403, message: "You are not a member of this task" };
-    }
-    const task = await TaskRepository.getTaskWithAssignees(id, projectId);
-    if (!task) {
+    const access = await TaskRepository.getTaskWithAssigneesAndAccess(
+      id,
+      projectId,
+      userId,
+    );
+    if (!access?.task) {
       throw { status: 404, message: "Task not found" };
     }
+    if (!access.isProjectMember) {
+      throw { status: 403, message: "You are not a member of this project" };
+    }
+    if (!access.isTaskMember) {
+      throw { status: 403, message: "You are not a member of this task" };
+    }
+    const task = access.task;
     const currentTaskAssignees = (task as any).assignees || [];
     const currentAssigneeIds = currentTaskAssignees.map((a: any) => a.id);
     const currentAssigneeNames: string[] = currentTaskAssignees.map(
@@ -388,14 +409,7 @@ export class TaskService {
     }
   }
   static async remove(userId: string, projectId: string, id: string) {
-    const projectOwned = await isOwner(userId, projectId);
-    if (!projectOwned) {
-      throw { status: 403, message: "You are not the owner of this project" };
-    }
-    const task = await TaskRepository.getById(id, projectId);
-    if (!task) {
-      throw { status: 404, message: "Task not found" };
-    }
+    const task = await getTaskWithAccess(projectId, id, userId);
     const transaction = await sequelize.transaction();
     try {
       await task.destroy({ transaction });

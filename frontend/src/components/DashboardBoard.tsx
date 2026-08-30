@@ -105,6 +105,7 @@ const DashboardBoard = ({
     tasks,
     setTasks,
     statuses,
+    userRole,
   } = useAppStore();
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -120,7 +121,7 @@ const DashboardBoard = ({
   );
 
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
-  const { data: rawProjects = [] } = useGetAssignedProjects();
+  const { data: projects = [] } = useGetAssignedProjects();
   const { data: projectMembersData = [] } = useGetProjectMembers(
     activeProject?.id ?? "",
   );
@@ -141,21 +142,6 @@ const DashboardBoard = ({
       setTasks(fetchedTasks);
     }
   }, [fetchedTasks, setTasks]);
-
-  const projects = useMemo(
-    () => (Array.isArray(rawProjects) ? rawProjects : []),
-    [rawProjects],
-  );
-
-  const isCurrentUserOwner = useMemo(() => {
-    if (!activeProject?.id) return false;
-    const projectList = Array.isArray(rawProjects) ? rawProjects : [];
-    const match = projectList.find((p: any) => {
-      const projId = p?.project?.id || p?.id;
-      return projId === activeProject.id;
-    });
-    return match?.role === "OWNER";
-  }, [rawProjects, activeProject?.id]);
 
   const columns: Statuss[] = useMemo(() => {
     if (!Array.isArray(statuses) || statuses.length === 0) return [];
@@ -306,7 +292,7 @@ const DashboardBoard = ({
                     label=""
                     value={activeProject.name}
                     onSave={(val) => handleSaveProjectField("name", val)}
-                    readOnly={!isCurrentUserOwner}
+                    readOnly={userRole === "MEMBER"}
                   />
                   <span className="task-count-badge">
                     {tasks?.length} {tasks?.length === 1 ? "task" : "tasks"}
@@ -322,7 +308,7 @@ const DashboardBoard = ({
                     value={activeProject.description ?? ""}
                     placeholder="Add a project description..."
                     onSave={(val) => handleSaveProjectField("description", val)}
-                    readOnly={!isCurrentUserOwner}
+                    readOnly={userRole === "MEMBER"}
                   />
                 </div>
               </>
@@ -403,7 +389,7 @@ const DashboardBoard = ({
                 label=""
                 value={activeProject.name}
                 onSave={(val) => handleSaveProjectField("name", val)}
-                readOnly={!isCurrentUserOwner}
+                readOnly={userRole === "MEMBER"}
               />
             </div>
           )}
@@ -417,7 +403,7 @@ const DashboardBoard = ({
                 value={activeProject.description ?? ""}
                 placeholder="Add a project description..."
                 onSave={(val) => handleSaveProjectField("description", val)}
-                readOnly={!isCurrentUserOwner}
+                readOnly={userRole === "MEMBER"}
               />
             </div>
           )}

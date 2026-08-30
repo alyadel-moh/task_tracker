@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { type Priority, type Task } from "./types";
 import useDeleteTask from "../hooks/deleteTaskHook";
+import { useAppStore } from "../store/useAppStore";
 
 const priorityLabel: Record<Priority, string> = {
   HIGH: "High",
@@ -26,6 +27,7 @@ interface TaskCardProps {
 
 const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
+  const { userRole } = useAppStore();
   const deleteTaskMutation = useDeleteTask(task.projectId, task.id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
@@ -110,20 +112,22 @@ const TaskCard = ({ task }: TaskCardProps) => {
           <p className="task-title">{task.name}</p>
 
           <div className="task-card-icons">
-            <button
-              type="button"
-              className="task-delete-button"
-              data-tooltip={`Delete ${task.name}`}
-              data-tooltip-pos="left"
-              aria-label={`Delete ${task.name}`}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsConfirmingDelete(true);
-              }}
-            >
-              <Trash2 size={13} aria-hidden="true" />
-            </button>
+            {userRole === "OWNER" && (
+              <button
+                type="button"
+                className="task-delete-button"
+                data-tooltip={`Delete ${task.name}`}
+                data-tooltip-pos="left"
+                aria-label={`Delete ${task.name}`}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsConfirmingDelete(true);
+                }}
+              >
+                <Trash2 size={13} aria-hidden="true" />
+              </button>
+            )}
 
             {dueLabel && (
               <span className={`task-due-label task-due-label-${dueUrgency}`}>

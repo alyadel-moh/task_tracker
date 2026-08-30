@@ -701,6 +701,7 @@ const TaskDetailsPage = () => {
                   label=""
                   value={taskDraft.name}
                   onSave={(v) => updateTaskDraft("name", v)}
+                  readOnly={!canManageAssignees}
                 />
               </div>
 
@@ -718,6 +719,7 @@ const TaskDetailsPage = () => {
                   value={taskDraft.description}
                   placeholder="Add a detailed description..."
                   onSave={(v) => updateTaskDraft("description", v)}
+                  readOnly={!canManageAssignees}
                 />
               </div>
 
@@ -746,6 +748,7 @@ const TaskDetailsPage = () => {
                       </span>
                     }
                     onSave={handleStatusChange}
+                    readOnly={!canManageAssignees}
                   />
                 </div>
 
@@ -773,6 +776,7 @@ const TaskDetailsPage = () => {
                       </span>
                     }
                     onSave={(v) => updateTaskDraft("priority", v)}
+                    readOnly={!canManageAssignees}
                   />
                 </div>
 
@@ -808,6 +812,7 @@ const TaskDetailsPage = () => {
                         : undefined
                     }
                     onSave={(v) => updateTaskDraft("dueDate", v)}
+                    readOnly={!canManageAssignees}
                   />
                 </div>
 
@@ -830,6 +835,7 @@ const TaskDetailsPage = () => {
                     }
                     placeholder="e.g. 60"
                     onSave={(v) => updateTaskDraft("estimatedTime", v)}
+                    readOnly={!canManageAssignees}
                   />
                 </div>
               </div>
@@ -871,14 +877,16 @@ const TaskDetailsPage = () => {
                   Exceeds estimated time
                 </span>
               )}
-              <button
-                type="button"
-                className="add-entry-btn"
-                onClick={() => setShowAddEntry(!showAddEntry)}
-              >
-                <Plus size={16} />
-                <span>Log Time</span>
-              </button>
+              {canManageAssignees && (
+                <button
+                  type="button"
+                  className="add-entry-btn"
+                  onClick={() => setShowAddEntry(!showAddEntry)}
+                >
+                  <Plus size={16} />
+                  <span>Log Time</span>
+                </button>
+              )}
             </div>
 
             <div className="time-budget-bar-wrapper">
@@ -1030,6 +1038,7 @@ const TaskDetailsPage = () => {
                                   v,
                                 )
                               }
+                              readOnly={!canManageAssignees}
                             />
                           </div>
 
@@ -1046,6 +1055,7 @@ const TaskDetailsPage = () => {
                               onSave={(v) =>
                                 handleEntryDraftChange(entry.id, "entryDate", v)
                               }
+                              readOnly={!canManageAssignees}
                             />
                           </div>
                         </div>
@@ -1068,6 +1078,7 @@ const TaskDetailsPage = () => {
                             onSave={(v) =>
                               handleEntryDraftChange(entry.id, "note", v)
                             }
+                            readOnly={!canManageAssignees}
                           />
                         </div>
 
@@ -1089,16 +1100,17 @@ const TaskDetailsPage = () => {
                           </div>
                         )}
                       </div>
-
-                      <button
-                        type="button"
-                        className="entry-delete-btn"
-                        data-tooltip="delete time entry"
-                        data-tooltip-pos="left"
-                        onClick={() => handleDeleteEntry(entry.id)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canManageAssignees && (
+                        <button
+                          type="button"
+                          className="entry-delete-btn"
+                          data-tooltip="delete time entry"
+                          data-tooltip-pos="left"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   );
                 })

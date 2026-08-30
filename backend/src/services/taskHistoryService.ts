@@ -241,8 +241,11 @@ export class TaskHistoryService {
   }
 
   static async getTaskHistory(taskId: string, userId: string) {
-    const taskOwned = await TaskRepository.findOwnedTask(taskId, userId);
-    if (!taskOwned) {
+    const isProjectMember = await TaskRepository.getTaskWithAccess(
+      taskId,
+      userId,
+    );
+    if (!isProjectMember) {
       throw {
         status: 404,
         message: "Task not found or you do not have permission to access it",

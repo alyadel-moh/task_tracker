@@ -195,21 +195,39 @@ export class TaskRepository {
       attributes: ["id"],
     });
   }
-  static async findOwnedTask(taskId: string, userId: string) {
-    const task = await Task.findByPk(taskId);
-    if (!task) return null;
-    console.log(task);
-    const membership = await ProjectMembers.findOne({
-      where: {
-        projectId: task.projectId,
-        userId,
-        membershipStatus: "ACTIVE",
-      },
-      attributes: ["id"],
+  static async getTaskWithAccess(taskId: string, userId: string) {
+    const task = await Task.findOne({
+      where: { id: taskId },
+      include: [
+        {
+          model: ProjectMembers,
+          as: "projectMembers",
+          required: false,
+          where: { userId, membershipStatus: "ACTIVE" },
+          attributes: ["id"],
+        },
+        {
+          model: TaskAssignee,
+          as: "assignees",
+          required: false,
+          where: { userId },
+          attributes: ["id"],
+        },
+      ],
     });
-    console.log(membership);
 
-    return membership ? task : null;
+    if (!task) return null;
+
+    const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
+    const isCreator = task.createdBy === userId;
+    const isAssignee = Boolean((task as any).assignees?.length > 0);
+    const isTaskMember = isCreator || isAssignee;
+
+    return {
+      task,
+      isProjectMember,
+      isTaskMember,
+    };
   }
   static async updateAssignees(
     taskId: string,
@@ -264,8 +282,12 @@ export class TaskRepository {
 
     return updatedAssignees.map((record: any) => record.user).filter(Boolean);
   }
-  static async getTaskWithAssignees(taskId: string, projectId: string) {
-    return await Task.findOne({
+  static async getTaskWithAssigneesAndAccess(
+    taskId: string,
+    projectId: string,
+    userId: string,
+  ) {
+    const task = await Task.findOne({
       where: { id: taskId, projectId },
       include: [
         {
@@ -273,6 +295,16 @@ export class TaskRepository {
           as: "assignees",
           attributes: ["id", "name", "email", "photoUrl"],
           through: { attributes: [] },
+        },
+        {
+          model: ProjectMembers,
+          as: "projectMembers",
+          required: false,
+          where: {
+            userId,
+            membershipStatus: "ACTIVE",
+          },
+          attributes: ["id"],
         },
       ],
       attributes: [
@@ -285,5 +317,19 @@ export class TaskRepository {
         "dueDate",
       ],
     });
+
+    if (!task) return null;
+
+    const assignees: User[] = (task as any).assignees || [];
+    const isProjectMember = Boolean((task as any).projectMembers?.length > 0);
+    const isCreator = task.createdBy === userId;
+    const isAssignee = assignees.some((assignee) => assignee.id === userId);
+    const isTaskMember = isCreator || isAssignee;
+
+    return {
+      task,
+      isProjectMember,
+      isTaskMember,
+    };
   }
 }

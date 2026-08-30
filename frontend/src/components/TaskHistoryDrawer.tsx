@@ -171,7 +171,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
   const oldVal = formatValue(entry.oldValue);
   const newVal = formatValue(entry.newValue);
 
-  // 1. Assignees Changed
   if (
     entry.eventType === "ASSIGNEES_CHANGED" ||
     entry.fieldChanged === "assignees"
@@ -192,7 +191,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     const added = newList.filter((name) => !oldList.includes(name));
     const removed = oldList.filter((name) => !newList.includes(name));
 
-    // Case A: Initial Assignment
     if (oldList.length === 0 && newList.length > 0) {
       return (
         <div className="history-desc-container">
@@ -206,7 +204,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
       );
     }
 
-    // Case B: Cleared All Assignees
     if (oldList.length > 0 && newList.length === 0) {
       return (
         <div className="history-desc-container">
@@ -221,7 +218,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
       );
     }
 
-    // Case C: Granular Added / Removed Diff
     return (
       <div className="history-desc-container">
         <span className="history-line">
@@ -246,7 +242,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 2. Task Created
   if (entry.eventType === "TASK_CREATED") {
     return (
       <span className="history-line">
@@ -256,7 +251,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 3. Time Entry Created
   if (entry.eventType === "TIME_ENTRY_CREATED") {
     return (
       <span className="history-line">
@@ -266,7 +260,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 4. Time Entry Updated
   if (
     entry.eventType === "TIME_ENTRY_UPDATED" ||
     entry.eventType === "TIME_ENTRY_ENTRY_UPDATED"
@@ -298,7 +291,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 5. Time Entry Deleted
   if (entry.eventType === "TIME_ENTRY_DELETED") {
     return (
       <span className="history-line">
@@ -308,7 +300,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 6. Status Changed
   if (entry.eventType === "STATUS_CHANGED" || fieldName === "Status") {
     return (
       <span className="history-line">
@@ -320,7 +311,6 @@ const formatEventDescription = (entry: HistoryEntry) => {
     );
   }
 
-  // 7. Task Field Updated
   if (fieldName) {
     if (oldVal && newVal) {
       return (
@@ -356,12 +346,10 @@ const formatEventDescription = (entry: HistoryEntry) => {
   );
 };
 
-const formatDate = (dateString: string) => {
+const formatTime = (dateString: string) => {
   try {
     const date = new Date(dateString);
     return date.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -370,12 +358,54 @@ const formatDate = (dateString: string) => {
   }
 };
 
+const getGroupLabel = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isSameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+
+    if (isSameDay(date, today)) return "Today";
+    if (isSameDay(date, yesterday)) return "Yesterday";
+
+    return date.toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric",
+      year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+const groupHistoryByDate = (entries: HistoryEntry[]) => {
+  const groups: { label: string; entries: HistoryEntry[] }[] = [];
+
+  entries.forEach((entry) => {
+    const label = getGroupLabel(entry.createdAt);
+    const existingGroup = groups.find((g) => g.label === label);
+    if (existingGroup) {
+      existingGroup.entries.push(entry);
+    } else {
+      groups.push({ label, entries: [entry] });
+    }
+  });
+
+  return groups;
+};
+
 const TaskHistoryDrawer = ({
   isOpen,
   onClose,
   taskId,
 }: TaskHistoryDrawerProps) => {
   const { data: taskHistory, isLoading } = useGetTaskHistory(taskId);
+  const groupedHistory = taskHistory ? groupHistoryByDate(taskHistory) : [];
 
   return (
     <>
@@ -398,6 +428,9 @@ const TaskHistoryDrawer = ({
             <h2 id="history-drawer-title" className="history-drawer-title">
               Task History
             </h2>
+            {taskHistory && taskHistory.length > 0 && (
+              <span className="history-drawer-count">{taskHistory.length}</span>
+            )}
           </div>
           <button
             type="button"
@@ -424,23 +457,33 @@ const TaskHistoryDrawer = ({
             </div>
           )}
 
-          {!isLoading && taskHistory && taskHistory.length > 0 && (
-            <ul className="history-list">
-              {taskHistory.map((entry: HistoryEntry) => (
-                <li key={entry.id} className="history-item">
-                  {getEventIcon(entry.eventType, entry.fieldChanged)}
-                  <div className="history-item-content">
-                    <div className="history-item-text">
-                      {formatEventDescription(entry)}
-                    </div>
-                    <span className="history-item-time">
-                      {formatDate(entry.createdAt)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          {!isLoading &&
+            groupedHistory.map((group) => (
+              <div className="history-group" key={group.label}>
+                <div className="history-group-label">
+                  <span>{group.label}</span>
+                </div>
+
+                <ul className="history-list">
+                  {group.entries.map((entry: HistoryEntry) => (
+                    <li key={entry.id} className="history-item">
+                      <div className="history-item-icon-col">
+                        {getEventIcon(entry.eventType, entry.fieldChanged)}
+                        <span className="history-item-connector" />
+                      </div>
+                      <div className="history-item-content">
+                        <div className="history-item-text">
+                          {formatEventDescription(entry)}
+                        </div>
+                        <span className="history-item-time">
+                          {formatTime(entry.createdAt)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
         </div>
       </div>
     </>

@@ -99,7 +99,7 @@ body {
 }
 
 /* ==========================================================================
-   Cards
+   Cards & Priority/Status Edge Accents
    ========================================================================== */
 
 .task-page-card {
@@ -115,7 +115,7 @@ body {
   transition: border-color 0.2s ease;
 }
 
-/* Priority accent — quiet signal at the edge of the card, no need to read the badge */
+/* Priority accents */
 .task-page-card[data-priority="HIGH"] {
   border-right-color: #ef4444;
   border-width: medium;
@@ -127,29 +127,26 @@ body {
 }
 
 .task-page-card[data-priority="LOW"] {
-  border-right-color: #4b5563;
+  border-right-color: #94a3b8 !important;
   border-width: medium;
 }
 
-/* 1. To Do (Slate / Grey) */
+/* Status left edge accents */
 .task-page-card[data-status-color="todo"] {
   border-left-color: #94a3b8;
   border-width: medium;
 }
 
-/* 2. In Progress (Amber / Yellow) */
 .task-page-card[data-status-color="in-progress"] {
   border-left-color: #f59e0b;
   border-width: medium;
 }
 
-/* 3. Done (Emerald / Green) */
 .task-page-card[data-status-color="done"] {
   border-left-color: #10b981;
   border-width: medium;
 }
 
-/* 4. Any Custom Status (Purple / Violet) */
 .task-page-card[data-status-color="custom"] {
   border-left-color: #a855f7;
   border-width: medium;
@@ -220,7 +217,7 @@ body {
 }
 
 /* ==========================================================================
-   Time Budget Bar — signature element
+   Time Budget Bar
    ========================================================================== */
 
 .time-budget-bar-wrapper {
@@ -330,7 +327,7 @@ body {
 }
 
 /* ==========================================================================
-   Badges — dot + label chips (quiet, not solid pills)
+   Badges — Dot & Colors (Fixed for Custom Purple)
    ========================================================================== */
 
 .task-badge {
@@ -357,42 +354,38 @@ body {
   flex-shrink: 0;
 }
 
-/* Status */
+/* Status Badge Base: Defaults to Purple for all custom statuses */
 .badge-status {
   background: rgba(255, 255, 255, 0.03) !important;
   color: rgba(242, 241, 237, 0.75) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+.badge-status .badge-status-dot {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* Specific Status Overrides */
 .badge-status[data-status*="todo" i] .badge-status-dot,
 .badge-status[data-status*="to do" i] .badge-status-dot,
 .badge-status[data-status*="to-do" i] .badge-status-dot {
-  background: #94a3b8;
-  box-shadow: 0 0 6px rgba(148, 163, 184, 0.5);
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 6px rgba(148, 163, 184, 0.5) !important;
 }
 
 .badge-status[data-status*="progress" i] .badge-status-dot {
-  background: #f59e0b;
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5) !important;
 }
 
 .badge-status[data-status*="done" i] .badge-status-dot,
 .badge-status[data-status*="complete" i] .badge-status-dot {
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+  background-color: #10b981 !important;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5) !important;
 }
 
-.badge-status:not([data-status*="todo" i]):not([data-status*="to do" i]):not(
-    [data-status*="to-do" i]
-  ):not([data-status*="progress" i]):not([data-status*="done" i]):not(
-    [data-status*="complete" i]
-  )
-  .badge-status-dot {
-  background: #a855f7;
-  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
-}
-
-/* Priority */
+/* Priority Badges */
 .badge-priority {
   background: rgba(255, 255, 255, 0.03) !important;
   color: rgba(242, 241, 237, 0.75) !important;
@@ -400,7 +393,8 @@ body {
 }
 
 .badge-priority-LOW .badge-priority-dot {
-  background: #64748b;
+  background-color: #94a3b8 !important;
+  box-shadow: 0 0 8px rgba(148, 163, 184, 0.5) !important;
 }
 
 .badge-priority-MEDIUM .badge-priority-dot {
@@ -408,14 +402,14 @@ body {
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
 }
 
-.badge-priority-HIGH .badge-priority-dot {
-  background: #ef4444;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
-}
-
 .badge-priority-HIGH {
   color: #fca5a5 !important;
   border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+.badge-priority-HIGH .badge-priority-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 /* Due date pill */
@@ -451,7 +445,7 @@ body {
 
 /* ==========================================================================
    Save Bar
-   ========================================================================== */
+   ========================================================================= */
 
 .save-task-container,
 .save-entry-container {
@@ -955,6 +949,7 @@ body {
 .task-creator-card .task-user-chip {
   margin-top: 2px;
 }
+
 .people-header-icon {
   color: #6366f1;
 }
