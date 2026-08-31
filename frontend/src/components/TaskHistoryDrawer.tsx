@@ -7,18 +7,24 @@ import {
   Trash2,
   FileText,
   Users,
-  UserCheck,
-  UserPlus,
-  UserMinus,
+  Calendar,
 } from "lucide-react";
 import "../css/TaskHistoryDrawer.css";
 import useGetTaskHistory from "../hooks/getTaskHistoryHook";
 import { HistoryEntry } from "./types";
+import { useAppStore } from "../store/useAppStore";
 
 interface TaskHistoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   taskId: string;
+}
+
+interface AssigneeInfo {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl: string | null;
 }
 
 const FIELD_LABEL_MAP: Record<string, string> = {
@@ -82,37 +88,100 @@ const formatValue = (val?: string | null) => {
   return cleanVal;
 };
 
-const renderAssigneeTags = (
-  namesStr?: string | null,
-  variant: "default" | "added" | "removed" = "default",
+const getInitials = (name?: string) => {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+// The backend stores assignee snapshots as a JSON array of
+// { id, name, email, photoUrl } objects. Older rows (if any exist)
+// may still be plain comma-separated names — handle both gracefully.
+const parseAssigneeList = (value?: string | null): AssigneeInfo[] => {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(Boolean).map((u: any) => ({
+        id: String(u?.id ?? u?.userId ?? u?.name ?? ""),
+        name: u?.name || "Unknown user",
+        email: u?.email || "",
+        photoUrl: u?.photoUrl || null,
+      }));
+    }
+  } catch {
+    // Legacy fallback: plain comma-separated name string
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((name) => ({ id: name, name, email: "", photoUrl: null }));
+  }
+
+  return [];
+};
+
+const isSameUser = (
+  a: { id?: string; name?: string },
+  b: { id?: string; name?: string },
 ) => {
-  if (!namesStr || namesStr.trim() === "") {
+  if (a.id && b.id) return a.id === b.id;
+  return (
+    (a.name || "").trim().toLowerCase() === (b.name || "").trim().toLowerCase()
+  );
+};
+
+const renderAssigneeCards = (
+  list: AssigneeInfo[],
+  variant: "default" | "added" | "removed",
+  currentUserId?: string,
+) => {
+  if (list.length === 0) {
     return (
       <span className="history-value-badge history-badge-unassigned">None</span>
     );
   }
 
-  const names = namesStr
-    .split(",")
-    .map((n) => n.trim())
-    .filter(Boolean);
-
   return (
-    <span className="history-assignee-group">
-      {names.map((name, i) => (
-        <span
-          key={i}
-          className={`history-assignee-chip history-chip-${variant}`}
-        >
-          <span className="history-assignee-chip-icon">
-            {variant === "added" && <UserPlus size={11} />}
-            {variant === "removed" && <UserMinus size={11} />}
-            {variant === "default" && <UserCheck size={11} />}
-          </span>
-          <span className="history-assignee-chip-name">{name}</span>
-        </span>
-      ))}
-    </span>
+    <div className="history-assignee-cards">
+      {list.map((person) => {
+        const isCurrentUser = Boolean(
+          currentUserId && person.id === currentUserId,
+        );
+
+        return (
+          <div
+            key={person.id}
+            className={`history-assignee-card history-assignee-card-${variant}`}
+          >
+            <div className="history-assignee-card-avatar">
+              {person.photoUrl ? (
+                <img src={person.photoUrl} alt={person.name} />
+              ) : (
+                <span>{getInitials(person.name)}</span>
+              )}
+            </div>
+            <div className="history-assignee-card-info">
+              <span className="history-assignee-card-name">
+                {person.name}
+                {isCurrentUser && <span className="history-you-tag">You</span>}
+              </span>
+              {person.email && (
+                <span className="history-assignee-card-email">
+                  {person.email}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 };
 
@@ -162,7 +231,103 @@ const getEventIcon = (eventType: string, fieldChanged?: string | null) => {
   }
 };
 
-const formatEventDescription = (entry: HistoryEntry) => {
+const formatAssigneesChange = (entry: HistoryEntry, currentUserId?: string) => {
+  const actorName = entry.actor?.name || "A user";
+  const actorId = (entry.actor as any)?.id;
+
+  const beforeList = parseAssigneeList(entry.oldValue);
+  const afterList = parseAssigneeList(entry.newValue);
+
+  const added = afterList.filter((a) => !beforeList.some((b) => b.id === a.id));
+  const removed = beforeList.filter(
+    (b) => !afterList.some((a) => a.id === b.id),
+  );
+
+  if (added.length === 0 && removed.length === 0) {
+    return (
+      <span className="history-line">
+        <span className="history-item-actor">{actorName}</span> updated
+        assignees
+      </span>
+    );
+  }
+
+  if (added.length > 0 && removed.length === 0) {
+    const isSelfAssign =
+      added.length === 1 &&
+      isSameUser(added[0], { id: actorId, name: actorName });
+
+    if (isSelfAssign) {
+      return (
+        <span className="history-line">
+          <span className="history-item-actor">{actorName}</span> assigned
+          themselves to this task
+        </span>
+      );
+    }
+
+    return (
+      <div className="history-desc-container">
+        <span className="history-line">
+          <span className="history-item-actor">{actorName}</span> assigned{" "}
+          {added.length === 1 ? "someone" : `${added.length} people`} to this
+          task:
+        </span>
+        {renderAssigneeCards(added, "added", currentUserId)}
+      </div>
+    );
+  }
+
+  if (removed.length > 0 && added.length === 0) {
+    const isSelfRemove =
+      removed.length === 1 &&
+      isSameUser(removed[0], { id: actorId, name: actorName });
+
+    if (isSelfRemove) {
+      return (
+        <span className="history-line">
+          <span className="history-item-actor">{actorName}</span> removed
+          themselves from this task
+        </span>
+      );
+    }
+
+    return (
+      <div className="history-desc-container">
+        <span className="history-line">
+          <span className="history-item-actor">{actorName}</span> removed{" "}
+          {removed.length === 1 ? "an assignee" : `${removed.length} assignees`}
+          :
+        </span>
+        {renderAssigneeCards(removed, "removed", currentUserId)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="history-desc-container">
+      <span className="history-line">
+        <span className="history-item-actor">{actorName}</span> changed the
+        assignees:
+      </span>
+      <div className="history-granular-diff">
+        <div className="history-diff-block">
+          <span className="history-diff-label added">+ Added</span>
+          {renderAssigneeCards(added, "added", currentUserId)}
+        </div>
+        <div className="history-diff-block">
+          <span className="history-diff-label removed">− Removed</span>
+          {renderAssigneeCards(removed, "removed", currentUserId)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const formatEventDescription = (
+  entry: HistoryEntry,
+  currentUserId?: string,
+) => {
   const actorName = entry.actor?.name || "A user";
   const fieldName = entry.fieldChanged
     ? FIELD_LABEL_MAP[entry.fieldChanged] || entry.fieldChanged
@@ -175,71 +340,7 @@ const formatEventDescription = (entry: HistoryEntry) => {
     entry.eventType === "ASSIGNEES_CHANGED" ||
     entry.fieldChanged === "assignees"
   ) {
-    const oldList = entry.oldValue
-      ? entry.oldValue
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [];
-    const newList = entry.newValue
-      ? entry.newValue
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : [];
-
-    const added = newList.filter((name) => !oldList.includes(name));
-    const removed = oldList.filter((name) => !newList.includes(name));
-
-    if (oldList.length === 0 && newList.length > 0) {
-      return (
-        <div className="history-desc-container">
-          <span className="history-line">
-            <span className="history-item-actor">{actorName}</span> assigned:
-          </span>
-          <div className="history-assignees-block">
-            {renderAssigneeTags(entry.newValue, "added")}
-          </div>
-        </div>
-      );
-    }
-
-    if (oldList.length > 0 && newList.length === 0) {
-      return (
-        <div className="history-desc-container">
-          <span className="history-line">
-            <span className="history-item-actor">{actorName}</span> removed all
-            assignees
-          </span>
-          <div className="history-assignees-block">
-            {renderAssigneeTags(entry.oldValue, "removed")}
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="history-desc-container">
-        <span className="history-line">
-          <span className="history-item-actor">{actorName}</span> updated
-          assignees:
-        </span>
-        <div className="history-granular-diff">
-          {added.length > 0 && (
-            <div className="history-diff-row">
-              <span className="history-diff-label added">+ Added:</span>
-              {renderAssigneeTags(added.join(", "), "added")}
-            </div>
-          )}
-          {removed.length > 0 && (
-            <div className="history-diff-row">
-              <span className="history-diff-label removed">- Removed:</span>
-              {renderAssigneeTags(removed.join(", "), "removed")}
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    return formatAssigneesChange(entry, currentUserId);
   }
 
   if (entry.eventType === "TASK_CREATED") {
@@ -303,9 +404,8 @@ const formatEventDescription = (entry: HistoryEntry) => {
   if (entry.eventType === "STATUS_CHANGED" || fieldName === "Status") {
     return (
       <span className="history-line">
-        <span className="history-item-actor">{actorName}</span> changed{" "}
-        <span className="history-field-name">Status</span> from{" "}
-        <span className="history-value-badge">{oldVal || "None"}</span> to{" "}
+        <span className="history-item-actor">{actorName}</span> moved this task
+        from <span className="history-value-badge">{oldVal || "None"}</span> to{" "}
         <span className="history-value-badge">{newVal}</span>
       </span>
     );
@@ -352,6 +452,17 @@ const formatTime = (dateString: string) => {
     return date.toLocaleString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+const formatFullTimestamp = (dateString: string) => {
+  try {
+    return new Date(dateString).toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
     });
   } catch {
     return dateString;
@@ -405,6 +516,7 @@ const TaskHistoryDrawer = ({
   taskId,
 }: TaskHistoryDrawerProps) => {
   const { data: taskHistory, isLoading } = useGetTaskHistory(taskId);
+  const { user } = useAppStore();
   const groupedHistory = taskHistory ? groupHistoryByDate(taskHistory) : [];
 
   return (
@@ -461,6 +573,7 @@ const TaskHistoryDrawer = ({
             groupedHistory.map((group) => (
               <div className="history-group" key={group.label}>
                 <div className="history-group-label">
+                  <Calendar size={11} aria-hidden="true" />
                   <span>{group.label}</span>
                 </div>
 
@@ -473,9 +586,12 @@ const TaskHistoryDrawer = ({
                       </div>
                       <div className="history-item-content">
                         <div className="history-item-text">
-                          {formatEventDescription(entry)}
+                          {formatEventDescription(entry, user?.id)}
                         </div>
-                        <span className="history-item-time">
+                        <span
+                          className="history-item-time"
+                          title={formatFullTimestamp(entry.createdAt)}
+                        >
                           {formatTime(entry.createdAt)}
                         </span>
                       </div>

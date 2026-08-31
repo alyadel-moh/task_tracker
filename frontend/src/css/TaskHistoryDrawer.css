@@ -86,8 +86,9 @@
 
 .history-drawer-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .history-drawer-count {
@@ -98,6 +99,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   line-height: 1.4;
+  font-variant-numeric: tabular-nums;
 }
 
 .history-drawer-close {
@@ -146,6 +148,24 @@
   background: #18181b;
   padding: 8px 0 10px;
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-group-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
+  background: linear-gradient(to bottom, #18181b, transparent);
+  pointer-events: none;
+}
+
+.history-group-label svg {
+  color: rgba(242, 241, 237, 0.3);
 }
 
 .history-group-label span {
@@ -173,7 +193,7 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 10px 4px;
+  padding: 10px 8px 10px 4px;
   border-radius: 12px;
   transition: background 0.15s ease;
 }
@@ -199,7 +219,6 @@
   flex-shrink: 0;
 }
 
-/* Connecting timeline line beneath each icon */
 .history-item-connector {
   width: 1px;
   flex: 1;
@@ -215,26 +234,31 @@
 .history-item-icon-users {
   background: rgba(168, 85, 247, 0.15);
   color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
 }
 
 .history-item-icon-plus {
   background: rgba(76, 175, 111, 0.15);
   color: #7fd99a;
+  box-shadow: 0 0 10px rgba(76, 175, 111, 0.2);
 }
 
 .history-item-icon-swap {
   background: rgba(224, 160, 74, 0.15);
   color: #ffbf72;
+  box-shadow: 0 0 10px rgba(224, 160, 74, 0.2);
 }
 
 .history-item-icon-clock {
   background: rgba(16, 185, 129, 0.15);
   color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
 .history-item-icon-trash {
   background: rgba(224, 90, 90, 0.15);
   color: #ff9b9b;
+  box-shadow: 0 0 10px rgba(224, 90, 90, 0.2);
 }
 
 .history-item-icon-file {
@@ -261,7 +285,7 @@
 }
 
 .history-item-actor {
-  font-weight: 600;
+  font-weight: 700;
   color: #ffffff;
 }
 
@@ -296,41 +320,36 @@
   font-size: 11px;
   color: rgba(242, 241, 237, 0.4);
   font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
 }
 
 /* ==========================================================================
-   Assignee Event Layout & Chips
+   Assignee Diff Layout
    ========================================================================== */
+
 .history-desc-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.history-assignees-block {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 8px;
 }
 
 .history-granular-diff {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: 4px;
+  gap: 10px;
+  margin-top: 2px;
 }
 
-.history-diff-row {
+.history-diff-block {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
 }
 
 .history-diff-label {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
 }
 
@@ -342,47 +361,144 @@
   color: #f87171;
 }
 
-.history-assignee-group {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 5px;
+/* ==========================================================================
+   Assignee Cards — avatar left, name/email right
+   ========================================================================== */
+
+.history-assignee-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
 }
 
-.history-assignee-chip {
-  display: inline-flex;
+.history-assignee-card {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 8px 2px 6px;
-  border-radius: 9999px;
-  font-size: 11.5px;
-  font-weight: 500;
-  line-height: 1;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  max-width: 320px;
 }
 
-.history-assignee-chip-icon {
+.history-assignee-card-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.history-chip-default {
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+.history-assignee-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.history-assignee-card-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.history-assignee-card-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f2f1ed;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-assignee-card-email {
+  font-size: 11.5px;
+  color: rgba(242, 241, 237, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-you-tag {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* Default (single-list, non-diff) tone — purple */
+.history-assignee-card-default {
+  background: rgba(168, 85, 247, 0.06);
+  border-color: rgba(168, 85, 247, 0.18);
+}
+
+.history-assignee-card-default .history-assignee-card-avatar {
+  background: rgba(168, 85, 247, 0.2);
   color: #e9d5ff;
 }
 
-.history-chip-added {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+.history-assignee-card-default:hover {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+/* Added — green */
+.history-assignee-card-added {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.history-assignee-card-added .history-assignee-card-avatar {
+  background: rgba(16, 185, 129, 0.22);
   color: #a7f3d0;
 }
 
-.history-chip-removed {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
-  text-decoration: line-through;
+.history-assignee-card-added:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Removed — red, slightly muted to read as "past" */
+.history-assignee-card-removed {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.16);
   opacity: 0.85;
+}
+
+.history-assignee-card-removed .history-assignee-card-avatar {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fecaca;
+}
+
+.history-assignee-card-removed .history-assignee-card-name {
+  text-decoration: line-through;
+  text-decoration-color: rgba(242, 241, 237, 0.35);
+  color: rgba(242, 241, 237, 0.7);
+}
+
+.history-assignee-card-removed:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.28);
+  opacity: 1;
 }
 
 /* Loading & Empty States */
@@ -403,7 +519,7 @@
 }
 
 /* ==========================================================================
-   SLEEK DARK SCROLLBAR
+   Sleek Dark Scrollbar
    ========================================================================== */
 
 .history-drawer-body {

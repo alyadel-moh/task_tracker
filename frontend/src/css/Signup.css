@@ -22,7 +22,6 @@
     sans-serif;
 }
 
-/* Card Container */
 .signup-card {
   width: 100%;
   max-width: 460px;
@@ -36,16 +35,27 @@
   transition:
     box-shadow 0.2s ease,
     transform 0.2s ease;
+  animation: card-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .signup-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* Header Elements */
 .signup-logo {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -53,11 +63,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .signup-title {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0 0 6px;
@@ -70,22 +81,22 @@
   font-weight: 400;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.78);
-  margin: 0 0 26px;
+  margin: 0 0 28px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Form Layout */
 .signup-form {
   display: flex;
   flex-direction: column;
 }
+
 /* ==========================================================================
-   Avatar Upload Modern Design
+   Avatar Upload
    ========================================================================== */
 .photo-field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .photo-field .field-label-optional {
@@ -99,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   background: rgba(10, 10, 8, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -109,7 +120,7 @@
 }
 
 .photo-upload-container:hover {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.28);
   background: rgba(10, 10, 8, 0.45);
 }
 
@@ -129,13 +140,12 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
 }
 
-/* Circular Avatar Frame */
 .photo-preview {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
-  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border: 2px dashed rgba(255, 255, 255, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,7 +156,7 @@
 
 .photo-preview.has-image {
   border-style: solid;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 .photo-preview img {
@@ -166,7 +176,6 @@
     transform 0.2s ease;
 }
 
-/* Hover Overlay */
 .photo-preview-overlay {
   position: absolute;
   inset: 0;
@@ -190,10 +199,10 @@
 }
 
 .photo-preview-label:hover .photo-preview {
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.65);
+  transform: scale(1.03);
 }
 
-/* Remove Photo Mini Button */
 .photo-remove-btn {
   position: absolute;
   top: -4px;
@@ -220,7 +229,6 @@
   transform: scale(1.15);
 }
 
-/* Text & Microcopy */
 .photo-upload-text {
   display: flex;
   flex-direction: column;
@@ -247,7 +255,7 @@
    ========================================================================== */
 .field {
   display: block;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .field-label {
@@ -255,10 +263,9 @@
   font-weight: 500;
   color: rgba(255, 255, 255, 0.85);
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 
-/* Input & Icon Alignment */
 .input-with-icon {
   position: relative;
   display: flex;
@@ -274,15 +281,20 @@
   color: rgba(255, 255, 255, 0.55);
   pointer-events: none;
   z-index: 3;
+  transition: color 0.15s ease;
+}
+
+.input-with-icon:focus-within .input-icon {
+  color: #ffffff;
 }
 
 .input-with-icon input {
   width: 100%;
-  height: 46px;
+  height: 48px;
   padding-left: 42px !important;
   padding-right: 14px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
+  border-radius: 11px;
   font-size: 15px;
   font-weight: 400;
   font-family: inherit;
@@ -316,11 +328,10 @@
 .field input:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
   background-color: rgba(10, 10, 8, 0.55);
 }
 
-/* Autofill Overrides */
 .field input:-webkit-autofill,
 .field input:-webkit-autofill:hover,
 .field input:-webkit-autofill:focus,
@@ -332,7 +343,6 @@
   transition: background-color 99999s ease-in-out 0s;
 }
 
-/* Suppress native browser icons */
 .field input::-webkit-contacts-auto-fill-button,
 .field input::-webkit-credentials-auto-fill-button {
   visibility: hidden;
@@ -361,7 +371,6 @@
   margin-top: 6px;
 }
 
-/* Password Eye Button */
 .password-toggle {
   position: absolute;
   right: 8px;
@@ -375,7 +384,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 7px;
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -387,7 +396,6 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Banners */
 .form-banner {
   font-size: 14px;
   font-weight: 500;
@@ -408,26 +416,28 @@
   border: 1px solid rgba(120, 200, 120, 0.4);
 }
 
-/* Submit Button */
+/* Submit — matches login's solid-white treatment for consistency */
 .signup-submit {
   width: 100%;
-  height: 48px;
-  margin-top: 8px;
-  background: #5c5c58;
-  color: #ffffff;
+  height: 50px;
+  margin-top: 10px;
+  background: #ffffff;
+  color: #171715;
   border: none;
-  border-radius: 10px;
+  border-radius: 11px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition:
     background 0.15s ease,
-    transform 0.1s ease;
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .signup-submit:disabled {
@@ -436,14 +446,14 @@
 }
 
 .signup-submit:not(:disabled):hover {
-  background: #70706a;
+  background: #e8e8e4;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .signup-submit:not(:disabled):active {
   transform: scale(0.98);
 }
 
-/* Loading Spinner */
 .spin {
   animation: spin 0.8s linear infinite;
 }
@@ -457,12 +467,11 @@
   }
 }
 
-/* Footer Link */
 .signup-footer {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
-  margin: 24px 0 0;
+  margin: 26px 0 0;
 }
 
 .signup-footer a {
@@ -477,7 +486,6 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Responsive Media Queries */
 @media (max-width: 480px) {
   .signup-page {
     padding: 1rem;

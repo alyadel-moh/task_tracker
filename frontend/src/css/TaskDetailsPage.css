@@ -850,19 +850,7 @@ body {
     flex-wrap: wrap;
     gap: 10px;
   }
-
-  .task-page-meta-badge {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 10px;
-    font-size: 10px;
-    white-space: normal;
-    padding: 8px 12px;
-    border-radius: 10px;
-    width: fit-content;
-    max-width: 100%;
-  }
-
+  .task-page-meta-badge,
   .entry-created-badge {
     display: block;
     width: 100%;
@@ -872,8 +860,8 @@ body {
     white-space: normal;
     padding: 10px 14px;
     border-radius: 10px;
+    color: rgba(242, 241, 237, 0.5);
   }
-
   .task-page-grid {
     grid-template-columns: 1fr;
     row-gap: 16px;

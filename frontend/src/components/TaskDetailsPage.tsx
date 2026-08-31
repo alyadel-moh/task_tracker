@@ -137,7 +137,7 @@ interface EntryFormState {
 const TaskDetailsPage = () => {
   const navigate = useNavigate();
   const [savingTask, setSavingTask] = useState(false);
-  const { user, statuses } = useAppStore();
+  const { user, statuses, userRole } = useAppStore();
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [newDuration, setNewDuration] = useState("");
@@ -186,7 +186,8 @@ const TaskDetailsPage = () => {
   const isTaskAssignee = (task?.assignees || []).some(
     (a: any) => (a.id || a.userId) === user?.id,
   );
-  const canManageAssignees = isTaskCreator || isTaskAssignee;
+  const canManageAssignees =
+    isTaskCreator || isTaskAssignee || userRole === "OWNER";
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

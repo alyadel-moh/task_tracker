@@ -9,7 +9,7 @@ import { TaskHistoryRepository } from "../repositories/taskHistoryRepository";
 import { TimeEntryRepository } from "../repositories/timeEntryRepository";
 interface UpdateTaskBody {
   name?: string;
-  description?: string;
+  description?: string | null;
   statusId?: string;
   estimatedTime?: number | null;
   dueDate?: Date | string | null;
@@ -218,11 +218,10 @@ export class TaskService {
     );
     assertTaskAuthorization(access, projectId);
     const task = access.task;
+
     const currentTaskAssignees = (task as any).assignees || [];
-    const currentAssigneeIds = currentTaskAssignees.map((a: any) => a.id);
-    const currentAssigneeNames: string[] = currentTaskAssignees.map(
-      (a: any) =>
-        a.name || a.user?.name || a.email || a.user?.email || "Member",
+    const currentAssigneeIds: string[] = currentTaskAssignees.map(
+      (a: any) => a.id,
     );
     const before: UpdateTaskBody = {
       name: task.name,
@@ -232,8 +231,11 @@ export class TaskService {
       dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       priority: task.priority,
     };
+
     const updatedFields: Partial<UpdateTaskBody> = {};
     const changedLabels: string[] = [];
+
+    // 1. Name validation & update
     if (name !== undefined && name.trim() !== task.name) {
       const trimmedName = name.trim();
       if (trimmedName === "") {
@@ -243,11 +245,16 @@ export class TaskService {
       updatedFields.name = trimmedName;
       changedLabels.push("Task name");
     }
-    if (description !== task.description && description != undefined) {
-      task.description = description || null;
-      updatedFields.description = description;
+
+    // 2. Description update
+    if (description !== undefined && description !== task.description) {
+      const newDescription = description || null;
+      task.description = newDescription;
+      updatedFields.description = newDescription;
       changedLabels.push("Description");
     }
+
+    // 3. Status validation & update
     if (statusId !== undefined && statusId !== task.statusId) {
       const idsToFetch = [statusId];
       if (task.statusId) idsToFetch.push(task.statusId);
@@ -271,6 +278,8 @@ export class TaskService {
       updatedFields.statusId = newStatus.id;
       changedLabels.push("Status");
     }
+
+    // 4. Estimated Time validation & update
     if (estimatedTime !== undefined && estimatedTime !== task.estimatedTime) {
       if (
         estimatedTime !== null &&
@@ -287,7 +296,9 @@ export class TaskService {
       updatedFields.estimatedTime = estimatedTime;
       changedLabels.push("Estimated time");
     }
-    if (dueDate !== undefined && dueDate !== task.dueDate) {
+
+    // 5. Due Date validation & update
+    if (dueDate !== undefined) {
       if (
         dueDate !== null &&
         typeof dueDate === "string" &&
@@ -303,6 +314,7 @@ export class TaskService {
       if (parsedDueDate && isNaN(parsedDueDate.getTime())) {
         throw { status: 400, message: "Invalid date format for dueDate" };
       }
+
       const currentMs = task.dueDate ? new Date(task.dueDate).getTime() : null;
       const parsedMs = parsedDueDate ? parsedDueDate.getTime() : null;
 
@@ -314,6 +326,8 @@ export class TaskService {
         changedLabels.push("Due date");
       }
     }
+
+    // 6. Priority validation & update
     if (priority !== undefined && priority !== task.priority) {
       if (!ALLOWED_PRIORITIES.includes(priority as TaskPriority)) {
         throw {
@@ -325,10 +339,11 @@ export class TaskService {
       updatedFields.priority = priority as TaskPriority;
       changedLabels.push("Priority");
     }
+
+    // 7. Assignees validation & change detection
     let uniqueAssigneeIds: string[] | undefined;
     if (assigneeIds !== undefined && assigneeIds !== null) {
       uniqueAssigneeIds = Array.from(new Set(assigneeIds));
-
       if (uniqueAssigneeIds.length > 0) {
         const memberChecks = await Promise.all(
           uniqueAssigneeIds.map((assigneeId) =>
@@ -343,6 +358,7 @@ export class TaskService {
           };
         }
       }
+
       const isAssigneesChanged =
         uniqueAssigneeIds.length !== currentAssigneeIds.length ||
         uniqueAssigneeIds.some((id) => !currentAssigneeIds.includes(id));
@@ -351,6 +367,7 @@ export class TaskService {
         changedLabels.push("Assignees");
       }
     }
+
     if (changedLabels.length === 0) {
       return {
         updatedFields: {},
@@ -359,32 +376,40 @@ export class TaskService {
         overrun: false,
       };
     }
+
     const transaction = await sequelize.transaction();
     try {
       await task.save({ transaction });
-      let newAssigneeNames: string[] | undefined = undefined;
+
+      let newAssigneeIds: string[] | undefined = undefined;
+      let updatedAssigneeObjects: User[] | undefined = undefined;
       if (
         uniqueAssigneeIds !== undefined &&
         changedLabels.includes("Assignees")
       ) {
-        const updatedAssigneeObjects = await TaskRepository.updateAssignees(
+        updatedAssigneeObjects = await TaskRepository.updateAssignees(
           task.id,
           projectId,
           uniqueAssigneeIds,
           currentAssigneeIds,
           transaction,
         );
+
         updatedFields.assignees = updatedAssigneeObjects;
-        newAssigneeNames = (updatedAssigneeObjects || []).map(
-          (a: any) =>
-            a.name || a.user?.name || a.email || a.user?.email || "Member",
-        );
+        newAssigneeIds = uniqueAssigneeIds;
       }
+
       const after = {
         name: name ?? task.name,
-        description: description ?? task.description ?? undefined,
+        description:
+          description !== undefined
+            ? description || null
+            : (task.description ?? undefined),
         statusId: statusId ?? task.statusId ?? undefined,
-        estimatedTime: estimatedTime ?? task.estimatedTime ?? undefined,
+        estimatedTime:
+          estimatedTime !== undefined
+            ? estimatedTime
+            : (task.estimatedTime ?? undefined),
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         priority: priority ?? task.priority,
         statusName: updatedFields.statusName ?? before.statusName,
@@ -397,22 +422,28 @@ export class TaskService {
         before,
         after,
         transaction,
-        changedLabels.includes("Assignees") ? currentAssigneeNames : undefined,
-        changedLabels.includes("Assignees") ? newAssigneeNames : undefined,
+        changedLabels.includes("Assignees") ? currentTaskAssignees : undefined,
+        changedLabels.includes("Assignees")
+          ? updatedAssigneeObjects
+          : undefined,
       );
+
       const detailedHistoryEntries = await Promise.all(
         (historyEntries || []).map((entry) =>
           TaskHistoryRepository.fetchHistoryWithActor(entry?.id, transaction),
         ),
       );
+
       const totalMinutes = await TimeEntryRepository.sumloggedTime(
         task.id,
         transaction,
       );
+
       const overrun =
         task.estimatedTime !== null && task.estimatedTime !== undefined
           ? totalMinutes > task.estimatedTime
           : false;
+
       await transaction.commit();
       return { updatedFields, changedLabels, detailedHistoryEntries, overrun };
     } catch (err) {

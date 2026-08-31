@@ -170,6 +170,7 @@ export class TaskRepository {
         "dueDate",
         "createdAt",
         "projectId",
+        "createdBy",
       ],
     });
   }

@@ -1,5 +1,5 @@
 import { Transaction } from "sequelize";
-import { TaskHistory } from "../models";
+import { TaskHistory, User } from "../models";
 import { TaskHistoryRepository } from "../repositories/taskHistoryRepository";
 import { TaskRepository } from "../repositories/taskReposiotry";
 
@@ -58,8 +58,8 @@ export class TaskHistoryService {
     before: TaskBody,
     after: TaskBody,
     transaction: Transaction,
-    assignedAssigneesBefore?: string[],
-    assignedAssigneesAfter?: string[],
+    assignedAssigneesBefore?: User[],
+    assignedAssigneesAfter?: User[],
   ): Promise<TaskHistory[]> {
     const promises: Promise<TaskHistory>[] = [];
     for (const field of [
@@ -106,32 +106,38 @@ export class TaskHistoryService {
       assignedAssigneesBefore !== undefined ||
       assignedAssigneesAfter !== undefined
     ) {
-      const beforeList = (assignedAssigneesBefore ?? []).filter(Boolean);
-      const afterList = (assignedAssigneesAfter ?? []).filter(Boolean);
+      const mapAssigneeObject = (u: any) => ({
+        id: u?.id || u?.userId || "",
+        name: u?.name || "",
+        email: u?.email || "",
+        photoUrl: u?.photoUrl || null,
+      });
+      const beforeList = (assignedAssigneesBefore ?? [])
+        .filter(Boolean)
+        .map(mapAssigneeObject)
+        .sort((a, b) => a.id.localeCompare(b.id));
 
-      const isChanged =
-        beforeList.length !== afterList.length ||
-        !beforeList.every((id) => afterList.includes(id));
-
-      if (isChanged) {
-        const sortedBefore = [...beforeList].sort();
-        const sortedAfter = [...afterList].sort();
-
-        promises.push(
-          TaskHistoryRepository.logTaskHistory(
-            {
-              taskId,
-              actorId,
-              eventType: "ASSIGNEES_CHANGED",
-              fieldChanged: "assignees",
-              oldValue:
-                sortedBefore.length > 0 ? sortedBefore.join(", ") : null,
-              newValue: sortedAfter.length > 0 ? sortedAfter.join(", ") : null,
-            },
-            transaction,
-          ),
-        );
-      }
+      const afterList = (assignedAssigneesAfter ?? [])
+        .filter(Boolean)
+        .map(mapAssigneeObject)
+        .sort((a, b) => a.id.localeCompare(b.id));
+      const beforeString =
+        beforeList.length > 0 ? JSON.stringify(beforeList) : null;
+      const afterString =
+        afterList.length > 0 ? JSON.stringify(afterList) : null;
+      promises.push(
+        TaskHistoryRepository.logTaskHistory(
+          {
+            taskId,
+            actorId,
+            eventType: "ASSIGNEES_CHANGED",
+            fieldChanged: "assignees",
+            oldValue: beforeString,
+            newValue: afterString,
+          },
+          transaction,
+        ),
+      );
     }
     return Promise.all(promises);
   }

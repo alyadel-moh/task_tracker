@@ -27,7 +27,7 @@ interface TaskCardProps {
 
 const TaskCard = ({ task }: TaskCardProps) => {
   const navigate = useNavigate();
-  const { userRole } = useAppStore();
+  const { userRole, user } = useAppStore();
   const deleteTaskMutation = useDeleteTask(task.projectId, task.id);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
@@ -112,7 +112,7 @@ const TaskCard = ({ task }: TaskCardProps) => {
           <p className="task-title">{task.name}</p>
 
           <div className="task-card-icons">
-            {userRole === "OWNER" && (
+            {(userRole === "OWNER" || task.createdBy === user?.id) && (
               <button
                 type="button"
                 className="task-delete-button"

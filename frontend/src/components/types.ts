@@ -12,6 +12,7 @@ export interface Task {
   statusId: string | null;
   statusName: string;
   creator: User;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
   assignees: User[];

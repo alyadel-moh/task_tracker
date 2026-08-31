@@ -16,7 +16,6 @@ import {
   ChevronDown,
   Folder,
   LogOut,
-  Pencil,
   Plus,
   Search,
   X,
@@ -605,9 +604,7 @@ const DashboardBoard = ({
                         event.stopPropagation();
                         setIsProjectMenuOpen(false);
                       }}
-                    >
-                      <Pencil size={13} aria-hidden="true" />
-                    </button>
+                    ></button>
                   </div>
                 );
               })}

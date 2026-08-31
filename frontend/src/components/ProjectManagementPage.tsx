@@ -223,7 +223,6 @@ export function ProjectManagementPage() {
               className="pm-leave-btn"
               onClick={handleLeaveProjectClick}
               disabled={leaveProjectMutation.isPending}
-              title="Leave this project"
             >
               <FiLogOut size={14} />
               <span>
@@ -433,7 +432,6 @@ export function ProjectManagementPage() {
                             <button
                               type="button"
                               className="member-card-action-btn action-toggle-role"
-                              title={`Change role to ${member.role === "OWNER" ? "Member" : "Owner"}`}
                               disabled={updateRoleMutation.isPending}
                               onClick={(e) => {
                                 e.stopPropagation();
