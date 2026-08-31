@@ -1770,6 +1770,54 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     transform: rotate(360deg);
   }
 }
+
+/* ---------- Dragging Column Overlay (Desktop) ----------
+   Fix: with no explicit width, this shrank to fit the DragOverlay's
+   portal context instead of matching a real board column, causing the
+   header text to wrap and the status dot's fixed offset to misalign. */
+
+.dragging-column-overlay {
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  flex: 0 0 280px;
+  opacity: 0.9;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  border-radius: 14px;
+  background: #1e1e1b;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  cursor: grabbing;
+}
+
+.dragging-column-overlay .column-header,
+.dragging-column-overlay .column-header-desktop {
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: none !important;
+  padding: 8px 14px !important;
+  white-space: nowrap;
+  cursor: grabbing;
+}
+
+.dragging-column-overlay .column-header-left {
+  gap: 8px !important;
+  min-width: 0;
+  flex: 1;
+}
+
+.dragging-column-overlay .status-dot {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.dragging-column-overlay span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------- Mobile Only (max-width: 768px) ---------- */
 
 .board-header-mobile,
@@ -1817,9 +1865,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     overflow-x: hidden;
   }
 
-  /* Fix: base .board-header sets align-items: center, which centers every
-     child even though this switches to flex-direction: column. Reset it
-     so title/description/meta-pill all sit flush left. */
   .board-header-mobile {
     display: flex !important;
     flex-direction: column;
@@ -2335,584 +2380,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     width: 100%;
     min-width: 100%;
     max-width: 100%;
-  }
-
-  .dragging-column-overlay .column-header {
-    display: flex !important;
-    padding: 10px 14px !important;
-    height: auto !important;
-  }
-}
-
-@media (min-width: 769px) {
-  .column-tabs {
-    display: none !important;
-  }
-} /* ---------- Mobile Only (max-width: 768px) ---------- */
-
-.board-header-mobile,
-.fab {
-  display: none;
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar {
-    width: 210px;
-  }
-
-  .board {
-    gap: 10px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar,
-  .board-header-desktop,
-  .column-header,
-  .column-header-desktop,
-  .board .column-header,
-  .column .column-header {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .add-column-wrapper {
-    display: none !important;
-  }
-
-  .dashboard {
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .board-panel {
-    height: 100vh;
-    padding-top: max(8px, env(safe-area-inset-top));
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  /* Fix: base .board-header sets align-items: center, which centers every
-     child even though this switches to flex-direction: column. Reset it
-     so title/description/meta-pill all sit flush left. */
-  .board-header-mobile {
-    display: flex !important;
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 8px;
-    padding: 12px 1.25rem 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .mobile-header-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 10px;
-  }
-
-  .mobile-project-select {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: none;
-    color: rgba(242, 241, 237, 0.55);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0;
-    cursor: pointer;
-    text-align: left;
-    max-width: 75%;
-  }
-
-  .mobile-project-select:hover {
-    color: #f2f1ed;
-  }
-
-  .mobile-project-select span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .chevron-open {
-    transform: rotate(180deg);
-  }
-
-  .mobile-user-button {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(75, 74, 224, 0.25);
-    color: #9fa3f5;
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    flex-shrink: 0;
-    overflow: hidden;
-    padding: 0;
-  }
-
-  .mobile-user-button img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-  }
-
-  .mobile-project-title-row {
-    margin-top: 6px;
-    width: 100%;
-  }
-
-  .mobile-project-title-row .inline-field-display,
-  .mobile-project-title-row .inline-field-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #f2f1ed;
-    text-align: left;
-    background: transparent;
-    border: none;
-    padding: 0;
-    display: block;
-    width: 100%;
-  }
-
-  .mobile-project-description-row {
-    margin-top: 2px;
-    width: 100%;
-  }
-
-  .mobile-project-description-row .inline-field-display,
-  .mobile-project-description-row .inline-field-value {
-    text-align: left;
-    background: transparent;
-    border: none;
-    padding: 0;
-    font-size: 13.5px;
-    line-height: 1.5;
-    color: rgba(242, 241, 237, 0.6);
-    display: block;
-    width: 100%;
-  }
-
-  .mobile-project-meta-pill {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 4px 10px;
-    font-size: 0.68rem;
-    color: rgba(242, 241, 237, 0.5);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    width: fit-content;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .mobile-project-meta-pill span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .task-filter-bar {
-    padding: 10px 1.25rem;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.015);
-  }
-
-  .filter-group-options {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    width: 100% !important;
-  }
-
-  .filter-pills-group {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 6px !important;
-    width: 100% !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 2px;
-  }
-
-  .filter-pills-group::-webkit-scrollbar {
-    display: none;
-  }
-
-  .filter-label {
-    flex-shrink: 0 !important;
-  }
-
-  .filter-pill {
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
-  }
-
-  .filter-pill-overdue,
-  .filter-pill.filter-pill-overdue {
-    display: inline-flex !important;
-    flex-shrink: 0 !important;
-    white-space: nowrap !important;
-    margin-top: 0 !important;
-    width: fit-content !important;
-    max-width: fit-content !important;
-    align-self: flex-start !important;
-  }
-
-  .column-tabs {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    padding: 10px 1.25rem !important;
-    width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    box-sizing: border-box !important;
-  }
-
-  .column-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .column-tab,
-  .droppable-tab {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 7px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 6px 12px 6px 10px !important;
-    border-radius: 9999px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    background: rgba(255, 255, 255, 0.03) !important;
-    color: rgba(242, 241, 237, 0.7) !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
-    transition: all 0.15s ease !important;
-  }
-
-  .column-tab.column-tab-active {
-    background: rgba(75, 74, 224, 0.18) !important;
-    border-color: rgba(75, 74, 224, 0.45) !important;
-    color: #9fa3f5 !important;
-    font-weight: 600 !important;
-  }
-
-  .column-tab .status-dot {
-    width: 8px !important;
-    height: 8px !important;
-    min-width: 8px !important;
-    min-height: 8px !important;
-    border-radius: 50% !important;
-    margin: 0 !important;
-    flex-shrink: 0 !important;
-  }
-
-  .column-tab .column-count {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 18px !important;
-    height: 18px !important;
-    padding: 0 5px !important;
-    border-radius: 9999px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: rgba(242, 241, 237, 0.65) !important;
-    font-size: 10.5px !important;
-    font-weight: 600 !important;
-    line-height: 1 !important;
-    margin-left: 2px !important;
-  }
-
-  .column-tab.column-tab-active .column-count {
-    background: rgba(75, 74, 224, 0.3) !important;
-    border-color: rgba(75, 74, 224, 0.45) !important;
-    color: #c7d2fe !important;
-  }
-
-  .mobile-add-column-inline {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex-shrink: 0 !important;
-    height: 32px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .mobile-add-column-inline .add-column-wrapper {
-    display: inline-flex !important;
-    align-items: center !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: 32px !important;
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-  }
-
-  .mobile-add-column-inline .add-column-header-spacer {
-    display: none !important;
-  }
-
-  .mobile-add-column-inline .add-column-drop-zone {
-    display: inline-flex !important;
-    align-items: center !important;
-    width: auto !important;
-    min-height: 0 !important;
-    height: 32px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    background: transparent !important;
-  }
-
-  .mobile-add-column-inline .add-column-button {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    width: auto !important;
-    height: 32px !important;
-    padding: 0 16px !important;
-    margin: 0 !important;
-    line-height: 1 !important;
-    background: rgba(16, 185, 129, 0.06) !important;
-    color: #10b981 !important;
-    border: 1px dashed rgba(16, 185, 129, 0.4) !important;
-    border-radius: 999px !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    white-space: nowrap !important;
-    box-sizing: border-box !important;
-  }
-
-  .mobile-add-column-inline .add-column-drop-zone input {
-    width: 140px !important;
-    height: 32px !important;
-    padding: 0 10px !important;
-    margin: 0 !important;
-    font-size: 13px !important;
-    background: #1e1e1b !important;
-    color: #f2f1ed !important;
-    border: 1px solid rgba(99, 102, 241, 0.5) !important;
-    border-radius: 8px !important;
-    box-sizing: border-box !important;
-    outline: none !important;
-  }
-
-  .mobile-add-column-inline .add-column-drop-zone input:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25) !important;
-  }
-
-  .mobile-add-column-inline .inline-field-action {
-    width: 26px !important;
-    height: 26px !important;
-    flex-shrink: 0 !important;
-  }
-
-  .board {
-    display: block !important;
-    width: 100% !important;
-    padding: 10px 1.25rem 5rem !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-  }
-
-  .column {
-    display: none !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100% !important;
-  }
-
-  .column.column-active,
-  .column.column-mobile-active {
-    display: block !important;
-  }
-
-  .column-drop-zone {
-    width: 100%;
-    min-height: 180px;
-  }
-
-  .mobile-project-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 15;
-  }
-
-  .mobile-project-menu {
-    position: absolute;
-    top: 64px;
-    left: 1.25rem;
-    right: 1.25rem;
-    z-index: 20;
-    background: #1e1e1b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-    max-height: 320px;
-    overflow-y: auto;
-  }
-
-  .mobile-project-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: rgba(242, 241, 237, 0.75);
-    font-size: 14px;
-    font-weight: 500;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .mobile-project-menu-item svg {
-    color: rgba(242, 241, 237, 0.45);
-    flex-shrink: 0;
-  }
-
-  .mobile-project-menu-item-active {
-    background: rgba(75, 74, 224, 0.18);
-    color: #9fa3f5;
-  }
-
-  .mobile-project-menu-item-active svg {
-    color: #9fa3f5;
-  }
-
-  .mobile-project-menu-item-new {
-    color: rgba(242, 241, 237, 0.5);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0 0 8px 8px;
-    margin-top: 4px;
-    padding-top: 10px;
-  }
-
-  .mobile-user-menu {
-    position: absolute;
-    top: 64px;
-    right: 1.25rem;
-    width: 230px;
-    z-index: 20;
-    background: #1e1e1b;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  }
-
-  .mobile-user-menu-header {
-    padding: 8px 10px 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 6px;
-    cursor: pointer;
-  }
-
-  .mobile-user-menu-header .user-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #f2f1ed;
-  }
-
-  .mobile-user-menu-header .user-email {
-    font-size: 12px;
-    color: rgba(242, 241, 237, 0.45);
-  }
-
-  .fab {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    right: 20px;
-    bottom: max(24px, env(safe-area-inset-bottom));
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: #4b4ae0;
-    color: #ffffff;
-    border: none;
-    box-shadow: 0 6px 20px rgba(75, 74, 224, 0.4);
-    cursor: pointer;
-    z-index: 99;
-  }
-
-  .board-empty-state {
-    width: 100%;
-    min-height: 160px;
-    padding: 32px 20px;
-    margin: 0;
-  }
-
-  .board-empty-state p {
-    font-size: 13px;
-  }
-
-  .task-card-overlay-wrapper {
-    max-width: calc(100vw - 32px);
-  }
-
-  .task-card-overlay {
-    width: 100%;
-    max-width: 280px;
-  }
-
-  .jira-transition-badge {
-    max-width: calc(100vw - 32px);
-    font-size: 11px !important;
-    padding: 5px 10px !important;
-  }
-
-  .dragging-column-overlay {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
+    flex: 1 1 100%;
   }
 
   .dragging-column-overlay .column-header {

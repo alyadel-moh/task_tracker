@@ -32,6 +32,7 @@ import useGetProjectMembers from "../hooks/getAllprojectMembers";
 import "../css/TaskDetailsPage.css";
 import { Priority, ProjectMember } from "./types";
 import { useAppStore } from "../store/useAppStore";
+import useGetStatuses from "../hooks/getAllStatusesHook";
 const PRIORITY_OPTIONS = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
@@ -137,7 +138,7 @@ interface EntryFormState {
 const TaskDetailsPage = () => {
   const navigate = useNavigate();
   const [savingTask, setSavingTask] = useState(false);
-  const { user, statuses, userRole } = useAppStore();
+  const { user, userRole } = useAppStore();
 
   const [showAddEntry, setShowAddEntry] = useState(false);
   const [newDuration, setNewDuration] = useState("");
@@ -176,6 +177,7 @@ const TaskDetailsPage = () => {
   const { data: projectMembers = [] } = useGetProjectMembers(projectId);
 
   const updateTaskMutation = useUpdateTask(projectId);
+  const { data: statuses } = useGetStatuses(projectId);
   const createEntryMutation = useCreateTimeEntry(taskId);
   const updateEntryMutation = useUpdateTimeEntry(taskId);
   const deleteEntryMutation = useDeleteTimeEntry(taskId);

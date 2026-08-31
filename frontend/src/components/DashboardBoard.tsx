@@ -718,12 +718,19 @@ const DashboardBoard = ({
         ) : draggingColumn ? (
           <div className="column dragging-column-overlay">
             <div className="column-header column-header-desktop">
-              <span
-                className={`status-dot status-dot-${getStatusColorKey(
-                  draggingColumn.name,
-                )}`}
-              />
-              <span>{draggingColumn.name}</span>
+              <div className="column-header-left">
+                <span
+                  className={`status-dot status-dot-${getStatusColorKey(
+                    draggingColumn.name,
+                  )}`}
+                />
+                <span className="column-name-static">
+                  {draggingColumn.name}
+                </span>
+                <span className="column-count">
+                  {getTaskCountForStatus(draggingColumn.id)}
+                </span>
+              </div>
             </div>
           </div>
         ) : null}
