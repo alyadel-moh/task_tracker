@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +13,7 @@ import {
   Camera,
   UploadCloud,
   KeyRound,
-  RefreshCw,
+  RotateCw,
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
@@ -27,7 +27,7 @@ import { uploadImageToCloudinary } from "../hooks/UploadPhoto";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.email({ message: "Invalid email address" }),
+  email: z.email("Invalid email address").min(1, "Email is required"),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters" }),
@@ -39,7 +39,7 @@ interface PendingData extends FormData {
   photoUrl?: string | null;
 }
 
-const Signup = () => {
+const Signup: React.FC = () => {
   const navigate = useNavigate();
 
   // Form states
@@ -65,6 +65,13 @@ const Signup = () => {
     formState: { errors },
     reset,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  // Format seconds into mm:ss
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -102,7 +109,7 @@ const Signup = () => {
           setPendingUser(payload);
           setSessionToken(res.token);
           setStep("otp");
-          setResendCooldown(900);
+          setResendCooldown(900); // 15 minutes
           toast.success("Verification code sent to your email!");
           reset();
         },
@@ -144,7 +151,7 @@ const Signup = () => {
     resendMutation.mutate(pendingUser, {
       onSuccess: (res: any) => {
         if (res?.token) setSessionToken(res.token);
-        setResendCooldown(900);
+        setResendCooldown(900); // 15 minutes
         toast.success("New verification code sent!");
       },
       onError: (err: any) => {
@@ -175,6 +182,7 @@ const Signup = () => {
             </div>
           </div>
         )}
+
         {step === "otp" ? (
           /* ================= STEP 2: 6-DIGIT OTP ================= */
           <div>
@@ -188,74 +196,93 @@ const Signup = () => {
             </p>
 
             <form onSubmit={handleVerifyOtp} style={{ marginTop: "24px" }}>
-              <div className="otp-input-row">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <input
-                    key={i}
-                    id={`update-email-otp-${i}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    className="otp-box"
-                    value={otp[i] || ""}
-                    disabled={verifyOtpMutation.isPending}
-                    autoFocus={i === 0}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      const next = otp.split("");
+              <div className="field">
+                {/* Header Row with Verification Code + Resend Button */}
+                <div className="field-label-row">
+                  <span className="field-label">Verification Code</span>
+                  <button
+                    type="button"
+                    className="resend-code-btn"
+                    onClick={handleResendOtp}
+                    disabled={resendMutation.isPending || resendCooldown > 0}
+                  >
+                    {resendMutation.isPending ? (
+                      <Loader2 size={12} className="spin" />
+                    ) : (
+                      <RotateCw size={12} />
+                    )}
+                    {resendCooldown > 0
+                      ? `Resend Code (${formatTimer(resendCooldown)})`
+                      : "Resend Code"}
+                  </button>
+                </div>
 
-                      if (val) {
-                        // Take the last entered character if user types over an existing digit
-                        next[i] = val.slice(-1);
-                        setOtp(next.join("").slice(0, 6));
-
-                        // Auto-focus next box
-                        if (i < 5) {
-                          const nextBox = document.getElementById(
-                            `update-email-otp-${i + 1}`,
-                          );
-                          if (nextBox) (nextBox as HTMLInputElement).focus();
-                        }
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Backspace") {
-                        e.preventDefault();
+                {/* 6-Digit OTP Segmented Input */}
+                <div className="otp-input-row">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <input
+                      key={i}
+                      id={`signup-otp-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      className="otp-box"
+                      value={otp[i] || ""}
+                      disabled={verifyOtpMutation.isPending}
+                      autoFocus={i === 0}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
                         const next = otp.split("");
 
-                        if (otp[i]) {
-                          // 1. If current box has a value, clear it
-                          next[i] = "";
-                          setOtp(next.join(""));
-                        } else if (i > 0) {
-                          // 2. If current box is empty, clear previous box and focus it
-                          next[i - 1] = "";
-                          setOtp(next.join(""));
-                          const prevBox = document.getElementById(
-                            `update-email-otp-${i - 1}`,
-                          );
-                          if (prevBox) (prevBox as HTMLInputElement).focus();
+                        if (val) {
+                          next[i] = val.slice(-1);
+                          setOtp(next.join("").slice(0, 6));
+
+                          if (i < 5) {
+                            const nextBox = document.getElementById(
+                              `signup-otp-${i + 1}`,
+                            );
+                            if (nextBox) (nextBox as HTMLInputElement).focus();
+                          }
                         }
-                      }
-                    }}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pasted = e.clipboardData
-                        .getData("text")
-                        .replace(/\D/g, "")
-                        .slice(0, 6);
-                      if (pasted) {
-                        setOtp(pasted);
-                        // Focus the box corresponding to paste length or the last box
-                        const targetIndex = Math.min(pasted.length, 5);
-                        const targetBox = document.getElementById(
-                          `update-email-otp-${targetIndex}`,
-                        );
-                        if (targetBox) (targetBox as HTMLInputElement).focus();
-                      }
-                    }}
-                  />
-                ))}
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Backspace") {
+                          e.preventDefault();
+                          const next = otp.split("");
+
+                          if (otp[i]) {
+                            next[i] = "";
+                            setOtp(next.join(""));
+                          } else if (i > 0) {
+                            next[i - 1] = "";
+                            setOtp(next.join(""));
+                            const prevBox = document.getElementById(
+                              `signup-otp-${i - 1}`,
+                            );
+                            if (prevBox) (prevBox as HTMLInputElement).focus();
+                          }
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData
+                          .getData("text")
+                          .replace(/\D/g, "")
+                          .slice(0, 6);
+                        if (pasted) {
+                          setOtp(pasted);
+                          const targetIndex = Math.min(pasted.length, 5);
+                          const targetBox = document.getElementById(
+                            `signup-otp-${targetIndex}`,
+                          );
+                          if (targetBox)
+                            (targetBox as HTMLInputElement).focus();
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
 
               <button
@@ -274,26 +301,6 @@ const Signup = () => {
                 )}
               </button>
             </form>
-
-            <div className="verification-actions" style={{ marginTop: "18px" }}>
-              <button
-                type="button"
-                className="resend-btn"
-                onClick={handleResendOtp}
-                disabled={resendMutation.isPending || resendCooldown > 0}
-              >
-                {resendMutation.isPending ? (
-                  <Loader2 size={15} className="spin" />
-                ) : resendCooldown > 0 ? (
-                  `Resend code in ${Math.ceil(resendCooldown / 60)}  mins`
-                ) : (
-                  <>
-                    <RefreshCw size={14} />
-                    Resend code
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         ) : step === "success" ? (
           /* ================= STEP 3: SUCCESS ================= */

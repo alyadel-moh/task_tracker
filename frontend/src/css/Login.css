@@ -20,16 +20,19 @@
   padding: 2rem;
 }
 
+/* ==========================================================================
+   Main Form Card
+   ========================================================================== */
 .login-card {
   width: 100%;
   max-width: 460px;
-  background: rgba(20, 20, 18, 0.4);
+  background: rgba(20, 20, 18, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 3rem 2.75rem;
-  backdrop-filter: blur(6px) saturate(140%);
-  -webkit-backdrop-filter: blur(6px) saturate(140%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   transition:
     box-shadow 0.2s ease,
     transform 0.2s ease;
@@ -39,24 +42,24 @@
 @keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .login-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
 .login-logo {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -75,32 +78,11 @@
 }
 
 .login-subtitle {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 400;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.78);
-  margin: 0 0 28px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.form-banner {
-  font-size: 14px;
-  font-weight: 500;
-  padding: 11px 14px;
-  border-radius: 10px;
-  margin-bottom: 18px;
-}
-
-.form-banner-error {
-  background: rgba(224, 90, 90, 0.18);
-  color: #ffb4b4;
-  border: 1px solid rgba(224, 90, 90, 0.4);
-}
-
-.form-banner-success {
-  background: rgba(120, 200, 120, 0.18);
-  color: #b7e8b7;
-  border: 1px solid rgba(120, 200, 120, 0.4);
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0 0 26px;
 }
 
 .login-form {
@@ -110,13 +92,13 @@
 
 .field {
   display: block;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .field-label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   display: block;
   margin-bottom: 8px;
 }
@@ -125,10 +107,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .field-label-row .field-label {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .forgot-password-link {
@@ -148,6 +131,33 @@
   text-underline-offset: 2px;
 }
 
+.resend-code-btn {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.resend-code-btn:hover:not(:disabled) {
+  color: #c7d2fe;
+  text-decoration: underline;
+}
+
+.resend-code-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .input-with-icon {
   position: relative;
   display: flex;
@@ -160,7 +170,7 @@
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   pointer-events: none;
   z-index: 2;
   display: flex;
@@ -177,12 +187,12 @@
   width: 100%;
   height: 48px;
   padding: 0 42px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 11px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   box-sizing: border-box;
-  background: rgba(20, 20, 18, 0.35);
+  background: rgba(20, 20, 18, 0.4);
   color: #ffffff;
   transition:
     border-color 0.15s ease,
@@ -191,40 +201,38 @@
 }
 
 .field input::placeholder {
-  color: rgba(255, 255, 255, 0.42);
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .field input:hover {
-  border-color: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  background: rgba(20, 20, 18, 0.6);
 }
 
 .field input:-webkit-autofill,
 .field input:-webkit-autofill:hover,
 .field input:-webkit-autofill:focus,
-.field input:-webkit-autofill:active,
-.field input:autofill {
+.field input:-webkit-autofill:active {
   -webkit-text-fill-color: #ffffff !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.55) inset !important;
-  box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.55) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.75) inset !important;
+  box-shadow: 0 0 0 1000px rgba(30, 30, 28, 0.75) inset !important;
   background-color: transparent !important;
   caret-color: #ffffff !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   transition:
     background-color 99999s ease-in-out 0s,
     color 99999s ease-in-out 0s;
 }
 
-.field input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14);
-  background: rgba(20, 20, 18, 0.48);
-}
-
 .field-error {
   display: block;
-  color: #ffb4b4;
+  color: #fca5a5;
   font-size: 12px;
   font-weight: 500;
   margin-top: 6px;
@@ -238,7 +246,7 @@
   z-index: 2;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   padding: 6px;
   display: flex;
@@ -252,19 +260,19 @@
 
 .password-toggle:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .login-submit {
   width: 100%;
-  height: 50px;
-  margin-top: 10px;
+  height: 48px;
+  margin-top: 8px;
   background: #ffffff;
-  color: #171715;
+  color: #111110;
   border: none;
   border-radius: 11px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition:
@@ -275,17 +283,17 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .login-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .login-submit:not(:disabled):hover {
-  background: #e8e8e4;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: #ecece9;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .login-submit:not(:disabled):active {
@@ -309,7 +317,7 @@
   font-size: 14px;
   color: rgba(255, 255, 255, 0.68);
   text-align: center;
-  margin: 26px 0 0;
+  margin: 24px 0 0;
 }
 
 .login-footer a {
@@ -321,24 +329,23 @@
 }
 
 .login-footer a:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* ==========================================================================
    Forgot Password Modal
    ========================================================================== */
-
 .reset-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 16px;
-  animation: overlay-in 0.15s ease;
+  animation: overlay-in 0.18s ease;
 }
 
 @keyframes overlay-in {
@@ -354,8 +361,11 @@
   position: relative;
   width: 100%;
   max-width: 440px;
-  margin: 0;
-  animation: card-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(18, 18, 16, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 2.5rem 2.25rem;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+  animation: card-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reset-modal-close {
@@ -365,8 +375,8 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
@@ -384,17 +394,17 @@
 }
 
 .reset-modal-close:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
 }
 
 .reset-modal-logo {
   width: 44px;
   height: 44px;
-  margin-bottom: 18px;
-  background: rgba(99, 102, 241, 0.16);
-  border-color: rgba(99, 102, 241, 0.35);
+  margin-bottom: 16px;
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(99, 102, 241, 0.3);
   color: #a5b4fc;
-  box-shadow: 0 0 18px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
 }
 
 .reset-modal-title {
@@ -402,12 +412,12 @@
   margin-bottom: 4px;
 }
 
-/* Step indicator */
+/* Step Indicator */
 .reset-steps {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 22px;
 }
 
@@ -415,10 +425,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.35);
-  transition: color 0.25s ease;
+  transition: color 0.2s ease;
 }
 
 .reset-step.active {
@@ -426,26 +436,26 @@
 }
 
 .reset-step.done {
-  color: rgba(74, 222, 128, 0.9);
+  color: #4ade80;
 }
 
 .reset-step-dot {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   font-size: 11px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.08);
   border: 1.5px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .reset-step.active .reset-step-dot {
   background: #ffffff;
-  color: #171715;
+  color: #111110;
   border-color: #ffffff;
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
 }
@@ -457,18 +467,20 @@
 }
 
 .reset-step-line {
-  width: 28px;
+  width: 24px;
   height: 1.5px;
   background: rgba(255, 255, 255, 0.15);
 }
 
 .highlight-email {
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 600;
   word-break: break-all;
 }
 
-/* Segmented OTP boxes */
+/* ==========================================================================
+   Segmented OTP Input Boxes
+   ========================================================================== */
 .otp-input-row {
   display: flex;
   justify-content: space-between;
@@ -481,19 +493,18 @@
   height: 52px;
   aspect-ratio: 1;
   text-align: center;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #ffffff;
-  background: rgba(10, 10, 8, 0.4);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 10, 8, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   border-radius: 12px;
   outline: none;
-  padding: 0;
+  padding: 0 !important;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
-    background 0.15s ease,
-    transform 0.1s ease;
+    background 0.15s ease;
 }
 
 .otp-box:hover {
@@ -502,41 +513,39 @@
 
 .otp-box:focus {
   border-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
-  background: rgba(10, 10, 8, 0.6);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+  background: rgba(10, 10, 8, 0.7);
 }
 
 .otp-box:not(:placeholder-shown):not(:focus) {
-  border-color: rgba(99, 102, 241, 0.5);
-  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(99, 102, 241, 0.1);
 }
 
-@media (min-width: 600px) and (max-width: 1024px) {
-  .login-card {
-    max-width: 480px;
-    padding: 3rem 2.5rem;
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 1rem;
   }
-}
 
-@media (min-width: 1025px) {
   .login-card {
-    max-width: 460px;
+    padding: 2.25rem 1.5rem;
+    border-radius: 20px;
   }
-}
 
-@media (max-width: 380px) {
-  .login-card {
-    padding: 2rem 1.5rem;
-    border-radius: 18px;
+  .reset-modal-card {
+    padding: 2rem 1.25rem;
   }
 
   .login-title {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .otp-box {
     height: 46px;
     font-size: 18px;
+    border-radius: 9px;
   }
 }
