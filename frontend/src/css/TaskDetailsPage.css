@@ -353,36 +353,46 @@ body {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
-/* Status Badge Base: Defaults to Purple for all custom statuses */
+/* Status Badge Base */
 .badge-status {
   background: rgba(255, 255, 255, 0.03) !important;
   color: rgba(242, 241, 237, 0.75) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Default Custom Status Dot */
 .badge-status .badge-status-dot {
   background-color: #a855f7 !important;
   box-shadow: 0 0 6px rgba(168, 85, 247, 0.5) !important;
 }
 
-/* Specific Status Overrides */
-.badge-status[data-status*="todo" i] .badge-status-dot,
-.badge-status[data-status*="to do" i] .badge-status-dot,
-.badge-status[data-status*="to-do" i] .badge-status-dot {
+/* Explicit To Do Statuses (Gray/Slate) */
+.badge-status[data-status="TODO"] .badge-status-dot,
+.badge-status[data-status="TO_DO"] .badge-status-dot,
+.badge-status[data-status="To Do"] .badge-status-dot,
+.badge-status[data-status="todo"] .badge-status-dot,
+.badge-status[data-status="to-do"] .badge-status-dot {
   background-color: #94a3b8 !important;
   box-shadow: 0 0 6px rgba(148, 163, 184, 0.5) !important;
 }
 
-.badge-status[data-status*="progress" i] .badge-status-dot {
+/* In Progress Statuses (Amber) */
+.badge-status[data-status="IN_PROGRESS"] .badge-status-dot,
+.badge-status[data-status="INPROGRESS"] .badge-status-dot,
+.badge-status[data-status="In Progress"] .badge-status-dot,
+.badge-status[data-status="inprogress"] .badge-status-dot {
   background-color: #f59e0b !important;
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.5) !important;
 }
 
-.badge-status[data-status*="done" i] .badge-status-dot,
-.badge-status[data-status*="complete" i] .badge-status-dot {
+/* Done Statuses (Emerald) */
+.badge-status[data-status="DONE"] .badge-status-dot,
+.badge-status[data-status="Done"] .badge-status-dot,
+.badge-status[data-status="done"] .badge-status-dot,
+.badge-status[data-status="COMPLETE"] .badge-status-dot,
+.badge-status[data-status="Complete"] .badge-status-dot {
   background-color: #10b981 !important;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5) !important;
 }
 
 /* Priority Badges */

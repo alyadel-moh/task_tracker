@@ -35,6 +35,10 @@ export default {
         allowNull: false,
         defaultValue: DataTypes.NOW,
       },
+      is_email_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     });
   },
 

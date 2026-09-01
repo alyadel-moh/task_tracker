@@ -5,6 +5,11 @@ import {
   me,
   logout,
   update,
+  resendVerificationEmail,
+  verifyOtp,
+  verifyUpdatedEmailOtp,
+  resetPassword,
+  forgotPassword,
 } from "../controllers/authController";
 import { authenticate } from "../middleware/auth";
 
@@ -157,5 +162,11 @@ router.post("/logout", logout); // public (stateless, nothing to check)
 router.get("/me", authenticate, me);
 
 router.patch("/update", authenticate, update);
+
+router.post("/resend-verification", resendVerificationEmail);
+router.post("/verify-otp", verifyOtp);
+router.post("/verify-updated-email", authenticate, verifyUpdatedEmailOtp);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 export default router;

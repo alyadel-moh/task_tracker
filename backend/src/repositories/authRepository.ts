@@ -6,8 +6,11 @@ export class AuthRepository {
     email: string;
     password: string;
     photoUrl?: string | null;
+    isEmailVerified: boolean;
+    emailVerificationToken?: string | null;
+    emailVerificationExpires?: Date | null;
   }) {
-    return User.create(data);
+    return await User.create(data);
   }
   static async getUserByEmailAndPass(email: string) {
     return await User.scope("withPassword").findOne({
