@@ -101,7 +101,7 @@ export class StatusService {
     if (status.isDefault) {
       throw { status: 400, message: "Cannot delete default status" };
     }
-    const taskCount = await TaskRepository.getTasksassignedwithStatusId(
+    const taskCount = await TaskRepository.getTasksAssignedWithStatusId(
       projectId,
       status.id,
     );

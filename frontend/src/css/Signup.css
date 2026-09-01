@@ -485,6 +485,338 @@
 .signup-footer a:hover {
   color: rgba(255, 255, 255, 0.85);
 }
+/* Verification Sent State */
+.verification-sent-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.highlight-email {
+  color: #2563eb;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.verification-instruction-box {
+  margin: 1.25rem 0;
+  padding: 0.875rem 1rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.resend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resend-btn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.resend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.goto-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.goto-login-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+/* ==========================================================================
+   Step Progress Indicator
+   ========================================================================== */
+.signup-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.signup-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s ease;
+}
+
+.signup-step.active {
+  color: #ffffff;
+}
+
+.signup-step.done {
+  color: rgba(74, 222, 128, 0.9);
+}
+
+.signup-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+
+.signup-step.active .signup-step-dot {
+  background: #ffffff;
+  color: #171715;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+
+.signup-step.done .signup-step-dot {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.5);
+  color: #4ade80;
+}
+
+.signup-step-line {
+  width: 28px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ==========================================================================
+   OTP Verification Screen
+   ========================================================================== */
+.signup-logo-otp {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.highlight-email {
+  color: #ffffff;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.otp-input-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.otp-box {
+  width: 100%;
+  aspect-ratio: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(10, 10, 8, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    transform 0.1s ease;
+  caret-color: transparent;
+}
+
+.otp-box:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+  background: rgba(10, 10, 8, 0.6);
+  transform: translateY(-1px);
+}
+
+.otp-box:not(:placeholder-shown) {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+/* Verification Sent / Actions */
+.verification-instruction-box {
+  margin: 1.25rem 0;
+  padding: 0.875rem 1rem;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+.verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.resend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resend-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Success Screen
+   ========================================================================== */
+.success-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: success-fade-in 0.4s ease;
+}
+
+@keyframes success-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-icon-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1.5px solid rgba(74, 222, 128, 0.35);
+  box-shadow: 0 0 0 8px rgba(74, 222, 128, 0.06);
+  margin-bottom: 20px;
+  animation: success-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes success-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.goto-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #171715;
+  background-color: #ffffff;
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
+}
+
+.goto-login-btn:hover {
+  background-color: #e8e8e4;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.goto-login-btn:active {
+  transform: scale(0.98);
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @media (max-width: 480px) {
   .signup-page {

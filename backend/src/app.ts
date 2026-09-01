@@ -15,6 +15,7 @@ import { sequelize } from "./models";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import { httpLogger } from "./middleware/httpLogger";
+import { initTaskReminderCron } from "./jobs/taskReminderJob";
 
 const app: Application = express();
 
@@ -39,6 +40,8 @@ async function startServer(): Promise<void> {
   try {
     await sequelize.authenticate();
     console.log("Database connected successfully.");
+    initTaskReminderCron();
+    console.log("Task reminder cron job initialized.");
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

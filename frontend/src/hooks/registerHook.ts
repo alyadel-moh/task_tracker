@@ -8,6 +8,7 @@ interface RegisterUserData {
   password: string;
 }
 interface RegisterUserResponse {
+  email: string;
   status: string;
   message: string;
 }

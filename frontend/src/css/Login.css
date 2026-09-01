@@ -121,6 +121,33 @@
   margin-bottom: 8px;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label-row .field-label {
+  margin-bottom: 8px;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.forgot-password-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .input-with-icon {
   position: relative;
   display: flex;
@@ -297,6 +324,194 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
+/* ==========================================================================
+   Forgot Password Modal
+   ========================================================================== */
+
+.reset-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: overlay-in 0.15s ease;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.reset-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  margin: 0;
+  animation: card-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reset-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.reset-modal-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.reset-modal-close:active {
+  transform: scale(0.92);
+}
+
+.reset-modal-logo {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.2);
+}
+
+.reset-modal-title {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+/* Step indicator */
+.reset-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.reset-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s ease;
+}
+
+.reset-step.active {
+  color: #ffffff;
+}
+
+.reset-step.done {
+  color: rgba(74, 222, 128, 0.9);
+}
+
+.reset-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+
+.reset-step.active .reset-step-dot {
+  background: #ffffff;
+  color: #171715;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+}
+
+.reset-step.done .reset-step-dot {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.5);
+  color: #4ade80;
+}
+
+.reset-step-line {
+  width: 28px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.highlight-email {
+  color: #ffffff;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+/* Segmented OTP boxes */
+.otp-input-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.otp-box {
+  width: 100%;
+  height: 52px;
+  aspect-ratio: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(10, 10, 8, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  outline: none;
+  padding: 0;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.otp-box:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.otp-box:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+  background: rgba(10, 10, 8, 0.6);
+  transform: translateY(-1px);
+}
+
+.otp-box:not(:placeholder-shown):not(:focus) {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.08);
+}
+
 @media (min-width: 600px) and (max-width: 1024px) {
   .login-card {
     max-width: 480px;
@@ -318,5 +533,10 @@
 
   .login-title {
     font-size: 22px;
+  }
+
+  .otp-box {
+    height: 46px;
+    font-size: 18px;
   }
 }

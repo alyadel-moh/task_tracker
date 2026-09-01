@@ -185,7 +185,7 @@ export class TaskRepository {
       transaction,
     });
   }
-  static async getTasksassignedwithStatusId(
+  static async getTasksAssignedWithStatusId(
     projectId: string,
     statusId: string,
     transaction?: Transaction,
@@ -194,6 +194,7 @@ export class TaskRepository {
       where: { projectId, statusId },
       transaction,
       attributes: ["id"],
+      raw: true,
     });
   }
   static async getTaskWithAccess(taskId: string, userId: string) {

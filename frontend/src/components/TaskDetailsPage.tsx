@@ -118,15 +118,23 @@ const getInitials = (name?: string | null): string => {
 export const getStatusColorKey = (
   name?: string,
 ): "todo" | "in-progress" | "done" | "custom" => {
-  if (!name) return "custom";
+  if (!name) return "todo";
+
   const normalized = name
     .trim()
     .toLowerCase()
-    .replace(/[\s_]+/g, "");
-  if (normalized === "todo" || normalized === "to-do") return "todo";
-  if (normalized === "inprogress" || normalized === "in-progress")
+    .replace(/[\s_\-]+/g, "");
+
+  if (normalized === "todo") return "todo";
+  if (normalized === "inprogress" || normalized === "progress")
     return "in-progress";
-  if (normalized === "done") return "done";
+  if (
+    normalized === "done" ||
+    normalized === "complete" ||
+    normalized === "completed"
+  )
+    return "done";
+
   return "custom";
 };
 interface EntryFormState {
@@ -288,30 +296,38 @@ const TaskDetailsPage = () => {
 
   if (!task) return null;
 
-  const isOverdue =
-    task.dueDate &&
-    task.statusName !== "Done" &&
-    task.statusName !== "DONE" &&
-    new Date(task.dueDate) < new Date();
+  const isOverdue = (() => {
+    if (!task.dueDate || task.statusName === "DONE") return false;
+    const due = new Date(task.dueDate).getTime();
+    const now = new Date().getTime();
+    return due < now;
+  })();
 
   const getDueLabel = (): string | null => {
-    if (
-      !task.dueDate ||
-      task.statusName === "Done" ||
-      task.statusName === "DONE"
-    )
-      return null;
+    if (!task.dueDate || task.statusName === "DONE") return null;
 
-    const today = new Date(new Date().toDateString());
+    const now = new Date();
     const due = new Date(task.dueDate);
-    const diffDays = Math.round(
-      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    ).getTime();
+    const startOfDueDate = new Date(
+      due.getFullYear(),
+      due.getMonth(),
+      due.getDate(),
+    ).getTime();
+
+    const diffCalendarDays = Math.round(
+      (startOfDueDate - startOfToday) / (1000 * 60 * 60 * 24),
     );
 
-    if (diffDays < 0) return "Overdue";
-    if (diffDays === 0) return "Due today";
-    if (diffDays === 1) return "Due tomorrow";
-    return `Due in ${diffDays}d`;
+    if (diffCalendarDays < 0) return "Overdue";
+    if (diffCalendarDays === 0) return "Due today";
+    if (diffCalendarDays === 1) return "Due tomorrow";
+    return `Due in ${diffCalendarDays}d`;
   };
 
   const dueLabel = getDueLabel();
@@ -744,7 +760,9 @@ const TaskDetailsPage = () => {
                     displayValue={
                       <span
                         className="task-badge badge-status"
-                        data-status={taskDraft.statusName || task?.statusName}
+                        data-status={
+                          taskDraft.statusName || task?.statusName || "TODO"
+                        }
                       >
                         <span className="badge-status-dot" />
                         {currentStatusLabel}
