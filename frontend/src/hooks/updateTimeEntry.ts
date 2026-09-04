@@ -29,7 +29,7 @@ const useUpdateTimeEntry = (taskId: string) => {
     mutationFn: (entryData: UpdateTimeEntryData) => {
       return axiosInstance
         .patch<UpdateTimeEntryResponse>(
-          `time-entries/update/${taskId}/${entryData.id}`,
+          `time-entries/${taskId}/${entryData.id}`,
           entryData,
         )
         .then((response) => response.data);

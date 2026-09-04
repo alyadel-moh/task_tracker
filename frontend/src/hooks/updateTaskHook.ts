@@ -29,7 +29,7 @@ const useUpdateTask = (projectId: string) => {
     mutationFn: (taskData: UpdateTaskPayload) => {
       const { id, ...rest } = taskData;
       return axiosInstance
-        .patch<UpdateTaskResponse>(`tasks/update/${projectId}/${id}`, rest)
+        .patch<UpdateTaskResponse>(`tasks/${projectId}/${id}`, rest)
         .then((response) => response.data);
     },
     onSuccess: (data, variables) => {

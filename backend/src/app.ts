@@ -29,7 +29,7 @@ app.use("/api/projects", projectRoutes); // use project routes
 app.use("/api/tasks", taskRoutes); // use task routes
 app.use("/api/time-entries", timeEntryRoutes); // use time entry routes
 app.use("/api/task_history", historyRoutes); // use history routes
-app.use("/api/projects/statuses", statusRoutes); // use status routes
+app.use("/api/projects", statusRoutes); // use status routes
 app.use("/api/projects", projectMembersRoutes); // use project members routes
 
 app.use(errorHandler);

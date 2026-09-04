@@ -16,7 +16,7 @@ const useCreateProject = () => {
   return useMutation<CreateProjectResponse, AxiosError, CreateProjectData>({
     mutationFn: (newProjectData: CreateProjectData) => {
       return axiosInstance
-        .post<CreateProjectResponse>("projects/create", newProjectData)
+        .post<CreateProjectResponse>("projects", newProjectData)
         .then((response) => response.data);
     },
     onMutate: async (newProjectData: CreateProjectData) => {

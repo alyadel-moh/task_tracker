@@ -7,7 +7,6 @@ const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ||
 export interface JwtPayload {
   id: number | string;
   email?: string;
-  isEmailVerified?: boolean;
 }
 
 export const generateToken = (payload: JwtPayload): string => {

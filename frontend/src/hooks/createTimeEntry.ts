@@ -25,7 +25,7 @@ const useCreateTimeEntry = (taskId: string) => {
     mutationFn: (newTimeEntryData: CreateTimeEntryData) => {
       return axiosInstance
         .post<CreateTimeEntryResponse>(
-          `time-entries/create/${taskId}`,
+          `time-entries/${taskId}`,
           newTimeEntryData,
         )
         .then((response) => response.data);

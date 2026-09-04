@@ -13,7 +13,7 @@ const useDeleteProject = () => {
   return useMutation<DeleteProjectResponse, AxiosError, string>({
     mutationFn: (projectId: string) => {
       return axiosInstance
-        .delete<DeleteProjectResponse>(`projects/delete/${projectId}`)
+        .delete<DeleteProjectResponse>(`projects/${projectId}`)
         .then((response) => response.data);
     },
     onSuccess: (data, deletedProjectId) => {
