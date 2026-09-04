@@ -20,7 +20,7 @@ const useUpdateProject = (id: string) => {
   return useMutation<UpdateProjectResponse, AxiosError, UpdateProjectData>({
     mutationFn: (projectData: UpdateProjectData) => {
       return axiosInstance
-        .patch<UpdateProjectResponse>(`projects/update/${id}`, projectData)
+        .patch<UpdateProjectResponse>(`projects/${id}`, projectData)
         .then((response) => response.data);
     },
     onMutate: async (newProjectData: UpdateProjectData) => {

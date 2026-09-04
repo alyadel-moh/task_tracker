@@ -17,6 +17,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "vitest.config.ts"],
+  "include": ["src", "vitest.config.ts", "../backend/src/jobs"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

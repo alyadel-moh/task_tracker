@@ -24,9 +24,7 @@ const useDeleteTimeEntry = (taskId: string) => {
   >({
     mutationFn: (entryId: string) => {
       return axiosInstance
-        .delete<DeleteTimeEntryResponse>(
-          `time-entries/delete/${taskId}/${entryId}`,
-        )
+        .delete<DeleteTimeEntryResponse>(`time-entries/${taskId}/${entryId}`)
         .then((response) => response.data);
     },
     onSuccess: (data, entryId) => {

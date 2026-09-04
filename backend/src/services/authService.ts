@@ -140,7 +140,6 @@ export class AuthService {
     return generateToken({
       id: user.id,
       email: user.email,
-      isEmailVerified: user.isEmailVerified,
     });
   }
 

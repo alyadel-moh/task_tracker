@@ -25,7 +25,7 @@ const useCreateTask = (projectId: string) => {
   return useMutation<CreateTaskResponse, AxiosError, CreateTaskData>({
     mutationFn: (newTaskData: CreateTaskData) => {
       return axiosInstance
-        .post<CreateTaskResponse>(`tasks/create/${projectId}`, newTaskData)
+        .post<CreateTaskResponse>(`tasks/${projectId}`, newTaskData)
         .then((response) => response.data);
     },
     onSuccess: (data: CreateTaskResponse) => {

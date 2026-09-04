@@ -1,71 +1,27 @@
 import { Router, RequestHandler } from "express";
-import {
-  create,
-  getAll,
-  update,
-  remove,
-} from "../controllers/statusController";
+import { create, update, remove } from "../controllers/projectController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
 router.use(authenticate);
-/**
- * @openapi
- * /api/projects/statuses/{projectId}:
- *   get:
- *     summary: Retrieve all statuses for a specific project
- *     tags: [Statuses]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Unique ID of the project
- *     responses:
- *       200:
- *         description: List of project statuses ordered by position
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Status'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Project not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-router.get("/:projectId", getAll as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/statuses/{projectId}:
+ * tags:
+ *   name: Projects
+ *   description: Workspace project creation, configuration, and management
+ */
+
+/**
+ * @openapi
+ * /api/projects:
  *   post:
- *     summary: Create a new custom status at the end of the board
- *     tags: [Statuses]
+ *     summary: Create a new project with default statuses and owner membership
+ *     description: Initializes a new project, automatically generates default board statuses (TODO, IN_PROGRESS, DONE), and binds the calling user as the project OWNER.
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: projectId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Unique ID of the project
  *     requestBody:
  *       required: true
  *       content:
@@ -76,10 +32,14 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
  *             properties:
  *               name:
  *                 type: string
- *                 example: QA Testing
+ *                 example: Mobile App Redesign
+ *               description:
+ *                 type: string
+ *                 nullable: true
+ *                 example: Client facing dashboard updates
  *     responses:
  *       201:
- *         description: Status created successfully
+ *         description: Project created successfully with owner membership assigned
  *         content:
  *           application/json:
  *             schema:
@@ -87,53 +47,77 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Status created successfully
- *                 status:
- *                   $ref: '#/components/schemas/Status'
+ *                   example: Project created successfully
+ *                 assignedProjectMembership:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                       description: Membership assignment ID
+ *                       example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+ *                     role:
+ *                       type: string
+ *                       example: OWNER
+ *                     project:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                           example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *                         name:
+ *                           type: string
+ *                           example: Mobile App Redesign
+ *                         description:
+ *                           type: string
+ *                           nullable: true
+ *                           example: Client facing dashboard updates
+ *                         userId:
+ *                           type: string
+ *                           format: uuid
+ *                           example: "c7f8a9e0-5678-4321-98ba-dcba09876543"
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
  *       400:
- *         description: Status name is required or empty
+ *         description: Validation error - project name missing or empty
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Project name is required
  *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Project not found
+ *         description: Unauthorized - missing, invalid, or expired JWT bearer token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/:projectId", create as unknown as RequestHandler);
+router.post("/", create as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/statuses/{projectId}/{statusId}:
+ * /api/projects/{id}:
  *   patch:
- *     summary: Update status title or reorder its position
- *     tags: [Statuses]
+ *     summary: Update project name or description
+ *     description: Modifies an existing project's metadata. Strictly restricted to active members with the OWNER role.
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: projectId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique ID of the project
- *       - in: path
- *         name: statusId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Unique ID of the status to update
+ *         description: Unique UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
  *     requestBody:
  *       required: true
  *       content:
@@ -143,78 +127,86 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *             properties:
  *               name:
  *                 type: string
- *                 example: In Review (QA)
- *               position:
- *                 type: integer
- *                 example: 2
+ *                 example: Updated Project Title
+ *               description:
+ *                 type: string
+ *                 nullable: true
+ *                 example: Updated project description
  *     responses:
  *       200:
- *         description: Status updated successfully
+ *         description: Project updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 status:
- *                   type: string
- *                   example: success
  *                 message:
  *                   type: string
- *                   example: Status updated successfully
- *                 status:
+ *                   example: Name updated successfully
+ *                 project:
  *                   type: object
  *                   properties:
  *                     name:
  *                       type: string
- *                     position:
- *                       type: integer
+ *                       example: Updated Project Title
+ *                     description:
+ *                       type: string
+ *                       nullable: true
+ *                       example: Updated project description
  *       400:
- *         description: Status name cannot be empty
+ *         description: Bad request - project name cannot be empty
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Project name cannot be empty
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - missing or invalid JWT bearer token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - caller is not an active OWNER of the project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Access denied. Only project owners can edit project details.
  *       404:
- *         description: Status not found
+ *         description: Project not found or user is not an active member
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Project not found
  */
-router.patch("/:projectId/:id", update as unknown as RequestHandler);
+router.patch("/:id", update as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/statuses/{projectId}/{statusId}:
+ * /api/projects/{id}:
  *   delete:
- *     summary: Delete a custom status and reorder remaining statuses
- *     tags: [Statuses]
+ *     summary: Delete a project and its associations
+ *     description: Permanently removes a project, cascading through its default statuses and tasks. Restricted strictly to the project OWNER.
+ *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: projectId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique ID of the project
- *       - in: path
- *         name: statusId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: Unique ID of the status to delete
+ *         description: Unique UUID of the project to delete
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
  *     responses:
  *       200:
- *         description: Status deleted successfully
+ *         description: Project deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -222,26 +214,30 @@ router.patch("/:projectId/:id", update as unknown as RequestHandler);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Status deleted successfully
- *       400:
- *         description: Default statuses cannot be deleted
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *                   example: Project deleted successfully
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - missing or invalid JWT bearer token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - caller is not an active OWNER of the project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Access denied. Only project owners delete a project.
  *       404:
- *         description: Status not found
+ *         description: Project not found or user is not an active member
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: Project not found
  */
-router.delete("/:projectId/:id", remove as unknown as RequestHandler);
+router.delete("/:id", remove as unknown as RequestHandler);
 
 export default router;

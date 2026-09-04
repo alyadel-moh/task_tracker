@@ -15,7 +15,7 @@ const useDeleteTask = (projectId: string, taskId: string) => {
   return useMutation<DeleteTaskResponse, AxiosError<DeleteTaskResponse>, void>({
     mutationFn: () => {
       return axiosInstance
-        .delete<DeleteTaskResponse>(`tasks/delete/${projectId}/${taskId}`)
+        .delete<DeleteTaskResponse>(`tasks/${projectId}/${taskId}`)
         .then((response) => response.data);
     },
     onSuccess: (data: DeleteTaskResponse) => {
