@@ -252,7 +252,7 @@
 
 .textarea-wrapper textarea {
   width: 100%;
-  padding: 12px 12px 12px 40px !important;
+  padding: 12px 12px 12px 42px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 14px;
@@ -279,7 +279,7 @@
   z-index: 2;
 }
 
-.textarea-wrapper textarea:hover:not(:focus) {
+area-wrapper textarea:hover:not(:focus) {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
