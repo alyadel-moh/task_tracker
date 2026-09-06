@@ -242,7 +242,8 @@
 .textarea-wrapper {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  width: 100%;
 }
 
 .textarea-wrapper .textarea-icon {
@@ -252,7 +253,7 @@
 
 .textarea-wrapper textarea {
   width: 100%;
-  padding: 12px 12px 12px 42px !important;
+  padding: 12px 12px 12px 40px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 14px;
@@ -268,19 +269,15 @@
     box-shadow 0.15s ease,
     background-color 0.15s ease;
 }
+
 .textarea-icon-slot {
   position: absolute;
   left: 13px;
-  top: 13px;
-  height: 21px;
+  top: 18px;
   display: flex;
   align-items: center;
   pointer-events: none;
   z-index: 2;
-}
-
-area-wrapper textarea:hover:not(:focus) {
-  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .textarea-wrapper:focus-within .textarea-icon {
@@ -382,14 +379,11 @@ area-wrapper textarea:hover:not(:focus) {
   .modal-card {
     padding: 1.25rem;
     border-radius: 14px;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 3rem);
   }
 
   .field-row {
     grid-template-columns: 1fr;
-  }
-
-  .modal-card {
-    overflow-y: auto !important;
-    max-height: calc(100vh - 3rem);
   }
 }
