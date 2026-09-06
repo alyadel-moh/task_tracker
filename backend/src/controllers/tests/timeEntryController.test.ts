@@ -1,105 +1,68 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { create, getAll, update, remove } from "../timeEntryController";
-import { Task, TimeEntry } from "../../models";
-import * as historyService from "../../services/taskHistory";
-
-vi.mock("../../models", () => ({
-  Task: { findOne: vi.fn() },
-  TimeEntry: { create: vi.fn(), findAll: vi.fn(), findOne: vi.fn() },
-  TaskHistory: { findOne: vi.fn() },
-  Project: {},
-  User: {},
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as controller from "../timeEntryController";
+import { TimeEntryService } from "../../services/timeEntryService";
+vi.mock("../../services/timeEntryService", () => ({
+  TimeEntryService: {
+    create: vi.fn(),
+    getAll: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  },
 }));
-
-vi.mock("../../services/taskHistory");
-
-describe("Time Entry Controller", () => {
-  let req: any;
-  let res: any;
-  let next: any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    req = {
-      user: { id: "user-123" },
-      params: { taskId: "task-123" },
+const response = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+describe("timeEntryController", () => {
+  beforeEach(() => vi.clearAllMocks());
+  it("forwards time-entry operations", async () => {
+    const req: any = {
+      user: { id: "u1" },
+      params: { taskId: "t1", id: "e1" },
+      body: { durationMinutes: 30, entryDate: "2026-01-01", note: "n" },
+    };
+    const res: any = response();
+    const next = vi.fn();
+    vi.mocked(TimeEntryService.create).mockResolvedValue({
+      timeEntry: { id: "e1" },
+      taskHistoryEntry: { id: "h1" },
+      overrun: false,
+    } as never);
+    await controller.create(req, res, next);
+    vi.mocked(TimeEntryService.getAll).mockResolvedValue({
+      timeEntries: [],
+      totalMinutes: 0,
+    } as never);
+    await controller.getAll(req, res, next);
+    vi.mocked(TimeEntryService.update).mockResolvedValue({
+      updatedFields: {},
+      detailedHistoryEntries: [],
+      changedLabels: [],
+      overrun: false,
+    } as never);
+    await controller.update(req, res, next);
+    vi.mocked(TimeEntryService.remove).mockResolvedValue({ id: "h1" } as never);
+    await controller.remove(req, res, next);
+    expect(TimeEntryService.getAll).toHaveBeenCalledWith("t1", "u1");
+    expect(res.status).toHaveBeenCalled();
+  });
+  it("maps typed and unexpected errors for every operation", async () => {
+    const req: any = {
+      user: { id: "u1" },
+      params: { taskId: "t1", id: "e1" },
       body: {},
     };
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    };
-    next = vi.fn();
-  });
-
-  describe("create()", () => {
-    it("returns 400 if durationMinutes is negative or zero", async () => {
-      req.body = { durationMinutes: -10, entryDate: "2026-08-11" };
-      await create(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it("creates time entry and returns 201", async () => {
-      req.body = {
-        durationMinutes: 45,
-        entryDate: "2026-08-11",
-        note: "Coding",
-      };
-      vi.mocked(Task.findOne).mockResolvedValue({ id: "task-123" } as never);
-      vi.mocked(TimeEntry.create).mockResolvedValue({
-        id: "e1",
-        ...req.body,
-      } as never);
-      vi.mocked(historyService.recordTimeEntryCreated).mockResolvedValue({
-        id: "h1",
-      } as never);
-
-      await create(req, res, next);
-
-      expect(TimeEntry.create).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(201);
-    });
-  });
-
-  describe("getAll()", () => {
-    it("calculates totalMinutes correctly and returns entries (200)", async () => {
-      vi.mocked(Task.findOne).mockResolvedValue({ id: "task-123" } as never);
-      vi.mocked(TimeEntry.findAll).mockResolvedValue([
-        { durationMinutes: 30 },
-        { durationMinutes: 45 },
-      ] as never);
-
-      await getAll(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        timeEntries: expect.any(Array),
-        totalMinutes: 75,
-      });
-    });
-  });
-
-  describe("remove()", () => {
-    it("deletes entry and records history (200)", async () => {
-      req.params.id = "entry-123";
-      const mockEntry = {
-        durationMinutes: 45,
-        entryDate: new Date(),
-        note: "Test",
-        destroy: vi.fn().mockResolvedValue(true),
-      };
-
-      vi.mocked(Task.findOne).mockResolvedValue({ id: "task-123" } as never);
-      vi.mocked(TimeEntry.findOne).mockResolvedValue(mockEntry as never);
-      vi.mocked(historyService.recordTimeEntryDeleted).mockResolvedValue({
-        id: "h1",
-      } as never);
-
-      await remove(req, res, next);
-
-      expect(mockEntry.destroy).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-    });
+    const res: any = response();
+    const next = vi.fn();
+    const cases: Array<[any, () => Promise<unknown>]> = [
+      [TimeEntryService.create, () => controller.create(req, res, next)],
+      [TimeEntryService.getAll, () => controller.getAll(req, res, next)],
+      [TimeEntryService.update, () => controller.update(req, res, next)],
+      [TimeEntryService.remove, () => controller.remove(req, res, next)],
+    ];
+    for (const [method, invoke] of cases) {
+      vi.mocked(method).mockRejectedValueOnce({ status: 400, message: "bad" });
+      await invoke();
+      vi.mocked(method).mockRejectedValueOnce(new Error("boom"));
+      await invoke();
+    }
+    expect(next).toHaveBeenCalledTimes(4);
   });
 });

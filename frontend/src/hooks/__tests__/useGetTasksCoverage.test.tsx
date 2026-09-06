@@ -42,7 +42,7 @@ describe("useGetTasks Full Coverage Suite", () => {
         useGetTasks({
           projectId: "p1",
           search: "Task",
-          status: ["TODO", "IN_PROGRESS"],
+          statusId: ["TODO", "IN_PROGRESS"],
           priority: ["HIGH"],
           overdue: true,
         }),
@@ -59,7 +59,8 @@ describe("useGetTasks Full Coverage Suite", () => {
       expect.objectContaining({
         params: {
           search: "Task",
-          status: ["TODO", "IN_PROGRESS"],
+          statusId: ["TODO", "IN_PROGRESS"],
+          assigneeId: undefined,
           priority: ["HIGH"],
           overdue: true,
         },

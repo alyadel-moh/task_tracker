@@ -35,7 +35,7 @@ describe("useCreateTask Hook Coverage", () => {
 
   it("calls API and updates task cache on successful task creation", async () => {
     const mockResponse = {
-      task: {
+      newTask: {
         id: "t100",
         name: "New Integration Test Task",
         description: "Test Desc",
@@ -66,7 +66,7 @@ describe("useCreateTask Hook Coverage", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(axiosInstance.post).toHaveBeenCalledWith("tasks/create/p1", {
+    expect(axiosInstance.post).toHaveBeenCalledWith("tasks/p1", {
       name: "New Integration Test Task",
       description: "Test Desc",
       status: "TODO",

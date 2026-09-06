@@ -25,10 +25,13 @@ describe("useCreateProject", () => {
   );
 
   it("creates a new project and updates project list cache", async () => {
-    queryClient.setQueryData(["projects"], [{ id: "p1", name: "Existing" }]);
+    queryClient.setQueryData(
+      ["assigned-projects"],
+      [{ project: { id: "p1", name: "Existing" } }],
+    );
 
     const mockResponse = {
-      project: { id: "p2", name: "New Project" },
+      assignedProjectMembership: { project: { id: "p2", name: "New Project" } },
       status: "SUCCESS",
       message: "Created",
     };
@@ -41,8 +44,10 @@ describe("useCreateProject", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const updatedProjects = queryClient.getQueryData<any[]>(["projects"]);
+    const updatedProjects = queryClient.getQueryData<any[]>([
+      "assigned-projects",
+    ]);
     expect(updatedProjects).toHaveLength(2);
-    expect(updatedProjects?.[1].name).toBe("New Project");
+    expect(updatedProjects?.[1].project.name).toBe("New Project");
   });
 });

@@ -1,4 +1,3 @@
-// src/hooks/updateRoleHook.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../api-client";
