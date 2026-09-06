@@ -17,7 +17,6 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import "../css/CreateProjectModal.css";
 import "../css/TaskModal.css";
 import useCreateTask from "../hooks/createTaskHook";
 import useGetStatuses from "../hooks/getAllStatusesHook";
@@ -447,7 +446,9 @@ const CreateTaskModal = ({
               <span className="field-label-optional">(optional)</span>
             </span>
             <div className="textarea-wrapper">
-              <FileText size={15} className="textarea-icon" />
+              <span className="textarea-icon-slot">
+                <FileText size={15} className="textarea-icon" />
+              </span>
               <textarea
                 placeholder="Add more detail about this task"
                 rows={3}
