@@ -250,10 +250,9 @@
   color: rgba(242, 241, 237, 0.4);
   transition: color 0.15s ease;
 }
-
 .textarea-wrapper textarea {
   width: 100%;
-  padding: 12px 12px 12px 40px !important;
+  padding: 12px 12px 12px 40px !important; /* Added 40px left padding */
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 14px;
