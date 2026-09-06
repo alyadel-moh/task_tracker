@@ -238,21 +238,18 @@
   color: #818cf8;
 }
 
-/* Textarea Layout */
+/* ==========================================================================
+   4. Textarea Layout
+   ========================================================================== */
+
 .textarea-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
   width: 100%;
 }
 
-.textarea-wrapper .textarea-icon {
-  color: rgba(242, 241, 237, 0.4);
-  transition: color 0.15s ease;
-}
 .textarea-wrapper textarea {
   width: 100%;
-  padding: 12px 12px 12px 40px !important; /* Added 40px left padding */
+  padding: 12px 12px 12px 40px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 14px;
@@ -272,18 +269,30 @@
 .textarea-icon-slot {
   position: absolute;
   left: 13px;
-  top: 18px;
+  top: 14px;
   display: flex;
   align-items: center;
   pointer-events: none;
   z-index: 2;
 }
 
+.textarea-wrapper .textarea-icon {
+  color: rgba(242, 241, 237, 0.4);
+  transition: color 0.15s ease;
+}
+
+.textarea-wrapper textarea:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 .textarea-wrapper:focus-within .textarea-icon {
   color: #818cf8;
 }
 
-/* Autofill Overrides */
+/* ==========================================================================
+   5. Autofill & Validation Overrides
+   ========================================================================== */
+
 .field input:-webkit-autofill,
 .field input:-webkit-autofill:hover,
 .field input:-webkit-autofill:focus,
@@ -308,7 +317,7 @@
 }
 
 /* ==========================================================================
-   5. Buttons & Actions
+   6. Buttons & Actions
    ========================================================================== */
 
 .modal-actions,
@@ -371,7 +380,7 @@
 }
 
 /* ==========================================================================
-   6. Responsiveness
+   7. Responsiveness
    ========================================================================== */
 
 @media (max-width: 640px) {
