@@ -24,7 +24,11 @@ export class ProjectMemberRepository {
 
   static async getMemberByProjectId(params: Params) {
     return ProjectMembers.findOne({
-      where: { id: params.id, projectId: params.projectId },
+      where: {
+        id: params.id,
+        projectId: params.projectId,
+        membershipStatus: "ACTIVE",
+      },
       attributes: ["id", "role", "userId"],
     });
   }
