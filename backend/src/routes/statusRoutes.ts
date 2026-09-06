@@ -1,5 +1,10 @@
 import { Router, RequestHandler } from "express";
-import { create, update, remove } from "../controllers/projectController";
+import {
+  create,
+  getAll,
+  update,
+  remove,
+} from "../controllers/statusController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -9,19 +14,86 @@ router.use(authenticate);
 /**
  * @openapi
  * tags:
- *   name: Projects
- *   description: Workspace project creation, configuration, and management
+ *   name: Statuses
+ *   description: Project board column and status workflow management
  */
 
 /**
  * @openapi
- * /api/projects:
- *   post:
- *     summary: Create a new project with default statuses and owner membership
- *     description: Initializes a new project, automatically generates default board statuses (TODO, IN_PROGRESS, DONE), and binds the calling user as the project OWNER.
- *     tags: [Projects]
+ * /api/projects/statuses/{projectId}:
+ *   get:
+ *     summary: Retrieve all statuses for a specific project
+ *     description: Returns all default and custom status columns in a project sorted ascending by board position. Requires project membership.
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *     responses:
+ *       200:
+ *         description: Ordered list of project statuses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                     example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+ *                   name:
+ *                     type: string
+ *                     example: "IN_PROGRESS"
+ *                   position:
+ *                     type: integer
+ *                     example: 1
+ *                   isDefault:
+ *                     type: boolean
+ *                     example: true
+ *       401:
+ *         description: Unauthorized - missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - caller is not a member of the project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *               example:
+ *                 message: "You are not a member of this project"
+ */
+router.get("/:projectId", getAll as unknown as RequestHandler);
+
+/**
+ * @openapi
+ * /api/projects/statuses/{projectId}:
+ *   post:
+ *     summary: Create a new custom status column
+ *     description: Appends a new custom status at the highest position of the project board. Requires project membership.
+ *     tags: [Statuses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
  *     requestBody:
  *       required: true
  *       content:
@@ -32,14 +104,10 @@ router.use(authenticate);
  *             properties:
  *               name:
  *                 type: string
- *                 example: Mobile App Redesign
- *               description:
- *                 type: string
- *                 nullable: true
- *                 example: Client facing dashboard updates
+ *                 example: "QA Testing"
  *     responses:
  *       201:
- *         description: Project created successfully with owner membership assigned
+ *         description: Status created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -47,77 +115,84 @@ router.use(authenticate);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Project created successfully
- *                 assignedProjectMembership:
+ *                   example: "Status created successfully"
+ *                 newStatus:
  *                   type: object
  *                   properties:
  *                     id:
  *                       type: string
  *                       format: uuid
- *                       description: Membership assignment ID
- *                       example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
- *                     role:
+ *                       example: "4ba95f64-5717-4562-b3fc-2c963f66afa7"
+ *                     name:
  *                       type: string
- *                       example: OWNER
- *                     project:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: string
- *                           format: uuid
- *                           example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
- *                         name:
- *                           type: string
- *                           example: Mobile App Redesign
- *                         description:
- *                           type: string
- *                           nullable: true
- *                           example: Client facing dashboard updates
- *                         userId:
- *                           type: string
- *                           format: uuid
- *                           example: "c7f8a9e0-5678-4321-98ba-dcba09876543"
- *                         createdAt:
- *                           type: string
- *                           format: date-time
- *                         updatedAt:
- *                           type: string
- *                           format: date-time
+ *                       example: "QA Testing"
+ *                     position:
+ *                       type: integer
+ *                       example: 3
+ *                     isDefault:
+ *                       type: boolean
+ *                       example: false
+ *                     projectId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
  *       400:
- *         description: Validation error - project name missing or empty
+ *         description: Status name is missing or empty
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Project name is required
+ *               example:
+ *                 message: "Status name cannot be empty"
  *       401:
- *         description: Unauthorized - missing, invalid, or expired JWT bearer token
+ *         description: Unauthorized - missing or invalid token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - caller is not a member of the project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *               example:
+ *                 message: "You are not a member of this project"
  */
-router.post("/", create as unknown as RequestHandler);
+router.post("/:projectId", create as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/{id}:
+ * /api/projects/statuses/{projectId}/{id}:
  *   patch:
- *     summary: Update project name or description
- *     description: Modifies an existing project's metadata. Strictly restricted to active members with the OWNER role.
- *     tags: [Projects]
+ *     summary: Update status title or reorder board position
+ *     description: Renames a status or shifts its board index order across siblings. Default system statuses cannot be renamed. Requires project membership.
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique UUID of the project
- *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *         description: UUID of the status to update
+ *         example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
  *     requestBody:
  *       required: true
  *       content:
@@ -127,86 +202,99 @@ router.post("/", create as unknown as RequestHandler);
  *             properties:
  *               name:
  *                 type: string
- *                 example: Updated Project Title
- *               description:
- *                 type: string
- *                 nullable: true
- *                 example: Updated project description
+ *                 example: "Ready for Review"
+ *               position:
+ *                 type: integer
+ *                 minimum: 0
+ *                 example: 2
  *     responses:
  *       200:
- *         description: Project updated successfully
+ *         description: Status updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
  *                 message:
  *                   type: string
- *                   example: Name updated successfully
- *                 project:
+ *                   example: "Status updated successfully"
+ *                 newStatus:
  *                   type: object
  *                   properties:
  *                     name:
  *                       type: string
- *                       example: Updated Project Title
- *                     description:
- *                       type: string
- *                       nullable: true
- *                       example: Updated project description
+ *                       example: "Ready for Review"
+ *                     position:
+ *                       type: integer
+ *                       example: 2
  *       400:
- *         description: Bad request - project name cannot be empty
+ *         description: Validation error or attempting to rename a default status
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Project name cannot be empty
+ *               examples:
+ *                 emptyName:
+ *                   value: { message: "Status name cannot be empty" }
+ *                 defaultStatus:
+ *                   value: { message: "Cannot update default status" }
  *       401:
- *         description: Unauthorized - missing or invalid JWT bearer token
+ *         description: Unauthorized - missing or invalid token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
- *         description: Forbidden - caller is not an active OWNER of the project
+ *         description: Forbidden - caller is not a member of the project
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Access denied. Only project owners can edit project details.
+ *               example:
+ *                 message: "You are not a member of this project"
  *       404:
- *         description: Project not found or user is not an active member
+ *         description: Status not found in project
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Project not found
+ *               example:
+ *                 message: "Status not found"
  */
-router.patch("/:id", update as unknown as RequestHandler);
+router.patch("/:projectId/:id", update as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/{id}:
+ * /api/projects/statuses/{projectId}/{id}:
  *   delete:
- *     summary: Delete a project and its associations
- *     description: Permanently removes a project, cascading through its default statuses and tasks. Restricted strictly to the project OWNER.
- *     tags: [Projects]
+ *     summary: Delete a custom status
+ *     description: Deletes a non-default status with zero assigned tasks and re-indexes the remaining statuses. Requires project membership.
+ *     tags: [Statuses]
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *         description: Unique UUID of the project to delete
- *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *         description: UUID of the status to delete
+ *         example: "4ba95f64-5717-4562-b3fc-2c963f66afa7"
  *     responses:
  *       200:
- *         description: Project deleted successfully
+ *         description: Status deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -214,30 +302,41 @@ router.patch("/:id", update as unknown as RequestHandler);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Project deleted successfully
+ *                   example: "Status deleted successfully"
+ *       400:
+ *         description: Cannot delete default statuses or statuses holding active tasks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *               examples:
+ *                 defaultStatus:
+ *                   value: { message: "Cannot delete default status" }
+ *                 hasTasks:
+ *                   value: { message: "Cannot delete status with assigned tasks" }
  *       401:
- *         description: Unauthorized - missing or invalid JWT bearer token
+ *         description: Unauthorized - missing or invalid token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
- *         description: Forbidden - caller is not an active OWNER of the project
+ *         description: Forbidden - caller is not a member of the project
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Access denied. Only project owners delete a project.
+ *               example:
+ *                 message: "You are not a member of this project"
  *       404:
- *         description: Project not found or user is not an active member
+ *         description: Status not found in project
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               message: Project not found
+ *               example:
+ *                 message: "Status not found"
  */
-router.delete("/:id", remove as unknown as RequestHandler);
+router.delete("/:projectId/:id", remove as unknown as RequestHandler);
 
 export default router;
