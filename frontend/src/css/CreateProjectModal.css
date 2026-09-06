@@ -248,7 +248,7 @@
 .textarea-wrapper .textarea-icon {
   position: absolute;
   left: 13px;
-  top: 13px;
+  top: 15px;
   color: rgba(242, 241, 237, 0.4);
   pointer-events: none;
   z-index: 2;
@@ -267,7 +267,7 @@
   color: #f2f1ed !important;
   resize: vertical;
   min-height: 84px;
-  line-height: 1.55;
+  line-height: 21px;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
