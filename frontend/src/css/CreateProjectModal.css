@@ -246,12 +246,7 @@
 }
 
 .textarea-wrapper .textarea-icon {
-  position: absolute;
-  left: 13px;
-  top: 15px;
   color: rgba(242, 241, 237, 0.4);
-  pointer-events: none;
-  z-index: 2;
   transition: color 0.15s ease;
 }
 
@@ -272,6 +267,16 @@
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     background-color 0.15s ease;
+}
+.textarea-icon-slot {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .textarea-wrapper textarea:hover:not(:focus) {

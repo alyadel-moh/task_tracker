@@ -120,7 +120,9 @@ const CreateProjectModal = ({ onClose }: CreateProjectModalProps) => {
               <span className="field-label-optional">(optional)</span>
             </span>
             <div className="input-with-icon textarea-wrapper">
-              <FileText size={15} className="input-icon textarea-icon" />
+              <span className="textarea-icon-slot">
+                <FileText size={15} className="input-icon textarea-icon" />
+              </span>
               <textarea
                 placeholder="What is this project about?"
                 rows={3}
