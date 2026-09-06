@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="primaryGrad" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5" />
+      <stop offset="1" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded Base Container -->
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#primaryGrad)" />
+  
+  <!-- Clipboard / Task Checklist Path -->
+  <rect x="8" y="7" width="16" height="19" rx="3.5" fill="#FFFFFF" fill-opacity="0.16" stroke="#FFFFFF" stroke-width="1.8" />
+  
+  <!-- Checkmark -->
+  <path d="M12 16.5L14.5 19L20 13.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Progress / List Indicator Lines -->
+  <line x1="12" y1="22.5" x2="20" y2="22.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.9" />
+</svg>
