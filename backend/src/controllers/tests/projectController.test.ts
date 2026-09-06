@@ -1,110 +1,69 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { create, getAll, update, remove } from "../projectController";
-import { Project } from "../../models";
-
-vi.mock("../../models", () => ({
-  Project: {
-    create: vi.fn(),
-    findAll: vi.fn(),
-    findOne: vi.fn(),
-  },
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as controller from "../projectController";
+import { ProjectService } from "../../services/projectService";
+vi.mock("../../services/projectService", () => ({
+  ProjectService: { create: vi.fn(), update: vi.fn(), remove: vi.fn() },
 }));
-
-describe("Project Controller", () => {
-  let req: any;
-  let res: any;
-  let next: any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    req = { user: { id: "user-123" }, params: {}, body: {} };
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
+const response = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+describe("projectController", () => {
+  beforeEach(() => vi.clearAllMocks());
+  it("forwards project operations", async () => {
+    const req: any = {
+      user: { id: "u1" },
+      params: { id: "p1" },
+      body: { name: "P" },
     };
-    next = vi.fn();
+    const res: any = response();
+    const next = vi.fn();
+    vi.mocked(ProjectService.create).mockResolvedValue({
+      project: { id: "p1" },
+      id: "m1",
+    } as never);
+    await controller.create(req, res, next);
+    vi.mocked(ProjectService.update).mockResolvedValue({
+      updatedField: { name: "P" },
+      changedLabel: "Name",
+    } as never);
+    await controller.update(req, res, next);
+    vi.mocked(ProjectService.remove).mockResolvedValue(undefined);
+    await controller.remove(req, res, next);
+    expect(ProjectService.create).toHaveBeenCalledWith("P", undefined, "u1");
+    expect(res.status).toHaveBeenCalledWith(200);
   });
-
-  describe("create()", () => {
-    it("returns 400 if project name is missing or empty", async () => {
-      req.body = { name: "   " };
-      await create(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "BadRequest",
-        message: "Project name is required",
-      });
-    });
-
-    it("creates project and returns 201", async () => {
-      req.body = { name: "New Project", description: "Desc" };
-      const createdProject = { id: "p1", userId: "user-123", ...req.body };
-      vi.mocked(Project.create).mockResolvedValue(createdProject as never);
-
-      await create(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Project created successfully",
-        project: createdProject,
-      });
-    });
-  });
-
-  describe("getAll()", () => {
-    it("returns all user projects ordered by createdAt ASC", async () => {
-      const mockProjects = [{ id: "p1" }, { id: "p2" }];
-      vi.mocked(Project.findAll).mockResolvedValue(mockProjects as never);
-
-      await getAll(req, res, next);
-
-      expect(Project.findAll).toHaveBeenCalledWith({
-        where: { userId: "user-123" },
-        order: [["createdAt", "ASC"]],
-      });
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockProjects);
+  it("defaults the update message label when changedLabel is falsy", async () => {
+    const req: any = {
+      user: { id: "u1" },
+      params: { id: "p1" },
+      body: { name: "P" },
+    };
+    const res: any = response();
+    const next = vi.fn();
+    vi.mocked(ProjectService.update).mockResolvedValue({
+      updatedField: { name: "P" },
+      changedLabel: undefined,
+    } as never);
+    await controller.update(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Project updated successfully",
+      project: { name: "P" },
     });
   });
-
-  describe("update()", () => {
-    it("returns 404 if project not owned by user", async () => {
-      req.params.id = "p99";
-      vi.mocked(Project.findOne).mockResolvedValue(null);
-
-      await update(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-    });
-
-    it("updates fields and returns 200", async () => {
-      req.params.id = "p1";
-      req.body = { name: "Updated Name" };
-      const mockProj = {
-        name: "Old Name",
-        save: vi.fn().mockResolvedValue(true),
-      };
-      vi.mocked(Project.findOne).mockResolvedValue(mockProj as never);
-
-      await update(req, res, next);
-
-      expect(mockProj.name).toBe("Updated Name");
-      expect(mockProj.save).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-    });
-  });
-
-  describe("remove()", () => {
-    it("deletes project successfully (200)", async () => {
-      req.params.id = "p1";
-      const mockProj = { destroy: vi.fn().mockResolvedValue(true) };
-      vi.mocked(Project.findOne).mockResolvedValue(mockProj as never);
-
-      await remove(req, res, next);
-
-      expect(mockProj.destroy).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-    });
+  it("maps typed and unexpected errors for every operation", async () => {
+    const req: any = { user: { id: "u1" }, params: { id: "p1" }, body: {} };
+    const res: any = response();
+    const next = vi.fn();
+    const cases: Array<[any, () => Promise<unknown>]> = [
+      [ProjectService.create, () => controller.create(req, res, next)],
+      [ProjectService.update, () => controller.update(req, res, next)],
+      [ProjectService.remove, () => controller.remove(req, res, next)],
+    ];
+    for (const [method, invoke] of cases) {
+      vi.mocked(method).mockRejectedValueOnce({ status: 400, message: "bad" });
+      await invoke();
+      vi.mocked(method).mockRejectedValueOnce(new Error("boom"));
+      await invoke();
+    }
+    expect(next).toHaveBeenCalledTimes(3);
   });
 });

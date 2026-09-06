@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "../types/AuthRequest";
-import { StatusService } from "../services/StatusService";
+import { StatusService } from "../services/statusService";
 
 async function update(
   req: AuthRequest,

@@ -40,7 +40,7 @@ describe("useCreateTask Full Branch Coverage", () => {
     };
 
     vi.mocked(axiosInstance.post).mockResolvedValueOnce({
-      data: { task: mockTask, status: "SUCCESS", message: "Created" },
+      data: { newTask: mockTask, status: "SUCCESS", message: "Created" },
     });
 
     const { result } = renderHook(() => useCreateTask("p1"), {
@@ -61,7 +61,7 @@ describe("useCreateTask Full Branch Coverage", () => {
     });
 
     expect(axiosInstance.post).toHaveBeenCalledWith(
-      "tasks/create/p1",
+      "tasks/p1",
       expect.anything(),
     );
   });

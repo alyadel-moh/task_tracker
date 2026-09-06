@@ -43,6 +43,6 @@ describe("useDeleteTask Full Branch Coverage", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(axiosInstance.delete).toHaveBeenCalledWith("tasks/delete/p1/t1");
+    expect(axiosInstance.delete).toHaveBeenCalledWith("tasks/p1/t1");
   });
 });

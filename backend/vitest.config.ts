@@ -13,6 +13,7 @@ export default defineConfig({
         "src/controllers/**/*.ts",
         "src/middleware/**/*.ts",
         "src/services/**/*.ts",
+        "src/repositories/**/*.ts",
       ],
       exclude: [
         "src/**/tests/**",

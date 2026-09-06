@@ -49,6 +49,6 @@ describe("useGetAlltimeEntries & useGetProjects", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(mockProjects);
-    expect(axiosInstance.get).toHaveBeenCalledWith("projects");
+    expect(axiosInstance.get).toHaveBeenCalledWith("projects/assigned");
   });
 });

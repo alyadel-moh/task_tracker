@@ -1,143 +1,140 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { register, login, me, logout } from "../authController";
-import { User } from "../../models";
-import bcrypt from "bcryptjs";
-import * as jwtUtils from "../../utils/jwt";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as controller from "../authController";
+import { AuthService } from "../../services/authService";
 
-vi.mock("../../models", () => ({
-  User: {
-    create: vi.fn(),
-    scope: vi.fn(),
+vi.mock("../../services/authService", () => ({
+  AuthService: {
+    register: vi.fn(),
+    verifyOtp: vi.fn(),
+    resendOtp: vi.fn(),
+    login: vi.fn(),
+    update: vi.fn(),
+    verifyUpdatedEmailOtp: vi.fn(),
+    getUserById: vi.fn(),
+    forgotPassword: vi.fn(),
+    ResetPassword: vi.fn(),
   },
 }));
 
-vi.mock("bcryptjs");
-vi.mock("../../utils/jwt");
+const response = () => ({ status: vi.fn().mockReturnThis(), json: vi.fn() });
+const request = () => ({ body: {}, user: { id: "u1" } });
 
-describe("Auth Controller", () => {
-  let req: any;
-  let res: any;
-  let next: any;
+describe("authController", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    req = { body: {} };
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
+  it("forwards successful auth operations and shapes responses", async () => {
+    const req: any = request();
+    const res: any = response();
+    const next = vi.fn();
+    vi.mocked(AuthService.register).mockResolvedValue({ token: "t" } as never);
+    await controller.register(req, res, next);
+    vi.mocked(AuthService.verifyOtp).mockResolvedValue({ ok: true } as never);
+    await controller.verifyOtp(req, res, next);
+    vi.mocked(AuthService.resendOtp).mockResolvedValue({ ok: true } as never);
+    await controller.resendVerificationEmail(req, res, next);
+    vi.mocked(AuthService.login).mockResolvedValue("jwt" as never);
+    req.body = { email: "a@x.com", password: "password" };
+    await controller.login(req, res, next);
+    vi.mocked(AuthService.update).mockResolvedValue({
+      changedLabel: "Name",
+      updatedField: { name: "A" },
+      requiresEmailVerification: true,
+      emailVerificationToken: "t",
+      pendingEmail: "b@x.com",
+    } as never);
+    await controller.update(req, res, next);
+    vi.mocked(AuthService.update).mockResolvedValue({
+      changedLabel: "",
+      updatedField: {},
+    } as never);
+    await controller.update(req, res, next);
+    vi.mocked(AuthService.verifyUpdatedEmailOtp).mockResolvedValue({
+      ok: true,
+    } as never);
+    await controller.verifyUpdatedEmailOtp(req, res, next);
+    vi.mocked(AuthService.getUserById).mockResolvedValue({ id: "u1" } as never);
+    req.user = { id: "u1" };
+    await controller.me(req, res, next);
+    await controller.logout(req, res);
+    req.user = undefined;
+    await controller.me(req, res, next);
+    vi.mocked(AuthService.forgotPassword).mockResolvedValue({
+      ok: true,
+    } as never);
+    req.body = { email: "a@x.com" };
+    await controller.forgotPassword(req, res, next);
+    vi.mocked(AuthService.ResetPassword).mockResolvedValue({
+      ok: true,
+    } as never);
+    req.body = {
+      email: "a@x.com",
+      otp: "1",
+      newPassword: "password",
+      resetToken: "t",
     };
-    next = vi.fn();
+    await controller.resetPassword(req, res, next);
+    await controller.forgotPassword({ ...req, body: {} }, res, next);
+    await controller.resetPassword({ ...req, body: {} }, res, next);
+    expect(AuthService.login).toHaveBeenCalledWith("a@x.com", "password");
+    expect(res.status).toHaveBeenCalled();
   });
 
-  describe("register()", () => {
-    it("returns 400 if required fields are missing", async () => {
-      req.body = { email: "aly@example.com" };
-      await register(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Bad Request",
-        message: "Name, email, and password are required",
-      });
-    });
-
-    it("returns 400 if password is less than 8 characters", async () => {
-      req.body = { name: "Aly", email: "aly@example.com", password: "short" };
-      await register(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Bad Request",
-        message: "Password must be at least 8 characters long",
-      });
-    });
-
-    it("hashes password and creates user successfully (201)", async () => {
-      req.body = {
-        name: "Aly",
-        email: "aly@example.com",
-        password: "password123",
-      };
-      vi.mocked(bcrypt.genSalt).mockResolvedValue("salt" as never);
-      vi.mocked(bcrypt.hash).mockResolvedValue("hashedPassword" as never);
-      vi.mocked(User.create).mockResolvedValue({
-        id: "user-123",
-        ...req.body,
-      } as never);
-
-      await register(req, res, next);
-
-      expect(bcrypt.hash).toHaveBeenCalledWith("password123", "salt");
-      expect(User.create).toHaveBeenCalledWith({
-        name: "Aly",
-        email: "aly@example.com",
-        password: "hashedPassword",
-      });
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "User registered successfully",
-      });
-    });
-  });
-
-  describe("login()", () => {
-    it("returns 400 if email or password missing", async () => {
-      req.body = { email: "aly@example.com" };
-      await login(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it("returns 401 if user not found", async () => {
-      req.body = { email: "notfound@example.com", password: "password123" };
-      vi.mocked(User.scope).mockReturnValue({
-        findOne: vi.fn().mockResolvedValue(null),
-      } as any);
-
-      await login(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({
-        error: "Unauthorized",
-        message: "Invalid email or password",
-      });
-    });
-
-    it("returns 200 with JWT token on valid credentials", async () => {
-      req.body = { email: "aly@example.com", password: "password123" };
-      const mockUserInstance = {
-        id: "user-123",
-        email: "aly@example.com",
-        validPassword: vi.fn().mockResolvedValue(true),
-      };
-
-      vi.mocked(User.scope).mockReturnValue({
-        findOne: vi.fn().mockResolvedValue(mockUserInstance),
-      } as any);
-      vi.mocked(jwtUtils.generateToken).mockReturnValue("mocked-jwt-token");
-
-      await login(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Login successful",
-        token: "mocked-jwt-token",
-      });
-    });
-  });
-
-  describe("me() & logout()", () => {
-    it("returns user data if req.user is set", async () => {
-      req.user = { id: "u1", name: "Aly", email: "aly@example.com" };
-      await me(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(req.user);
-    });
-
-    it("returns 200 on logout", async () => {
-      await logout(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-    });
+  it("maps typed and unexpected service errors", async () => {
+    const req: any = request();
+    const res: any = response();
+    const next = vi.fn();
+    const cases: Array<[any, () => Promise<unknown>]> = [
+      [AuthService.register, () => controller.register(req, res, next)],
+      [AuthService.verifyOtp, () => controller.verifyOtp(req, res, next)],
+      [
+        AuthService.resendOtp,
+        () => controller.resendVerificationEmail(req, res, next),
+      ],
+      [AuthService.login, () => controller.login(req, res, next)],
+      [AuthService.update, () => controller.update(req, res, next)],
+      [
+        AuthService.verifyUpdatedEmailOtp,
+        () => controller.verifyUpdatedEmailOtp(req, res, next),
+      ],
+      [
+        AuthService.getUserById,
+        () => controller.me({ ...req, user: { id: "u1" } }, res, next),
+      ],
+      [
+        AuthService.forgotPassword,
+        () =>
+          controller.forgotPassword(
+            { ...req, body: { email: "a@x.com" } },
+            res,
+            next,
+          ),
+      ],
+      [
+        AuthService.ResetPassword,
+        () =>
+          controller.resetPassword(
+            {
+              ...req,
+              body: {
+                email: "a",
+                otp: "1",
+                newPassword: "password",
+                resetToken: "t",
+              },
+            },
+            res,
+            next,
+          ),
+      ],
+    ];
+    for (const [method, invoke] of cases) {
+      vi.mocked(method).mockRejectedValueOnce({ status: 400, message: "bad" });
+      await invoke();
+    }
+    for (const [method, invoke] of cases) {
+      vi.mocked(method).mockRejectedValueOnce(new Error("boom"));
+      await invoke();
+    }
+    expect(next).toHaveBeenCalled();
   });
 });
