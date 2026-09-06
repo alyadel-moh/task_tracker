@@ -74,7 +74,7 @@ router.use(authenticate);
  *               example:
  *                 message: "You are not a member of this project"
  */
-router.get("/:projectId", getAll as unknown as RequestHandler);
+router.get("statuses/:projectId", getAll as unknown as RequestHandler);
 
 /**
  * @openapi
@@ -165,7 +165,7 @@ router.get("/:projectId", getAll as unknown as RequestHandler);
  *               example:
  *                 message: "You are not a member of this project"
  */
-router.post("/:projectId", create as unknown as RequestHandler);
+router.post("statuses/:projectId", create as unknown as RequestHandler);
 
 /**
  * @openapi
@@ -264,7 +264,7 @@ router.post("/:projectId", create as unknown as RequestHandler);
  *               example:
  *                 message: "Status not found"
  */
-router.patch("/:projectId/:id", update as unknown as RequestHandler);
+router.patch("statuses/:projectId/:id", update as unknown as RequestHandler);
 
 /**
  * @openapi
@@ -337,6 +337,6 @@ router.patch("/:projectId/:id", update as unknown as RequestHandler);
  *               example:
  *                 message: "Status not found"
  */
-router.delete("/:projectId/:id", remove as unknown as RequestHandler);
+router.delete("statuses/:projectId/:id", remove as unknown as RequestHandler);
 
 export default router;
