@@ -353,7 +353,7 @@ describe("Dashboard - drag and drop: columns", () => {
     );
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
-        'Column "To Do" moved successfully!',
+        "Column To Do moved successfully!",
       ),
     );
     expect(mockSetStatuses).toHaveBeenCalled();
@@ -489,7 +489,9 @@ describe("Dashboard - drag and drop: tasks", () => {
       { id: "t1", statusId: "s2" },
       expect.anything(),
     );
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Moved!"));
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Task moved to s2"),
+    );
   });
 
   it("reverts the task status and shows an error toast if the task update fails", async () => {

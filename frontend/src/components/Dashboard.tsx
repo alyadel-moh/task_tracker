@@ -210,7 +210,7 @@ const Dashboard = () => {
             },
             {
               onSuccess: () => {
-                toast.success(`Column "${formattedName}" moved successfully!`);
+                toast.success(`Column ${formattedName} moved successfully!`);
                 setStatuses(reordered);
               },
               onError: () => {
@@ -258,8 +258,11 @@ const Dashboard = () => {
         statusId: newStatusId,
       },
       {
-        onSuccess: (data: any) => {
-          toast.success(data?.message || "Task moved successfully!");
+        onSuccess: () => {
+          toast.success(
+            `Task moved to ${formatStatusName(newStatusId)}` ||
+              "Task moved successfully!",
+          );
         },
         onError: (error: any) => {
           if (tasks) {
