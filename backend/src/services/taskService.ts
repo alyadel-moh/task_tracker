@@ -185,6 +185,7 @@ export class TaskService {
     overdue: boolean | string,
     userId: string,
     assigneeId: string,
+    createdById: string,
   ) {
     const ismember = await isMember(userId, projectId);
     if (!ismember) {
@@ -197,6 +198,7 @@ export class TaskService {
       priority,
       overdue,
       assigneeId,
+      createdById,
     );
   }
   static async update(

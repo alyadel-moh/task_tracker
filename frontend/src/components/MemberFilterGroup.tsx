@@ -6,8 +6,6 @@ import { useAppStore } from "../store/useAppStore";
 
 interface MemberFilterGroupProps {
   members: User[];
-  selectedMemberId?: string | null;
-  onSelectMember: (memberId: string | null) => void;
   maxVisible?: number;
 }
 
@@ -46,13 +44,11 @@ const getAvatarBgColor = (id: string): string => {
 
 export const MemberFilterGroup: React.FC<MemberFilterGroupProps> = ({
   members = [],
-  selectedMemberId,
-  onSelectMember,
   maxVisible = 4,
 }) => {
   const visibleMembers = members.slice(0, maxVisible);
   const overflowCount = members.length - maxVisible;
-  const { user } = useAppStore();
+  const { user, selectedAssigneeId, setSelectedAssigneeId } = useAppStore();
 
   return (
     <div
@@ -64,17 +60,17 @@ export const MemberFilterGroup: React.FC<MemberFilterGroupProps> = ({
       <button
         type="button"
         className={`member-avatar-btn all-members-btn ${
-          !selectedMemberId ? "selected" : ""
+          !selectedAssigneeId ? "selected" : ""
         }`}
         data-tooltip="All Members"
-        onClick={() => onSelectMember(null)}
+        onClick={() => setSelectedAssigneeId(null)}
       >
         <UserIcon size={16} className="all-icon" />
       </button>
 
       {/* 2. Overlapping Member Avatars */}
       {visibleMembers.map((member) => {
-        const isSelected = selectedMemberId === member.id;
+        const isSelected = selectedAssigneeId === member.id;
         const initials = getInitials(member.name, member.email);
         const bgColor = getAvatarBgColor(member.id);
 
@@ -86,7 +82,7 @@ export const MemberFilterGroup: React.FC<MemberFilterGroupProps> = ({
               user?.id === member.id ? "You" : member.name || member.email
             }
             className={`member-avatar-btn ${isSelected ? "selected" : ""}`}
-            onClick={() => onSelectMember(isSelected ? null : member.id)}
+            onClick={() => setSelectedAssigneeId(member.id)}
           >
             {member.photoUrl ? (
               <img

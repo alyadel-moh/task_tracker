@@ -1,7 +1,12 @@
-import { Includeable, Op, Transaction, WhereOptions } from "sequelize";
-import { Task, Status, ProjectMembers, User } from "../models";
+import { Includeable, Op, Sequelize, Transaction } from "sequelize";
+import sequelize, {
+  Task,
+  Status,
+  ProjectMembers,
+  User,
+  TaskAssignee,
+} from "../models";
 import { TaskPriority } from "../models/task";
-import { TaskAssignee } from "../models/taskAssignee";
 export class TaskRepository {
   static async create(
     projectId: string,
@@ -103,21 +108,24 @@ export class TaskRepository {
     priority: string | string[],
     overdue: boolean | string,
     assigneeId: string,
+    createdById: string,
   ) {
-    const whereClause: WhereOptions & Record<PropertyKey, any> = { projectId };
+    const whereConditions: any[] = [{ projectId }];
 
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`;
-      whereClause[Op.or as unknown as string] = [
-        { name: { [Op.iLike]: searchTerm } },
-        { description: { [Op.iLike]: searchTerm } },
-      ];
+      whereConditions.push({
+        [Op.or]: [
+          { name: { [Op.iLike]: searchTerm } },
+          { description: { [Op.iLike]: searchTerm } },
+        ],
+      });
     }
 
     if (priority) {
       const priorityList = Array.isArray(priority) ? priority : [priority];
       if (priorityList.length > 0) {
-        whereClause.priority = { [Op.in]: priorityList };
+        whereConditions.push({ priority: { [Op.in]: priorityList } });
       }
     }
     const statusConditions: any[] = [];
@@ -132,9 +140,11 @@ export class TaskRepository {
     }
 
     if (overdue === "true" || overdue === true) {
-      whereClause.dueDate = {
-        [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: new Date() }],
-      };
+      whereConditions.push({
+        dueDate: {
+          [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: new Date() }],
+        },
+      });
       statusConditions.push({ name: { [Op.ne]: "DONE" } });
     }
     const hasStatusFilters = statusConditions.length > 0;
@@ -146,18 +156,29 @@ export class TaskRepository {
         required: hasStatusFilters,
       },
     ];
+    const rawMemberId = assigneeId || createdById;
+    const memberId =
+      rawMemberId &&
+      rawMemberId !== "null" &&
+      rawMemberId !== "undefined" &&
+      rawMemberId.trim() !== ""
+        ? rawMemberId.trim()
+        : null;
 
-    if (assigneeId) {
-      includeOptions.push({
-        model: TaskAssignee,
-        as: "taskAssignments",
-        where: { userId: assigneeId, projectId: projectId },
-        attributes: [],
-        required: true,
+    if (memberId) {
+      whereConditions.push({
+        [Op.or]: [
+          { createdBy: memberId },
+          Sequelize.literal(`EXISTS (
+            SELECT 1 FROM "task_assignees" AS "ta"
+            WHERE "ta"."task_id" = "Task"."id"
+            AND "ta"."user_id" = ${sequelize.escape(memberId)}
+          )`),
+        ],
       });
     }
     return await Task.findAll({
-      where: whereClause,
+      where: { [Op.and]: whereConditions },
       include: includeOptions,
       order: [["createdAt", "DESC"]],
       attributes: [

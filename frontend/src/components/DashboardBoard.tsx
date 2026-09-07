@@ -105,6 +105,8 @@ const DashboardBoard = ({
     setTasks,
     statuses,
     userRole,
+    selectedAssigneeId,
+    setSelectedAssigneeId,
   } = useAppStore();
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -115,9 +117,6 @@ const DashboardBoard = ({
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
   const [overdueOnly, setOverdueOnly] = useState(false);
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(
-    null,
-  );
 
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
   const { data: projects = [] } = useGetAssignedProjects();
@@ -134,6 +133,7 @@ const DashboardBoard = ({
     priority: selectedPriorities,
     overdue: overdueOnly,
     assigneeId: selectedAssigneeId ?? undefined,
+    createdById: selectedAssigneeId ?? undefined,
   });
 
   useEffect(() => {
@@ -449,11 +449,7 @@ const DashboardBoard = ({
               {memberList.length > 0 && (
                 <div className="filter-pills-group">
                   <span className="filter-label">Assignee:</span>
-                  <MemberFilterGroup
-                    members={memberList}
-                    selectedMemberId={selectedAssigneeId}
-                    onSelectMember={(id) => setSelectedAssigneeId(id)}
-                  />
+                  <MemberFilterGroup members={memberList} />
                 </div>
               )}
 

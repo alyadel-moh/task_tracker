@@ -9,7 +9,7 @@ interface Params {
 export class ProjectMemberRepository {
   static async getAll(projectId: string) {
     return ProjectMembers.findAll({
-      where: { projectId },
+      where: { projectId, membershipStatus: "ACTIVE" },
       attributes: ["id", "userId", "role", "membershipStatus", "createdAt"],
       include: [
         {

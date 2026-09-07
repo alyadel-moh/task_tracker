@@ -260,7 +260,7 @@ const Dashboard = () => {
       {
         onSuccess: () => {
           toast.success(
-            `Task moved to ${formatStatusName(newStatusId)}` ||
+            `Task moved to ${formatStatusName(statuses?.find((s) => s.id === newStatusId)?.name)}` ||
               "Task moved successfully!",
           );
         },

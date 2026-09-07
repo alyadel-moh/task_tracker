@@ -15,7 +15,7 @@ router.use(authenticate);
 
 /**
  * @openapi
- * /api/projects/create:
+ * /api/projects:
  *   post:
  *     summary: Create a new project with default statuses and owner membership
  *     description: Initializes a new project, automatically generates the default board statuses (TODO, IN_PROGRESS, DONE), and binds the calling user as the project OWNER.
@@ -98,7 +98,7 @@ router.use(authenticate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/create", create as unknown as RequestHandler);
+router.post("", create as unknown as RequestHandler);
 
 /**
  * @openapi
@@ -184,11 +184,11 @@ router.post("/create", create as unknown as RequestHandler);
  *               example:
  *                 message: Project not found
  */
-router.patch("/update/:id", update as unknown as RequestHandler);
+router.patch("/:id", update as unknown as RequestHandler);
 
 /**
  * @openapi
- * /api/projects/delete/{id}:
+ * /api/projects/{id}:
  *   delete:
  *     summary: Delete a project and its associations
  *     description: Permanently removes a project, cascading through its default statuses and tasks. Restricted strictly to the project OWNER.
@@ -238,6 +238,6 @@ router.patch("/update/:id", update as unknown as RequestHandler);
  *               example:
  *                 message: Project not found
  */
-router.delete("/delete/:id", remove as unknown as RequestHandler);
+router.delete("/:id", remove as unknown as RequestHandler);
 
 export default router;

@@ -67,7 +67,8 @@ async function getAll(
 ): Promise<Response | void> {
   try {
     const { projectId } = req.params;
-    const { search, statusId, priority, overdue, assigneeId } = req.query;
+    const { search, statusId, priority, overdue, assigneeId, createdById } =
+      req.query;
     const tasks = await TaskService.getAll(
       projectId,
       search as string,
@@ -76,6 +77,7 @@ async function getAll(
       overdue === "true" ? true : false,
       req.user.id,
       assigneeId as string,
+      createdById as string,
     );
     return res.status(200).json(tasks);
   } catch (err: any) {

@@ -38,6 +38,9 @@ interface AppState {
 
   projectToDelete: { id: string; name: string } | null;
   setProjectToDelete: (project: { id: string; name: string } | null) => void;
+
+  selectedAssigneeId: string | null;
+  setSelectedAssigneeId: (assigneeId: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -77,6 +80,9 @@ export const useAppStore = create<AppState>()(
 
       isCreateTaskOpen: false,
       setCreateTaskOpen: (open) => set({ isCreateTaskOpen: open }),
+      selectedAssigneeId: null,
+      setSelectedAssigneeId: (selectedAssigneeId) =>
+        set({ selectedAssigneeId }),
       isCreateProjectOpen: false,
       setCreateProjectOpen: (open) => set({ isCreateProjectOpen: open }),
       isUserProfileModalOpen: false,
