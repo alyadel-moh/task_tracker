@@ -113,7 +113,7 @@ const SortableColumn = ({
         if (statuses) {
           setStatuses(statuses.filter((s) => s.id !== column.id));
         }
-        toast.success(`Column "${column.name}" deleted successfully!`);
+        toast.success(`Column ${column.name} deleted successfully!`);
       },
       onError: (err: any) => {
         toast.error(err?.response?.data?.message || "Failed to delete column");
