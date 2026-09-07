@@ -43,6 +43,13 @@ const useRemoveMember = (projectId: string) => {
         },
       );
       queryClient.setQueryData<ProjectMember[]>(
+        ["project-members-active", projectId],
+        (oldMembers) => {
+          if (!oldMembers) return [];
+          return oldMembers.filter((member) => member.id !== variables.id);
+        },
+      );
+      queryClient.setQueryData<ProjectMember[]>(
         ["project-members", projectId],
         (oldMembers) => {
           if (!oldMembers) return [];

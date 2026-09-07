@@ -9,7 +9,7 @@ interface Params {
 export class ProjectMemberRepository {
   static async getAll(projectId: string) {
     return ProjectMembers.findAll({
-      where: { projectId, membershipStatus: "ACTIVE" },
+      where: { projectId },
       attributes: ["id", "userId", "role", "membershipStatus", "createdAt"],
       include: [
         {
@@ -148,6 +148,20 @@ export class ProjectMemberRepository {
   static async declineInvitation(userId: string, projectId: string) {
     return ProjectMembers.destroy({
       where: { userId, projectId, membershipStatus: "PENDING" },
+    });
+  }
+  static async getActiveMembers(projectId: string) {
+    return ProjectMembers.findAll({
+      where: { projectId, membershipStatus: "ACTIVE" },
+      attributes: ["id", "userId", "role", "membershipStatus", "createdAt"],
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email", "photoUrl"],
+        },
+      ],
+      order: [["createdAt", "ASC"]],
     });
   }
 }

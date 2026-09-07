@@ -11,6 +11,7 @@ import {
   getPendingInvitations,
   declineInvitation,
   acceptInvitation,
+  getActiveMembers,
 } from "../controllers/projectMembersController";
 
 const router = Router({ mergeParams: true });
@@ -653,6 +654,85 @@ router.delete("/:projectId/leave", leaveProject as unknown as RequestHandler);
 router.delete(
   "/:projectId/invitations/:id",
   cancelInvitation as unknown as RequestHandler,
+);
+
+/**
+ * @openapi
+ * /api/projects/{projectId}/members/active:
+ *   get:
+ *     summary: List all Active members of a project
+ *     description: Returns all Active members and their roles. Requires active project membership.
+ *     tags: [Project Members]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Unique UUID of the project
+ *         example: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+ *     responses:
+ *       200:
+ *         description: List of project members retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     format: uuid
+ *                   userId:
+ *                     type: string
+ *                     format: uuid
+ *                   role:
+ *                     type: string
+ *                     enum: [OWNER, MEMBER]
+ *                     example: "MEMBER"
+ *                   membershipStatus:
+ *                     type: string
+ *                     enum: [PENDING, ACTIVE]
+ *                     example: "ACTIVE"
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   user:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       name:
+ *                         type: string
+ *                         example: "Aly Adel"
+ *                       email:
+ *                         type: string
+ *                         format: email
+ *                         example: "aly@example.com"
+ *                       photoUrl:
+ *                         type: string
+ *                         nullable: true
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - User is not a member of this project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get(
+  "/:projectId/members/active",
+  getActiveMembers as unknown as RequestHandler,
 );
 
 export default router;

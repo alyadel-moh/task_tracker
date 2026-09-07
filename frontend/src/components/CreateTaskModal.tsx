@@ -20,7 +20,7 @@ import { toast } from "react-hot-toast";
 import "../css/TaskModal.css";
 import useCreateTask from "../hooks/createTaskHook";
 import useGetStatuses from "../hooks/getAllStatusesHook";
-import useGetProjectMembers from "../hooks/getAllprojectMembers";
+import useGetProjectMembers from "../hooks/getActiveProjectMembers";
 
 interface CreateTaskModalProps {
   projectId: string;

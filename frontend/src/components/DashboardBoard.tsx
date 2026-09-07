@@ -32,7 +32,7 @@ import { type Task, type Priority, type Statuss } from "./types";
 import InlineEditField from "./InlineEditField";
 import useUpdateProject from "../hooks/updateProjectHook";
 import useGetTasks from "../hooks/getAllTasksHook";
-import useGetProjectMembers from "../hooks/getAllprojectMembers";
+import useGetActiveMembers from "../hooks/getActiveProjectMembers";
 import useGetAssignedProjects from "../hooks/getProjectsHook";
 import { useAppStore } from "../store/useAppStore";
 import { useNavigate } from "react-router-dom";
@@ -120,7 +120,7 @@ const DashboardBoard = ({
 
   const updateProjectMutation = useUpdateProject(activeProject?.id ?? "");
   const { data: projects = [] } = useGetAssignedProjects();
-  const { data: projectMembersData = [] } = useGetProjectMembers(
+  const { data: projectMembersData = [] } = useGetActiveMembers(
     activeProject?.id ?? "",
   );
   const logoutMutation = useLogout();

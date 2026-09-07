@@ -177,6 +177,13 @@ export class ProjectMemberService {
       throw { status: 404, message: "No pending invitation found" };
     }
   }
+  static async getActiveMembers(projectId: string, userId: string) {
+    const ismember = await isMember(userId, projectId);
+    if (!ismember) {
+      throw { status: 403, message: "You are not a member of this project" };
+    }
+    return (await ProjectMemberRepository.getActiveMembers(projectId)) || [];
+  }
 
   static async getAssignedProjects(userId: string) {
     return (await ProjectMemberRepository.getAssignedProjects(userId)) || [];

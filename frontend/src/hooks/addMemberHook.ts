@@ -43,6 +43,13 @@ const useAddMember = (projectId: string | undefined) => {
           return [...oldData, data.projectMember];
         },
       );
+      queryClient.setQueryData(
+        ["project-members-active", projectId],
+        (oldData: ProjectMember[] | undefined) => {
+          if (!oldData) return [data.projectMember];
+          return [...oldData, data.projectMember];
+        },
+      );
       console.log("Member added successfully:", data.message);
     },
     onError: (error: AxiosError<ErrorResponse>) => {

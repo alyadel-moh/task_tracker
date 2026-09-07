@@ -28,7 +28,7 @@ import useGetTimeEntries from "../hooks/getAlltimeEntries";
 import useCreateTimeEntry from "../hooks/createTimeEntry";
 import useUpdateTimeEntry from "../hooks/updateTimeEntry";
 import useDeleteTimeEntry from "../hooks/deleteTimeEntry";
-import useGetProjectMembers from "../hooks/getAllprojectMembers";
+import useGetActiveMembers from "../hooks/getActiveProjectMembers";
 import "../css/TaskDetailsPage.css";
 import { Priority, ProjectMember } from "./types";
 import { useAppStore } from "../store/useAppStore";
@@ -182,7 +182,7 @@ const TaskDetailsPage = () => {
   const { data: timeEntriesData, isLoading: entriesLoading } =
     useGetTimeEntries(taskId);
 
-  const { data: projectMembers = [] } = useGetProjectMembers(projectId);
+  const { data: projectMembers = [] } = useGetActiveMembers(projectId);
 
   const updateTaskMutation = useUpdateTask(projectId);
   const { data: statuses } = useGetStatuses(projectId);

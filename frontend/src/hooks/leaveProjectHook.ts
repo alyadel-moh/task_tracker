@@ -33,6 +33,14 @@ const useLeaveProject = (projectId: string) => {
         },
       );
 
+      queryClient.setQueryData<ProjectMember[]>(
+        ["project-members-active", projectId],
+        (oldMembers) => {
+          if (!oldMembers) return [];
+          return oldMembers.filter((member) => member.projectId !== projectId);
+        },
+      );
+
       queryClient.setQueryData<AssignedProjectMembership[]>(
         ["assigned-projects"],
         (oldProjects) => {

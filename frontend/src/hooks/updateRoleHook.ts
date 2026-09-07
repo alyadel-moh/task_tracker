@@ -32,16 +32,19 @@ const useUpdateRole = (projectId: string | undefined) => {
       console.log("Role updated successfully:", data.message);
 
       queryClient.setQueryData<ProjectMember[]>(
+        ["project-members-active", projectId],
+        (oldMembers) => {
+          if (!oldMembers) return [];
+          return oldMembers.map((m) => (m.id === id ? { ...m, role } : m));
+        },
+      );
+      queryClient.setQueryData<ProjectMember[]>(
         ["project-members", projectId],
         (oldMembers) => {
           if (!oldMembers) return [];
           return oldMembers.map((m) => (m.id === id ? { ...m, role } : m));
         },
       );
-
-      queryClient.invalidateQueries({
-        queryKey: ["project-members", projectId],
-      });
     },
     onError: (error) => {
       console.error(

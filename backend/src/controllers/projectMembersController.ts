@@ -207,3 +207,22 @@ export async function getPendingInvitations(
     next(err);
   }
 }
+
+export async function getActiveMembers(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<Response | void> {
+  try {
+    const activeMembers = await ProjectMemberService.getActiveMembers(
+      req.params.projectId,
+      req.user.id,
+    );
+    return res.status(200).json(activeMembers);
+  } catch (err: any) {
+    if (err.status) {
+      return res.status(err.status).json({ message: err.message });
+    }
+    next(err);
+  }
+}
