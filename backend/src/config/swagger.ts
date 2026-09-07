@@ -11,8 +11,18 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
-        description: "Development Server",
+        url:
+          process.env.NODE_ENV === "production"
+            ? process.env.PROD_URL
+            : "http://localhost:3000",
+        description:
+          process.env.NODE_ENV === "production"
+            ? "Production Server"
+            : "Development Server",
+      },
+      {
+        url: "/",
+        description: "Relative (Current Host)",
       },
     ],
     components: {
@@ -103,12 +113,15 @@ const options: swaggerJSDoc.Options = {
     },
   },
   apis: [
-    // Paths for production (Docker runs compiled .js in dist)
-    path.join(process.cwd(), "dist/routes/**/*.js"),
-    path.join(process.cwd(), "dist/controllers/**/*.js"),
-    // Paths for development (tsx runs .ts in src)
-    path.join(process.cwd(), "src/routes/**/*.ts"),
-    path.join(process.cwd(), "src/controllers/**/*.ts"),
+    // Relative to the executed file (works whether in src/ or dist/)
+    path.join(__dirname, "./routes/**/*.{ts,js}"),
+    path.join(__dirname, "../routes/**/*.{ts,js}"),
+    path.join(__dirname, "./controllers/**/*.{ts,js}"),
+    path.join(__dirname, "../controllers/**/*.{ts,js}"),
+    path.join(__dirname, "./**/*.{ts,js}"),
+    // Process root fallbacks
+    path.join(process.cwd(), "dist/**/*.{js,ts}"),
+    path.join(process.cwd(), "src/**/*.{js,ts}"),
   ],
 };
 
