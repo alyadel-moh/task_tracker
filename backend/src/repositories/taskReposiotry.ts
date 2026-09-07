@@ -139,13 +139,18 @@ export class TaskRepository {
       }
     }
 
-    if (overdue === "true" || overdue === true) {
+    const isOverdue = overdue === true || overdue === "true";
+
+    if (isOverdue) {
       whereConditions.push({
         dueDate: {
-          [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: new Date() }],
+          [Op.and]: [{ [Op.ne]: null }, { [Op.lt]: Sequelize.fn("NOW") }],
         },
       });
-      statusConditions.push({ name: { [Op.ne]: "DONE" } });
+
+      statusConditions.push({
+        name: { [Op.not]: "DONE" },
+      });
     }
     const hasStatusFilters = statusConditions.length > 0;
     const includeOptions: Includeable[] = [
