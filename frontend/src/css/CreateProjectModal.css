@@ -180,6 +180,7 @@
   color: rgba(242, 241, 237, 0.4);
   pointer-events: none;
   z-index: 2;
+  display: block;
   transition: color 0.15s ease;
 }
 
@@ -245,11 +246,17 @@
 .textarea-wrapper {
   position: relative;
   width: 100%;
+  /* shared tokens so icon + text always agree */
+  --ta-pad-y: 12px;
+  --ta-pad-x: 12px;
+  --ta-icon-col: 40px;
+  --ta-line: 21px;
 }
 
 .textarea-wrapper textarea {
+  display: block;
   width: 100%;
-  padding: 12px 12px 12px 40px !important;
+  padding: var(--ta-pad-y) var(--ta-pad-x) var(--ta-pad-y) var(--ta-icon-col) !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 14px;
@@ -259,26 +266,40 @@
   color: #f2f1ed !important;
   resize: vertical;
   min-height: 84px;
-  line-height: 21px;
+  line-height: var(--ta-line);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
     background-color 0.15s ease;
 }
 
+/* Icon sits in a box exactly one line tall, starting at the textarea's
+   top padding — so it centres on the first line of text, not above it. */
 .textarea-icon-slot {
   position: absolute;
   left: 13px;
-  top: 14px;
+  top: calc(var(--ta-pad-y) + 1px); /* +1px = border width */
+  height: var(--ta-line);
   display: flex;
   align-items: center;
+  justify-content: center;
   pointer-events: none;
   z-index: 2;
 }
 
 .textarea-wrapper .textarea-icon {
+  display: block;
+  flex-shrink: 0;
   color: rgba(242, 241, 237, 0.4);
   transition: color 0.15s ease;
+}
+
+/* neutralise the input-icon absolute rules when reused inside the slot */
+.textarea-wrapper .textarea-icon-slot .input-icon {
+  position: static;
+  transform: none;
+  top: auto;
+  left: auto;
 }
 
 .textarea-wrapper textarea:hover:not(:focus) {
